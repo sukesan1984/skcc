@@ -4,3 +4,4 @@ services:
     build: .
     volumes:
       - ./src:/src
+      - ./workspace:/workspace
