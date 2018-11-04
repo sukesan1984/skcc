@@ -57,7 +57,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-') {
+        if (*p == '+' || *p == '-' || *p == '*') {
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -91,9 +91,24 @@ void error_token(int i){
     error("予期せぬトークンです:", tokens[i].input);
 }
 
-Node *expr() {
-    //Node *lhs = mul();
+Node *mul() {
     Node *lhs = new_node_num(tokens[pos++].val);
+    if(tokens[pos].ty == TK_EOF)
+        return lhs;
+
+    if(tokens[pos].ty == '*') {
+        pos++;
+        return new_node('*', lhs, mul());
+    }
+
+    if (lhs->op == ND_NUM)
+        return lhs;
+    error("想定しないトークンです(mul): %s", tokens[pos].input);
+    return lhs;
+}
+
+Node *expr() {
+    Node *lhs = mul();
     if (tokens[pos].ty == TK_EOF)
         return lhs;
 
@@ -128,6 +143,9 @@ void gen(Node *node) {
             break;
         case '-':
             printf("  sub rax, rdi\n");
+            break;
+        case '*':
+            printf("  mul rdi\n");
             break;
     }
     printf("  push rax\n");
