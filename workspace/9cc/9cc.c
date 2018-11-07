@@ -25,12 +25,17 @@ enum {
     ND_NUM = 256, // 整数のノードの型
 };
 
+
 typedef struct Node {
     int op; // 演算子かND_NUM
     struct Node *lhs; // 左辺
     struct Node *rhs; // 右辺
     int val; // ty がND_NUMの場合のみ使う
 } Node;
+
+Node *expr();
+Node *mul();
+Node *term();
 
 Node *new_node(int op, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
@@ -57,7 +62,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -91,8 +96,9 @@ void error_token(int i){
     error("予期せぬトークンです:", tokens[i].input);
 }
 
+
 Node *mul() {
-    Node *lhs = new_node_num(tokens[pos++].val);
+    Node *lhs = term();
     if(tokens[pos].ty == TK_EOF)
         return lhs;
 
@@ -125,8 +131,28 @@ Node *expr() {
         pos++;
         return new_node('-', lhs, expr());
     }
+    if (lhs->op == ND_NUM)
+        return lhs;
+
     error("想定しないトークンです(expr): %s", tokens[pos].input);
     return lhs;
+}
+
+Node *term() {
+    if (tokens[pos].ty == TK_NUM)
+        return new_node_num(tokens[pos++].val);
+
+    if(tokens[pos].ty == '(') {
+        pos++;
+        Node *node = expr();
+        if (tokens[pos].ty != ')') {
+            error("閉じ括弧で閉じる必要があります: %s", tokens[pos].input);
+        }
+        pos++;
+        return node;
+    }
+    error("数字でも開き括弧でもないトークンです: %s", tokens[pos].input);
+    exit(1);
 }
 
 void gen(Node *node) {
