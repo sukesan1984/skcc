@@ -16,6 +16,30 @@ typedef struct {
     char *input; // トークン文字列(エラーメッセージ用)
 } Token;
 
+// 可変長Vector
+// 任意蝶の入力をサポートする
+typedef struct {
+    void **data;  // 実際のデータ
+    int capacity; // バッファの大きさ
+    int len;      // ベクタに追加済みの要素の個数。len == capacityのときにバッファがいっぱい、新たに要素を足す場合は、新たにバッファを確保して既存の要素をコピーし、dataポインタをすげ替える
+} Vector;
+
+Vector *new_vector() {
+    Vector *vec = malloc(sizeof(Vector));
+    vec-> data = malloc(sizeof(void *) * 16);
+    vec->capacity = 16;
+    vec->len = 0;
+    return vec;
+}
+
+void vec_push(Vector *vec, void *elem) {
+    if (vec->capacity == vec->len) {
+        vec->capacity *= 2;
+        vec->data = realloc(vec->data, sizeof(void *) * vec->capacity);
+    }
+    vec->data[vec->len++] = elem;
+}
+
 // トークナイズした結果のトークン列はこの配列に保存する
 // 100個以上のトークンはこないものとする
 Token tokens[100];
@@ -184,11 +208,42 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+int expect(int line, int expected, int actual) {
+    if (expected == actual)
+        return 0;
+    fprintf(stderr, "%d: %d expected, but got %d\n",
+            line, expected, actual);
+    exit(1);
+}
+
+void runtest() {
+    Vector *vec = new_vector();
+    expect(__LINE__, 0, vec->len);
+
+    for (int i = 0; i < 100; i++)
+        vec_push(vec, (void *)(uintptr_t) i);
+
+    expect(__LINE__, 100, vec->len);
+    expect(__LINE__, 0, (intptr_t)vec->data[0]);
+    expect(__LINE__, 50, (intptr_t)vec->data[50]);
+    expect(__LINE__, 99, (intptr_t)vec->data[99]);
+    printf("OK\n");
+}
 
 int main(int argc, char **argv) {
     if (argc != 2){
         fprintf(stderr, "引数の個数が正しくありません\n");
         return 1;
+    }
+
+    //fprintf(stderr, "引数: %s\n", argv[1]);
+    if (strcmp(argv[1], "-test") == 0) {
+        runtest();
+        return 0;
     }
     // トークナイズしてパースする
     tokenize(argv[1]);
