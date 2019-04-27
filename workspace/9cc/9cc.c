@@ -52,6 +52,13 @@ Node *new_node_num(int val) {
     return node;
 }
 
+int consume(int ty) {
+    if (tokens[pos].ty != ty)
+        return 0;
+    pos++;
+    return 1;
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
     int i = 0;
@@ -102,14 +109,11 @@ Node *mul() {
     if(tokens[pos].ty == TK_EOF)
         return lhs;
 
-    if(tokens[pos].ty == '*') {
-        pos++;
+    if(consume('*'))
         return new_node('*', lhs, mul());
-    }
-    if(tokens[pos].ty == '/') {
-        pos++;
+
+    if(consume('/'))
         return new_node('/', lhs, mul());
-    }
 
     if (lhs->op == ND_NUM)
         return lhs;
@@ -122,15 +126,12 @@ Node *expr() {
     if (tokens[pos].ty == TK_EOF)
         return lhs;
 
-    if(tokens[pos].ty == '+') {
-        pos++;
+    if(consume('+'))
         return new_node('+', lhs, expr());
-    }
 
-    if(tokens[pos].ty == '-') {
-        pos++;
+    if(consume('-'))
         return new_node('-', lhs, expr());
-    }
+
     if (lhs->op == ND_NUM)
         return lhs;
 
@@ -142,8 +143,7 @@ Node *term() {
     if (tokens[pos].ty == TK_NUM)
         return new_node_num(tokens[pos++].val);
 
-    if(tokens[pos].ty == '(') {
-        pos++;
+    if(consume('(')) {
         Node *node = expr();
         if (tokens[pos].ty != ')') {
             error("閉じ括弧で閉じる必要があります: %s", tokens[pos].input);
