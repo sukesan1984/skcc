@@ -2,6 +2,10 @@ version: '3'
 services:
   os:
     build: .
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
     volumes:
       - ./src:/src
       - ./workspace:/workspace
