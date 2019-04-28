@@ -64,6 +64,8 @@ typedef struct Node {
     int val; // ty がND_NUMの場合のみ使う
 } Node;
 
+Node *stmt();
+Node *assign();
 Node *add();
 Node *mul();
 Node *term();
@@ -100,7 +102,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);
 
             p++;
@@ -131,6 +133,22 @@ void error_token(int i){
     error("予期せぬトークンです:", t->input);
 }
 
+Node *stmt() {
+    Node *lhs = assign();
+    if (!consume(';')) {
+        Token *t = tokens->data[pos];
+        error("';'ではないトークンです: %s", t->input);
+    }
+    return lhs;
+}
+
+Node *assign() {
+    Node *lhs = add();
+    Token *t = tokens->data[pos]; 
+    if (consume('='))
+        return new_node('=', lhs, assign());
+    return lhs;
+}
 
 Node *add() {
     Node *lhs = mul();
@@ -146,8 +164,6 @@ Node *add() {
 
     if (lhs->op == ND_NUM)
         return lhs;
-
-    error("想定しないトークンです(add): %s", t->input);
     return lhs;
 }
 
@@ -165,7 +181,6 @@ Node *mul() {
 
     if (lhs->op == ND_NUM)
         return lhs;
-    error("想定しないトークンです(mul): %s", t->input);
     return lhs;
 }
 
@@ -176,7 +191,7 @@ Node *term() {
     }
 
     if(consume('(')) {
-        Node *node = add();
+        Node *node = assign();
         Token *t = tokens->data[pos];
         if (t->ty != ')') {
             error("閉じ括弧で閉じる必要があります: %s", t->input);
@@ -279,7 +294,7 @@ int main(int argc, char **argv) {
     // トークナイズしてパースする
     tokens = new_vector();
     tokenize(argv[1]);
-    Node* node = add();
+    Node* node = stmt();
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
