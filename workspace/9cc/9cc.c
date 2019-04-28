@@ -40,9 +40,16 @@ void vec_push(Vector *vec, void *elem) {
     vec->data[vec->len++] = elem;
 }
 
-// トークナイズした結果のトークン列はこの配列に保存する
-// 100個以上のトークンはこないものとする
-Token tokens[100];
+Token *add_token(Vector *v, int ty, char *input) {
+    Token * token = malloc(sizeof(Token));
+    token->ty = ty;
+    token->input = input;
+    vec_push(v, (void *)token);
+    return token;
+}
+
+// トークナイズした結果のトークン列はvecに格納する
+Vector* tokens;
 int pos = 0;
 
 enum {
@@ -77,7 +84,8 @@ Node *new_node_num(int val) {
 }
 
 int consume(int ty) {
-    if (tokens[pos].ty != ty)
+    Token *t = tokens->data[pos];
+    if (t->ty != ty)
         return 0;
     pos++;
     return 1;
@@ -85,7 +93,6 @@ int consume(int ty) {
 
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
-    int i = 0;
     while (*p) {
         // 空白文字列をスキップ
         if (isspace(*p)) {
@@ -94,27 +101,23 @@ void tokenize(char *p) {
         }
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
-            tokens[i].ty = *p;
-            tokens[i].input = p;
-            i++;
+            add_token(tokens, *p, p);
+
             p++;
             continue;
         }
 
         if (isdigit(*p)) {
-            tokens[i].ty = TK_NUM;
-            tokens[i].input = p;
-            tokens[i].val = strtol(p, &p, 10);
-            i++;
+            Token * t = add_token(tokens, TK_NUM, p);
+            t->val = strtol(p, &p, 10);
+
             continue;
         }
 
         fprintf(stderr, "トークナイズできません: %s\n", p);
         exit(1);
     }
-
-    tokens[i].ty = TK_EOF;
-    tokens[i].input = p;
+    add_token(tokens, TK_EOF, p);
 }
 
 // エラーを報告するための関数
@@ -124,13 +127,15 @@ void error(char *str, char *i){
 }
 
 void error_token(int i){
-    error("予期せぬトークンです:", tokens[i].input);
+    Token *t = tokens->data[i];
+    error("予期せぬトークンです:", t->input);
 }
 
 
 Node *mul() {
     Node *lhs = term();
-    if(tokens[pos].ty == TK_EOF)
+    Token *t = tokens->data[pos];
+    if(t->ty == TK_EOF)
         return lhs;
 
     if(consume('*'))
@@ -141,13 +146,14 @@ Node *mul() {
 
     if (lhs->op == ND_NUM)
         return lhs;
-    error("想定しないトークンです(mul): %s", tokens[pos].input);
+    error("想定しないトークンです(mul): %s", t->input);
     return lhs;
 }
 
 Node *expr() {
     Node *lhs = mul();
-    if (tokens[pos].ty == TK_EOF)
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_EOF)
         return lhs;
 
     if(consume('+'))
@@ -159,23 +165,28 @@ Node *expr() {
     if (lhs->op == ND_NUM)
         return lhs;
 
-    error("想定しないトークンです(expr): %s", tokens[pos].input);
+    error("想定しないトークンです(expr): %s", t->input);
     return lhs;
 }
 
 Node *term() {
-    if (tokens[pos].ty == TK_NUM)
-        return new_node_num(tokens[pos++].val);
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_NUM){
+        Token *t_n = tokens->data[pos++];
+        return new_node_num(t_n->val);
+    }
 
     if(consume('(')) {
         Node *node = expr();
-        if (tokens[pos].ty != ')') {
-            error("閉じ括弧で閉じる必要があります: %s", tokens[pos].input);
+        Token *t = tokens->data[pos];
+        if (t->ty != ')') {
+            error("閉じ括弧で閉じる必要があります: %s", t->input);
         }
         pos++;
         return node;
     }
-    error("数字でも開き括弧でもないトークンです: %s", tokens[pos].input);
+    t = tokens->data[pos];
+    error("数字でも開き括弧でもないトークンです: %s", t->input);
     exit(1);
 }
 
@@ -221,7 +232,7 @@ int expect(int line, int expected, int actual) {
 }
 
 int expect_token(int line, Token* expected, Token* actual) {
-    if (expected->ty == actual->ty 
+    if (expected->ty == actual->ty
             && expected->val == actual->val) {
         return 0;
     }
@@ -235,7 +246,6 @@ int expect_token(int line, Token* expected, Token* actual) {
 void runtest() {
     Vector *vec = new_vector();
     expect(__LINE__, 0, vec->len);
-
     for (int i = 0; i < 100; i++)
         vec_push(vec, (void *)(uintptr_t) i);
 
@@ -268,6 +278,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     // トークナイズしてパースする
+    tokens = new_vector();
     tokenize(argv[1]);
     Node* node = expr();
 
