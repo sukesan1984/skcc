@@ -6,7 +6,7 @@
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
-    TK_EOF,
+    TK_EOF = 1,
 };
 
 // トークンの型
@@ -64,7 +64,7 @@ typedef struct Node {
     int val; // ty がND_NUMの場合のみ使う
 } Node;
 
-Node *expr();
+Node *add();
 Node *mul();
 Node *term();
 
@@ -132,6 +132,25 @@ void error_token(int i){
 }
 
 
+Node *add() {
+    Node *lhs = mul();
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_EOF)
+        return lhs;
+
+    if(consume('+'))
+        return new_node('+', lhs, add());
+
+    if(consume('-'))
+        return new_node('-', lhs, add());
+
+    if (lhs->op == ND_NUM)
+        return lhs;
+
+    error("想定しないトークンです(add): %s", t->input);
+    return lhs;
+}
+
 Node *mul() {
     Node *lhs = term();
     Token *t = tokens->data[pos];
@@ -150,34 +169,14 @@ Node *mul() {
     return lhs;
 }
 
-Node *expr() {
-    Node *lhs = mul();
-    Token *t = tokens->data[pos];
-    if (t->ty == TK_EOF)
-        return lhs;
-
-    if(consume('+'))
-        return new_node('+', lhs, expr());
-
-    if(consume('-'))
-        return new_node('-', lhs, expr());
-
-    if (lhs->op == ND_NUM)
-        return lhs;
-
-    error("想定しないトークンです(expr): %s", t->input);
-    return lhs;
-}
-
 Node *term() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
-        Token *t_n = tokens->data[pos++];
-        return new_node_num(t_n->val);
+        return new_node_num(((Token *)tokens->data[pos++])->val);
     }
 
     if(consume('(')) {
-        Node *node = expr();
+        Node *node = add();
         Token *t = tokens->data[pos];
         if (t->ty != ')') {
             error("閉じ括弧で閉じる必要があります: %s", t->input);
@@ -280,7 +279,7 @@ int main(int argc, char **argv) {
     // トークナイズしてパースする
     tokens = new_vector();
     tokenize(argv[1]);
-    Node* node = expr();
+    Node* node = add();
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
