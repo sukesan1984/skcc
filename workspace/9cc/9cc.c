@@ -63,6 +63,8 @@ typedef struct Node {
     int val; // ty がND_NUMの場合のみ使う
 } Node;
 
+Node *code[100];
+
 Node *stmt();
 Node *assign();
 Node *add();
@@ -132,6 +134,13 @@ void error_token(int i){
     error("予期せぬトークンです:", t->input);
 }
 
+void program() {
+    int i = 0;
+    while(((Token *)tokens->data[pos])->ty != TK_EOF)
+        code[i++] = stmt();
+    code[i] = NULL;
+}
+
 Node *stmt() {
     Node *lhs = assign();
     if (!consume(';')) {
@@ -143,7 +152,7 @@ Node *stmt() {
 
 Node *assign() {
     Node *lhs = add();
-    Token *t = tokens->data[pos]; 
+    Token *t = tokens->data[pos];
     if (consume('='))
         return new_node('=', lhs, assign());
     return lhs;
@@ -152,8 +161,6 @@ Node *assign() {
 Node *add() {
     Node *lhs = mul();
     Token *t = tokens->data[pos];
-    if (t->ty == TK_EOF)
-        return lhs;
 
     if(consume('+'))
         return new_node('+', lhs, add());
@@ -293,7 +300,11 @@ int main(int argc, char **argv) {
     // トークナイズしてパースする
     tokens = new_vector();
     tokenize(argv[1]);
-    Node* node = stmt();
+    program();
+    int i = 0;
+    Node *node;
+    while(code[i])
+        node = code[i++];
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
