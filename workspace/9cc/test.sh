@@ -52,4 +52,6 @@ try 5 "return 5; return 6;"
 try 10 "return 1 * 2 * 3 + 4;"
 try 25 "abc = 3 * 2 - 1;b = 5; abc * b;"
 try 4 "a = 1;b = 2; a= 2;return a * b;"
+try 50 "abc = 3 * 2 - 1;b = abc + 5; abc * b;"
+try 6 "foo = 1; bar = 2 + 3;return foo + bar;"
 echo OK
