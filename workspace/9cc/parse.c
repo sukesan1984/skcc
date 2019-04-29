@@ -72,7 +72,6 @@ void tokenize(char *p) {
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);
-
             p++;
             continue;
         }
@@ -84,9 +83,17 @@ void tokenize(char *p) {
             continue;
         }
 
-        if ('a' <= *p && *p <= 'z') {
-            add_token(tokens, TK_IDENT, p);
-            p++;
+        if (is_alnum(*p)) {
+            int len = 1;
+            // パースできる文字出るじゃない文字が出てくるまで
+            Token *t = add_token(tokens, TK_IDENT, p);
+            while(is_alnum(*p)){
+                len++;
+                p++;
+            }
+            char *name = (char *) malloc(len + 1);
+            strncpy(name, p, len);
+            t->name = name;
             continue;
         }
 

@@ -11,13 +11,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // トークナイズしてパースする
+    tokens = new_vector();
     //fprintf(stderr, "引数: %s\n", argv[1]);
     if (strcmp(argv[1], "-test") == 0) {
         runtest();
         return 0;
     }
-    // トークナイズしてパースする
-    tokens = new_vector();
     tokenize(argv[1]);
     program();
 
