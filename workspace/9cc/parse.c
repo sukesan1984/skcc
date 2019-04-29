@@ -6,6 +6,7 @@
 
 
 int pos = 0;
+int variables = 0;
 // エラーを報告するための関数
 void error(char *str, char *i){
     fprintf(stderr, "%s%s\n", str, i);
@@ -171,6 +172,15 @@ Node *term() {
     }
 
     if (t->ty == TK_IDENT) {
+        // すでに使われた変数かどうか
+        long offset = (long) map_get(variable_map, t->name);
+
+        // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
+        if (offset == 0){
+            offset = (variables + 1) * 8;
+            map_put(variable_map, t->name, (void *) offset);
+            variables++;
+        }
         return new_node_ident(*((Token *)tokens->data[pos++])->input);
     }
 

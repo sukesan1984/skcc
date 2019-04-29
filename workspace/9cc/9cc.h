@@ -80,3 +80,6 @@ void runtest();
 extern Node *code[100];
 // トークナイズした結果のトークン列はvecに格納する
 extern Vector* tokens;
+
+//変数名とRBPからのオフセットを管理する
+extern Map* variable_map;
