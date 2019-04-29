@@ -31,4 +31,7 @@ try 9 "(1 + 2) * 3;"
 try 9 "1 + 2;(1 + 2) * 3;"
 try 5 "a = 3;b = 2; a + b;"
 try 25 "d = 3 * 2 - 1;b = 5; d * b;"
+try 2 "return 2;"
+try 5 "return 5; return 6;"
+try 10 "return 1 * 2 * 3 + 4;"
 echo OK

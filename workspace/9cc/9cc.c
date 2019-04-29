@@ -278,6 +278,17 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->ty == ND_RETURN) {
+        gen(node->lhs);
+        printf("  pop rax\n");          // genで生成された値をraxにpopして格納
+
+        //関数のエピローグ
+        printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
+        printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
+        printf("  ret\n");
+        return;
+    }
+
     // 変数に格納
     if (node->ty == '=') {
         // 左辺が変数であるはず
