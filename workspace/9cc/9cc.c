@@ -6,6 +6,7 @@
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
+    TK_IDENT,
     TK_EOF = 1,
 };
 
@@ -54,6 +55,7 @@ int pos = 0;
 
 enum {
     ND_NUM = 256, // 整数のノードの型
+    ND_IDENT,
 };
 
 typedef struct Node {
@@ -61,6 +63,7 @@ typedef struct Node {
     struct Node *lhs; // 左辺
     struct Node *rhs; // 右辺
     int val; // ty がND_NUMの場合のみ使う
+    char name;
 } Node;
 
 Node *code[100];
@@ -83,6 +86,13 @@ Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
     node->ty = ND_NUM;
     node->val = val;
+    return node;
+}
+
+Node *new_node_ident(char name) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = ND_IDENT;
+    node->name = name;
     return node;
 }
 
@@ -114,6 +124,12 @@ void tokenize(char *p) {
             Token * t = add_token(tokens, TK_NUM, p);
             t->val = strtol(p, &p, 10);
 
+            continue;
+        }
+
+        if ('a' <= *p && *p <= 'z') {
+            Token *t = add_token(tokens, TK_IDENT, p);
+            p++;
             continue;
         }
 
@@ -196,6 +212,10 @@ Node *term() {
         return new_node_num(((Token *)tokens->data[pos++])->val);
     }
 
+    if (t->ty == TK_IDENT) {
+        return new_node_ident(*((Token *)tokens->data[pos++])->input);
+    }
+
     if(consume('(')) {
         Node *node = assign();
         Token *t = tokens->data[pos];
@@ -210,9 +230,42 @@ Node *term() {
     exit(1);
 }
 
+// 左辺値を計算する
+void gen_lval(Node *node) {
+    if (node->ty != ND_IDENT)
+        error("代入の左辺値が変数ではありません", 0);
+
+    //Nodeが変数の場合
+    int offset = ('z' - node->name + 1) * 8;
+    printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
+    printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+    printf("  push rax\n");             // raxをスタックにプッシュ
+}
+
 void gen(Node *node) {
     if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
+        return;
+    }
+
+    if (node->ty == ND_IDENT) {
+        gen_lval(node);
+        printf("  pop rax\n");          // スタックからpopしてraxに格納
+        printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
+        printf("  push rax\n");         // スタックにraxをpush
+        return;
+    }
+
+    // 変数に格納
+    if (node->ty == '=') {
+        // 左辺が変数であるはず
+        gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
+        gen(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
+
+        printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
+        printf("  pop rax\n");          // 変数のアドレスがraxに格納
+        printf("  mov [rax], rdi\n");   // raxのレジスタのアドレスにrdiの値をストアする
+        printf("  push rdi\n");         // rdiの値をスタックにプッシュする
         return;
     }
 
@@ -301,20 +354,35 @@ int main(int argc, char **argv) {
     tokens = new_vector();
     tokenize(argv[1]);
     program();
+    /*
     int i = 0;
     Node *node;
     while(code[i])
         node = code[i++];
+    */
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
 
-    // 抽象構文木を下りながらコード生成
-    gen(node);
+    // プロローグ
+    // 変数26個分の領域を確保する
+    printf("  push rbp\n");                 // ベースポインタをスタックにプッシュする
+    printf("  mov rbp, rsp\n");             // rspをrbpにコピーする
+    printf("  sub rsp, %d\n", 26 * 8);      // rspを26文字の変数分動かす
 
-    printf("  pop rax\n");
+    for (int i = 0; code[i]; i++) {
+        // 抽象構文木を下りながらコード生成
+        gen(code[i]);
+        // 式の評価結果としてスタックに一つの値が残ってる
+        // はずなので、スタックが溢れないようにポップしておく
+        printf("  pop rax\n");
+    }
+
+    // エピローグ
+    printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
+    printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
     printf("  ret\n");
     return 0;
 }
