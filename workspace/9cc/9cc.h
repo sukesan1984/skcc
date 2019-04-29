@@ -53,9 +53,24 @@ typedef struct {
     int capacity; // バッファの大きさ
     int len;      // ベクタに追加済みの要素の個数。len == capacityのときにバッファがいっぱい、新たに要素を足す場合は、新たにバッファを確保して既存の要素をコピーし、dataポインタをすげ替える
 } Vector;
-Token *add_token(Vector *v, int ty, char *input);
+
+typedef struct {
+    Vector *keys;
+    Vector *vals;
+} Map;
+
+// Vectorを操作する関数群
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
+
+// Mapを操作する関数群
+Map *new_map();
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
+
+// Vectorにtokenを足す
+Token *add_token(Vector *v, int ty, char *input);
+
 int expect(int line, int expected, int actual);
 int expect_token(int line, Token* expected, Token* actual);
 void runtest();
