@@ -56,9 +56,8 @@ enum {
     ND_NUM = 256, // 整数のノードの型
 };
 
-
 typedef struct Node {
-    int op; // 演算子かND_NUM
+    int ty; // 演算子かND_NUM
     struct Node *lhs; // 左辺
     struct Node *rhs; // 右辺
     int val; // ty がND_NUMの場合のみ使う
@@ -70,9 +69,9 @@ Node *add();
 Node *mul();
 Node *term();
 
-Node *new_node(int op, Node *lhs, Node *rhs) {
+Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->op = op;
+    node->ty = ty;
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -80,7 +79,7 @@ Node *new_node(int op, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->op = ND_NUM;
+    node->ty = ND_NUM;
     node->val = val;
     return node;
 }
@@ -162,7 +161,7 @@ Node *add() {
     if(consume('-'))
         return new_node('-', lhs, add());
 
-    if (lhs->op == ND_NUM)
+    if (lhs->ty == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -179,7 +178,7 @@ Node *mul() {
     if(consume('/'))
         return new_node('/', lhs, mul());
 
-    if (lhs->op == ND_NUM)
+    if (lhs->ty == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -205,7 +204,7 @@ Node *term() {
 }
 
 void gen(Node *node) {
-    if (node->op == ND_NUM) {
+    if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
     }
@@ -216,7 +215,7 @@ void gen(Node *node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
-    switch(node->op) {
+    switch(node->ty) {
         case '+':
             printf("  add rax, rdi\n");
             break;
