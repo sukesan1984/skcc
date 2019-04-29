@@ -25,7 +25,7 @@ typedef struct Node {
     struct Node *lhs; // 左辺
     struct Node *rhs; // 右辺
     int val; // ty がND_NUMの場合のみ使う
-    char name;
+    char* name;
 } Node;
 
 // parse.c
@@ -34,7 +34,7 @@ void error_token(int i);
 int consume(int ty);
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
-Node *new_node_ident(char name);
+Node *new_node_ident(char* name);
 int is_alnum(char c);
 void tokenize(char *p);
 void program();
@@ -86,4 +86,5 @@ extern Node *code[100];
 extern Vector* tokens;
 
 //変数名とRBPからのオフセットを管理する
+extern int variables;
 extern Map* variable_map;

@@ -42,13 +42,12 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_node_ident(char name) {
+Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
     node->ty = ND_IDENT;
     node->name = name;
     return node;
 }
-
 
 int is_alnum(char c) {
     return ('a' <= c && c <= 'z') ||
@@ -80,12 +79,12 @@ void tokenize(char *p) {
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
             t->val = strtol(p, &p, 10);
-
             continue;
         }
 
         if (is_alnum(*p)) {
-            int len = 1;
+            char* init_p = p;
+            int len = 0;
             // パースできる文字出るじゃない文字が出てくるまで
             Token *t = add_token(tokens, TK_IDENT, p);
             while(is_alnum(*p)){
@@ -93,7 +92,7 @@ void tokenize(char *p) {
                 p++;
             }
             char *name = (char *) malloc(len + 1);
-            strncpy(name, p, len);
+            strncpy(name, init_p, len);
             t->name = name;
             continue;
         }
@@ -178,10 +177,11 @@ Node *term() {
         // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
         if (offset == 0){
             offset = (variables + 1) * 8;
+
             map_put(variable_map, t->name, (void *) offset);
             variables++;
         }
-        return new_node_ident(*((Token *)tokens->data[pos++])->input);
+        return new_node_ident(((Token *)tokens->data[pos++])->name);
     }
 
     if(consume('(')) {

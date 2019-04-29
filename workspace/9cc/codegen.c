@@ -1,5 +1,6 @@
 #include "9cc.h"
 #include <stdio.h>
+#include <stdint.h>
 
 void gen_main() {
     gen_initial();
@@ -24,10 +25,10 @@ void gen_initial() {
 
 void gen_prolog() {
     // プロローグ
-    // 変数26個分の領域を確保する
-    printf("  push rbp\n");                 // ベースポインタをスタックにプッシュする
-    printf("  mov rbp, rsp\n");             // rspをrbpにコピーする
-    printf("  sub rsp, %d\n", 26 * 8);      // rspを26文字の変数分動かす
+    // 使用した変数分の領域を確保する
+    printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
+    printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
+    printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
 }
 
 void gen_epilog() {
@@ -43,7 +44,7 @@ void gen_lval(Node *node) {
         error("代入の左辺値が変数ではありません", 0);
 
     //Nodeが変数の場合
-    int offset = ('z' - node->name + 1) * 8;
+    int offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
     printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
     printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax\n");             // raxをスタックにプッシュ

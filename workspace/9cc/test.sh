@@ -34,4 +34,6 @@ try 25 "d = 3 * 2 - 1;b = 5; d * b;"
 try 2 "return 2;"
 try 5 "return 5; return 6;"
 try 10 "return 1 * 2 * 3 + 4;"
+try 25 "abc = 3 * 2 - 1;b = 5; abc * b;"
+try 4 "a = 1;b = 2; a= 2;return a * b;"
 echo OK

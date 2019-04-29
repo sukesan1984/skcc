@@ -86,15 +86,19 @@ void test_map() {
 }
 
 void test_tokenize() {
+    printf("tokenize ..1\n");
     char *args = "a = 1; b = 2;return a + b;";
     tokenize(args);
     expect(__LINE__, 14, tokens->len);
     expect(__LINE__, TK_IDENT, ((Token *) (tokens->data[0]))->ty);
+    expect(__LINE__, 'a', *((Token *) (tokens->data[0]))->name);
     expect(__LINE__, '=', ((Token *) (tokens->data[1]))->ty);
     expect(__LINE__, TK_NUM, ((Token *) (tokens->data[2]))->ty);
     expect(__LINE__, ';', ((Token *) (tokens->data[3]))->ty);
     expect(__LINE__, TK_IDENT, ((Token *) (tokens->data[4]))->ty);
+    expect(__LINE__, 'b', *((Token *) (tokens->data[4]))->name);
 
+    printf("tokenize ..2\n");
     tokens = new_vector();
     args = "abc = 10;";
     tokenize(args);
