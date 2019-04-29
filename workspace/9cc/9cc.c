@@ -354,12 +354,6 @@ int main(int argc, char **argv) {
     tokens = new_vector();
     tokenize(argv[1]);
     program();
-    /*
-    int i = 0;
-    Node *node;
-    while(code[i])
-        node = code[i++];
-    */
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
