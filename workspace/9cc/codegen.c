@@ -1,6 +1,42 @@
 #include "9cc.h"
 #include <stdio.h>
 
+void gen_main() {
+    gen_initial();
+    gen_prolog();
+
+    for (int i = 0; code[i]; i++) {
+        // 抽象構文木を下りながらコード生成
+        gen(code[i]);
+        // 式の評価結果としてスタックに一つの値が残ってる
+        // はずなので、スタックが溢れないようにポップしておく
+        printf("  pop rax\n");
+    }
+    gen_epilog();
+}
+
+void gen_initial() {
+    // アセンブリの前半部分を出力
+    printf(".intel_syntax noprefix\n");
+    printf(".global main\n");
+    printf("main:\n");
+}
+
+void gen_prolog() {
+    // プロローグ
+    // 変数26個分の領域を確保する
+    printf("  push rbp\n");                 // ベースポインタをスタックにプッシュする
+    printf("  mov rbp, rsp\n");             // rspをrbpにコピーする
+    printf("  sub rsp, %d\n", 26 * 8);      // rspを26文字の変数分動かす
+}
+
+void gen_epilog() {
+    // エピローグ
+    printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
+    printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
+    printf("  ret\n");
+}
+
 // 左辺値を計算する
 void gen_lval(Node *node) {
     if (node->ty != ND_IDENT)

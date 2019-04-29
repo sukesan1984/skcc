@@ -45,6 +45,10 @@ Node *mul();
 Node *term();
 
 // codegen.c
+void gen_main();
+void gen_initial();
+void gen_prolog();
+void gen_epilog();
 void gen_lval(Node *node);
 void gen(Node *node);
 
