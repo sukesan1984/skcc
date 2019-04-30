@@ -86,6 +86,11 @@ void tokenize(char *p) {
         if (tokenize_comparable(tokens, TK_L, p, "<")) { p += 1; continue; };
         if (tokenize_comparable(tokens, TK_G, p, ">")) { p += 1; continue; };
 
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            add_token(tokens, TK_IF, p);
+            p += 2;
+            continue;
+        }
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);
@@ -123,8 +128,23 @@ void tokenize(char *p) {
 void program() {
     int i = 0;
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
-        code[i++] = stmt();
+        code[i++] = control();
     code[i] = NULL;
+}
+
+Node *control() {
+    if (consume(TK_IF)) {
+        if(consume('(')) {
+            Node *node = assign(); // if分のカッコ内の処理
+            Token *t = tokens->data[pos];
+            if (t->ty != ')') {
+                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
+            }
+            pos++;
+            return new_node(TK_IF, node, control());
+        }
+    }
+    return stmt();
 }
 
 Node *stmt() {
@@ -136,10 +156,7 @@ Node *stmt() {
     } else {
         node = assign();
     }
-    if (!consume(';')) {
-        Token *t = tokens->data[pos];
-        error("';'ではないトークンです: %s", t->input);
-    }
+    consume(';');
     return node;
 }
 

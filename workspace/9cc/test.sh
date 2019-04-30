@@ -52,4 +52,14 @@ try 5 "return 5; return 6;"
 try 10 "return 1 * 2 * 3 + 4;"
 try 25 "abc = 3 * 2 - 1;b = 5; abc * b;"
 try 4 "a = 1;b = 2; a= 2;return a * b;"
+try 50 "abc = 3 * 2 - 1;b = abc + 5; abc * b;"
+try 6 "foo = 1; bar = 2 + 3;return foo + bar;"
+try 40 "if (2 == 2) return 40;"
+try 0 "if (1 == 2) return 40;"
+try 3 "if(a = 3) return 3;"
+try 0 "if(a = 0) return 3;"
+try 10 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(b == e) return 10;'
+try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(a == e) return 0;'
+try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(a == d) if(a == e) return 0;'
+
 echo OK

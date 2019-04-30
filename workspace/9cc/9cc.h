@@ -3,6 +3,7 @@ enum {
     TK_NUM = 256,
     TK_RETURN,
     TK_IDENT,
+    TK_IF, // ifのトークン
     TK_EOF = 1,
     TK_EQ, // ==
     TK_NE, // !=
@@ -44,6 +45,7 @@ Node *new_node_ident(char* name);
 int is_alnum(char c);
 void tokenize(char *p);
 void program();
+Node *control();
 Node *stmt();
 Node *assign();
 Node *equality();
