@@ -4,6 +4,12 @@ enum {
     TK_RETURN,
     TK_IDENT,
     TK_EOF = 1,
+    TK_EQ, // ==
+    TK_NE, // !=
+    TK_LE, // <=
+    TK_GE, // >=
+    TK_L,  // <
+    TK_G,  // >
 };
 
 enum {
@@ -40,6 +46,8 @@ void tokenize(char *p);
 void program();
 Node *stmt();
 Node *assign();
+Node *equality();
+Node *relational();
 Node *add();
 Node *mul();
 Node *term();

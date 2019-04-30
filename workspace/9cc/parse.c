@@ -55,6 +55,15 @@ int is_alnum(char c) {
            ('0' <= c && c <= '9') ||
            (c == '_');
 }
+
+int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
+    int len = strlen(token);
+    if (strncmp(p, token, len) == 0) {
+        add_token(tokens, ty, p);
+        return 1;
+    }
+    return 0;
+}
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
     while (*p) {
@@ -69,6 +78,14 @@ void tokenize(char *p) {
             p += 6;
             continue;
         }
+
+        if (tokenize_comparable(tokens, TK_EQ, p, "==")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_L, p, "<")) { p += 1; continue; };
+        if (tokenize_comparable(tokens, TK_G, p, ">")) { p += 1; continue; };
+
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);
@@ -127,9 +144,32 @@ Node *stmt() {
 }
 
 Node *assign() {
-    Node *lhs = add();
+    Node *lhs = equality();
     if (consume('='))
         return new_node('=', lhs, assign());
+    return lhs;
+}
+
+Node *equality() {
+    Node *lhs = relational();
+    if(consume(TK_EQ))
+        return new_node(TK_EQ, lhs, equality());
+    if(consume(TK_NE))
+        return new_node(TK_NE, lhs, equality());
+    return lhs;
+}
+
+Node *relational() {
+    Node *lhs = add();
+    if(consume(TK_LE))
+        return new_node(TK_LE, lhs, relational());
+    if(consume(TK_L))
+        return new_node(TK_L, lhs, relational());
+    if(consume(TK_GE))
+        return new_node(TK_GE, lhs, relational());
+    if(consume(TK_G))
+        return new_node(TK_G, lhs, relational());
+
     return lhs;
 }
 
