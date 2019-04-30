@@ -93,6 +93,16 @@ void test_equality_tokenize() {
     expect(__LINE__, 25, tokens->len);
 }
 
+void test_while_tokenize() {
+    printf("while) tokenize \n");
+    tokens = new_vector();
+    char *args = "while (a != 5) a = a + 1;";
+    tokenize(args);
+    expect(__LINE__, 13, tokens->len);
+    expect(__LINE__, TK_WHILE, ((Token *) tokens->data[0])->ty);
+    expect(__LINE__, '(', ((Token *) tokens->data[1])->ty);
+}
+
 
 void test_tokenize() {
     printf("1) tokenize\n");
@@ -127,6 +137,8 @@ void test_tokenize() {
     expect(__LINE__, TK_NUM, ((Token *) (tokens->data[4]))->ty);
     expect(__LINE__, ';', ((Token *) (tokens->data[5]))->ty);
     expect(__LINE__, TK_EOF, ((Token *) (tokens->data[6]))->ty);
+
+    test_while_tokenize();
 
     printf("tokenize OK\n");
 }
