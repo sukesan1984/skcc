@@ -128,8 +128,16 @@ void tokenize(char *p) {
 void program() {
     int i = 0;
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
-        code[i++] = stmt();
+        code[i++] = control();
     code[i] = NULL;
+}
+
+Node *control() {
+    Node *node = stmt();
+    if (consume(TK_IF)) {
+        node = new_node(TK_IF, node, control());
+    }
+    return node;
 }
 
 Node *stmt() {

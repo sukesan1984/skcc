@@ -45,6 +45,7 @@ Node *new_node_ident(char* name);
 int is_alnum(char c);
 void tokenize(char *p);
 void program();
+Node *control();
 Node *stmt();
 Node *assign();
 Node *equality();
