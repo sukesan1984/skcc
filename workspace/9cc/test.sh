@@ -61,5 +61,8 @@ try 0 "if(a = 0) return 3;"
 try 10 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(b == e) return 10;'
 try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(a == e) return 0;'
 try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(a == d) if(a == e) return 0;'
+try 5 'a = 1; a = a + 4;return a;'
+try 6 'a = 1; while(a != 5) a = a + 1; return 6;'
+try 5 'a = 1; while(a != 5) a = a + 1; return a;'
 
 echo OK
