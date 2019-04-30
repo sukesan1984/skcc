@@ -75,6 +75,37 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->ty == TK_EQ ||
+        node->ty == TK_NE ||
+        node->ty == TK_LE ||
+        node->ty == TK_L  ||
+        node->ty == TK_GE ||
+        node->ty == TK_G) {
+        if (node->ty == TK_G || node->ty == TK_GE){
+            gen(node->rhs);                 // 右辺を先にスタックに乗せる
+            gen(node->lhs);
+        } else {
+            gen(node->lhs);                 // lhsの値がスタックにのる
+            gen(node->rhs);                 // rhsの値がスタックにのる
+        }
+
+        printf("  pop rdi\n");          // 左辺をrdiにpop
+        printf("  pop rax\n");          // 右辺をraxにpop
+        printf("  cmp rax, rdi\n");     // 2つのレジスタの値が同じかどうか比較する
+
+        if (node->ty == TK_EQ)
+            printf("  sete al\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
+        if (node->ty == TK_NE)
+            printf("  setne al\n");
+        if (node->ty == TK_L || node->ty == TK_G)
+            printf("  setl al\n");
+        if (node->ty == TK_LE || node->ty == TK_GE)
+            printf("  setle al\n");
+        printf("  movzb rax, al\n");    // raxを0クリアしてからalの結果をraxに格納
+        printf("  push rax\n");         // スタックに結果を積む
+        return;
+    }
+
     // 変数に格納
     if (node->ty == '=') {
         // 左辺が変数であるはず
