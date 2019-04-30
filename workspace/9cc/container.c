@@ -116,7 +116,6 @@ void test_tokenize() {
     test_equality_tokenize();
 
     printf("tokenize OK\n");
-
 }
 
 

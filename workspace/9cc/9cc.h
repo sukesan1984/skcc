@@ -46,6 +46,8 @@ void tokenize(char *p);
 void program();
 Node *stmt();
 Node *assign();
+Node *equality();
+Node *relational();
 Node *add();
 Node *mul();
 Node *term();

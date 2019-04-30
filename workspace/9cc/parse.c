@@ -144,9 +144,32 @@ Node *stmt() {
 }
 
 Node *assign() {
-    Node *lhs = add();
+    Node *lhs = equality();
     if (consume('='))
         return new_node('=', lhs, assign());
+    return lhs;
+}
+
+Node *equality() {
+    Node *lhs = relational();
+    if(consume(TK_EQ))
+        return new_node(TK_EQ, lhs, equality());
+    if(consume(TK_NE))
+        return new_node(TK_NE, lhs, equality());
+    return lhs;
+}
+
+Node *relational() {
+    Node *lhs = add();
+    if(consume(TK_LE))
+        return new_node(TK_LE, lhs, relational());
+    if(consume(TK_L))
+        return new_node(TK_L, lhs, relational());
+    if(consume(TK_GE))
+        return new_node(TK_GE, lhs, relational());
+    if(consume(TK_G))
+        return new_node(TK_G, lhs, relational());
+
     return lhs;
 }
 
