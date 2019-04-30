@@ -98,6 +98,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
+            add_token(tokens, TK_FOR, p);
+            p += 3;
+            continue;
+        }
+
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);
             p++;

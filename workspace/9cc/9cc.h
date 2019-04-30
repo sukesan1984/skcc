@@ -5,6 +5,7 @@ enum {
     TK_IDENT,
     TK_IF, // ifのトークン
     TK_WHILE, // whileのトークン
+    TK_FOR, // forのトークン
     TK_EOF = 1,
     TK_EQ, // ==
     TK_NE, // !=
