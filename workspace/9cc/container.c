@@ -85,6 +85,15 @@ void test_map() {
     printf("OK map\n");
 }
 
+void test_equality_tokenize() {
+    printf("equality) tokenize \n");
+    tokens = new_vector();
+    char *args = "a == 1; b != 1; c <= 1; d >= 1; e < 1; f > 1;";
+    tokenize(args);
+    expect(__LINE__, 25, tokens->len);
+}
+
+
 void test_tokenize() {
     printf("tokenize ..1\n");
     char *args = "a = 1; b = 2;return a + b;";
@@ -103,9 +112,13 @@ void test_tokenize() {
     args = "abc = 10;";
     tokenize(args);
     expect(__LINE__, 5, tokens->len);
+    
+    test_equality_tokenize();
 
     printf("tokenize OK\n");
+
 }
+
 
 void runtest() {
     Vector *vec = new_vector();
