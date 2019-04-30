@@ -65,4 +65,7 @@ try 5 'a = 1; a = a + 4;return a;'
 try 6 'a = 1; while(a != 5) a = a + 1; return 6;'
 try 5 'a = 1; while(a != 5) a = a + 1; return a;'
 
+try 11 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return b;'
+try 5 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return i;'
+
 echo OK

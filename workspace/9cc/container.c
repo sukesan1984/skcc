@@ -103,6 +103,16 @@ void test_while_tokenize() {
     expect(__LINE__, '(', ((Token *) tokens->data[1])->ty);
 }
 
+void test_for_tokenize() {
+    printf("for) tokenize \n");
+    tokens = new_vector();
+    char *args = "b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2;";
+    tokenize(args);
+    expect(__LINE__, 27, tokens->len);
+    expect(__LINE__, TK_FOR, ((Token *) tokens->data[4])->ty);
+    expect(__LINE__, '(', ((Token *) tokens->data[5])->ty);
+}
+
 
 void test_tokenize() {
     printf("1) tokenize\n");
@@ -139,6 +149,7 @@ void test_tokenize() {
     expect(__LINE__, TK_EOF, ((Token *) (tokens->data[6]))->ty);
 
     test_while_tokenize();
+    test_for_tokenize();
 
     printf("tokenize OK\n");
 }

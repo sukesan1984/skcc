@@ -5,6 +5,7 @@ enum {
     TK_IDENT,
     TK_IF, // ifのトークン
     TK_WHILE, // whileのトークン
+    TK_FOR, // forのトークン
     TK_EOF = 1,
     TK_EQ, // ==
     TK_NE, // !=
@@ -30,7 +31,9 @@ typedef struct {
 
 typedef struct Node {
     int ty; // 演算子かND_NUM
-    struct Node *lhs; // 左辺
+    struct Node *lhs; // 左辺(tyがTK_FORのときforの左)
+    struct Node *lhs2; //tyがTK_FORのときのforの真ん中
+    struct Node *lhs3; //tyがTK_FORのときのforの右
     struct Node *rhs; // 右辺
     int val; // ty がND_NUMの場合のみ使う
     char* name;

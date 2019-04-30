@@ -82,11 +82,27 @@ void gen(Node *node) {
     if (node->ty == TK_WHILE) {
         printf("  .Lbegin%d:\n", jump_num);      // ループの開始
         gen(node->lhs);                         // lhsをコンパイルしてスタックにpush
-        printf("  pop rax\n");                  // raxにstackを格納 
+        printf("  pop rax\n");                  // raxにstackを格納
         printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
         printf("  je .Lend%d\n", jump_num);
         gen(node->rhs);                         // ループの中身をコンパイル
         printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
+        printf(".Lend%d:\n", jump_num);
+        jump_num++;
+        return;
+    }
+
+    // for(lhs, lhs2, lhs3) rhsをコンパイル
+    if (node->ty == TK_FOR) {
+        gen(node->lhs);                     // lhsをまず実行してスタックに積む
+        printf(".Lbegin%d:\n", jump_num);   // ループの開始
+        gen(node->lhs2);                    // lhs2の実行結果をスタックに積む
+        printf("  pop rax\n");              // lhs2の実行結果をraxに格納
+        printf("  cmp rax, 0\n");           // lhsの実行結果が0と等しい。falseになったらおわる
+        printf("  je .Lend%d\n", jump_num);
+        gen(node->rhs);                     // rhsを実行
+        gen(node->lhs3);                    // lhs3の実行結果をスタックに積む
+        printf("  jmp .Lbegin%d\n", jump_num);// ループの開始に戻る
         printf(".Lend%d:\n", jump_num);
         jump_num++;
         return;
