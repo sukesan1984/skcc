@@ -3,6 +3,7 @@ enum {
     TK_NUM = 256,
     TK_RETURN,
     TK_IDENT,
+    TK_IF, // ifのトークン
     TK_EOF = 1,
     TK_EQ, // ==
     TK_NE, // !=

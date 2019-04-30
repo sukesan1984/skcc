@@ -86,6 +86,11 @@ void tokenize(char *p) {
         if (tokenize_comparable(tokens, TK_L, p, "<")) { p += 1; continue; };
         if (tokenize_comparable(tokens, TK_G, p, ">")) { p += 1; continue; };
 
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            add_token(tokens, TK_IF, p);
+            p += 2;
+            continue;
+        }
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
             add_token(tokens, *p, p);

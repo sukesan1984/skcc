@@ -95,7 +95,7 @@ void test_equality_tokenize() {
 
 
 void test_tokenize() {
-    printf("tokenize ..1\n");
+    printf("1) tokenize\n");
     char *args = "a = 1; b = 2;return a + b;";
     tokenize(args);
     expect(__LINE__, 14, tokens->len);
@@ -107,13 +107,26 @@ void test_tokenize() {
     expect(__LINE__, TK_IDENT, ((Token *) (tokens->data[4]))->ty);
     expect(__LINE__, 'b', *((Token *) (tokens->data[4]))->name);
 
-    printf("tokenize ..2\n");
+    printf("2) multi char variable tokenize\n");
     tokens = new_vector();
     args = "abc = 10;";
     tokenize(args);
     expect(__LINE__, 5, tokens->len);
     
     test_equality_tokenize();
+
+    printf("3) if tokenize \n");
+    tokens = new_vector();
+    args = "if (a) 3;";
+    tokenize(args);
+    expect(__LINE__, 7, tokens->len);
+    expect(__LINE__, TK_IF, ((Token *) (tokens->data[0]))->ty);
+    expect(__LINE__, '(', ((Token *) (tokens->data[1]))->ty);
+    expect(__LINE__, TK_IDENT, ((Token *) (tokens->data[2]))->ty);
+    expect(__LINE__, ')', ((Token *) (tokens->data[3]))->ty);
+    expect(__LINE__, TK_NUM, ((Token *) (tokens->data[4]))->ty);
+    expect(__LINE__, ';', ((Token *) (tokens->data[5]))->ty);
+    expect(__LINE__, TK_EOF, ((Token *) (tokens->data[6]))->ty);
 
     printf("tokenize OK\n");
 }
