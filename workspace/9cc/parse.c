@@ -133,11 +133,18 @@ void program() {
 }
 
 Node *control() {
-    Node *node = stmt();
     if (consume(TK_IF)) {
-        node = new_node(TK_IF, node, control());
+        if(consume('(')) {
+            Node *node = assign(); // if分のカッコ内の処理
+            Token *t = tokens->data[pos];
+            if (t->ty != ')') {
+                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
+            }
+            pos++;
+            return new_node(TK_IF, node, control());
+        }
     }
-    return node;
+    return stmt();
 }
 
 Node *stmt() {
@@ -149,10 +156,7 @@ Node *stmt() {
     } else {
         node = assign();
     }
-    if (!consume(';')) {
-        Token *t = tokens->data[pos];
-        error("';'ではないトークンです: %s", t->input);
-    }
+    consume(';');
     return node;
 }
 

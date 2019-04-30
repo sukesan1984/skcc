@@ -50,6 +50,7 @@ void gen_lval(Node *node) {
     printf("  push rax\n");             // raxをスタックにプッシュ
 }
 
+int jump_num_if = 0;                    // ifでjumpする回数を保存
 void gen(Node *node) {
     if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
@@ -61,6 +62,19 @@ void gen(Node *node) {
         printf("  pop rax\n");          // スタックからpopしてraxに格納
         printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
         printf("  push rax\n");         // スタックにraxをpush
+        return;
+    }
+
+    // if(lhs) rhsをコンパイル
+    if (node->ty == TK_IF) {
+        gen(node->lhs);                             // lhsの結果をスタックにpush
+        printf("  pop rax\n");                      // lhsの結果をraxにコピー
+        printf("  cmp rax, 0\n");                   // raxの結果と0を比較
+        printf("  je .Lend%d\n", jump_num_if);      // lhsが0のとき（false) Lendに飛ぶ
+        gen(node->rhs);                             // rhsの結果をスタックにpush
+        printf(".Lend%d:\n", jump_num_if);          // 終わる
+        printf("  push %d\n", 0);                   // Lendのときは0をstackに積む
+        jump_num_if++;
         return;
     }
 
