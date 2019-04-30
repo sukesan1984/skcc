@@ -49,6 +49,16 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
+Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = ty;
+    node->lhs = lhs;
+    node->lhs2 = lhs2;
+    node->lhs3 = lhs3;
+    node->rhs = rhs;
+    return node;
+}
+
 int is_alnum(char c) {
     return ('a' <= c && c <= 'z') ||
            ('A' <= c && c <= 'Z') ||
@@ -155,6 +165,22 @@ Node *control() {
             }
             pos++;
             return new_node(ty, node, control());
+        }
+    }
+
+    if (consume(TK_FOR)) {
+        if(consume('(')) {
+            Node *lhs = assign();
+            if(!consume(';'))
+                error("forの中に;が一つもありません: %s", ((Token *) tokens->data[pos])->input);
+            Node *lhs2 = assign();
+            if(!consume(';'))
+                error("forの中には;が2つ必要です: %s", ((Token *) tokens->data[pos])->input);
+
+            Node *lhs3 = assign();
+            if (!consume(')'))
+                error("forは閉じ括弧で閉じる必要があります: %s", ((Token *) tokens->data[pos])->input);
+            return new_node_for(ty, lhs, lhs2, lhs3, control());
         }
     }
 
