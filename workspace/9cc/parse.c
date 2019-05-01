@@ -37,14 +37,14 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_NUM;
+    node->ty = TK_NUM;
     node->val = val;
     return node;
 }
 
 Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_IDENT;
+    node->ty = TK_IDENT;
     node->name = name;
     return node;
 }
@@ -114,7 +114,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}') {
             add_token(tokens, *p, p);
             p++;
             continue;
@@ -161,7 +161,7 @@ Node *control() {
             Node *node = assign(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
-                error("if/whileは閉じ括弧で閉じる必要があります: %s", t->input);
+                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
             }
             pos++;
             return new_node(ty, node, control());
@@ -180,7 +180,7 @@ Node *control() {
             Node *lhs3 = assign();
             if (!consume(')'))
                 error("forは閉じ括弧で閉じる必要があります: %s", ((Token *) tokens->data[pos])->input);
-            return new_node_for(ty, lhs, lhs2, lhs3, control());
+            return new_node_for(TK_FOR, lhs, lhs2, lhs3, control());
         }
     }
 
@@ -189,9 +189,20 @@ Node *control() {
 
 Node *stmt() {
     Node *node;
+    if (consume('{')) {
+        Vector* block_items = new_vector();
+        while (!consume('}')) {
+            vec_push(block_items, (void *) stmt());
+        }
+        node = malloc(sizeof(Node));
+        node->ty = TK_BLOCK;
+        node->block_items  = block_items;
+        return node;
+    }
+
     if (consume(TK_RETURN)) {
         node = malloc(sizeof(Node));
-        node->ty = ND_RETURN;
+        node->ty = TK_RETURN;
         node->lhs = assign();
     } else {
         node = assign();
@@ -239,7 +250,7 @@ Node *add() {
     if(consume('-'))
         return new_node('-', lhs, add());
 
-    if (lhs->ty == ND_NUM)
+    if (lhs->ty == TK_NUM)
         return lhs;
     return lhs;
 }
@@ -256,7 +267,7 @@ Node *mul() {
     if(consume('/'))
         return new_node('/', lhs, mul());
 
-    if (lhs->ty == ND_NUM)
+    if (lhs->ty == TK_NUM)
         return lhs;
     return lhs;
 }

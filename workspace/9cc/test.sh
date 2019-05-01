@@ -67,5 +67,17 @@ try 5 'a = 1; while(a != 5) a = a + 1; return a;'
 
 try 11 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return b;'
 try 5 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return i;'
+# block
+try 5 'a = 1; while(a < 5) { a = a + 1; b = 2; } return a;'
+try 5 'a = 1; while(a < 5) { b = 2; a = a + 1; } return a;'
+try 2 'a = 1; while(a < 5) { b = 2; a = a + 1; return a; } return a;'
+try 11 'b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return b;'
+try 5 'b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return i;'
+try 0 "if (1 == 2) { return 40; }"
+try 3 "if(a = 3) { return 3; }"
+try 0 "if(a = 0) { return 3; }"
+try 3 'a = 2; if (a != 1) { b = 2; a = 3; } return a;'
+try 3 'a = 1; if (a == 1) { b = 4; a = 3; } return a;'
+try 4 'a = 1; if (a == 1) { b = 4; a = 3; } return b;'
 
 echo OK

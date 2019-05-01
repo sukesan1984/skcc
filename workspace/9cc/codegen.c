@@ -40,7 +40,7 @@ void gen_epilog() {
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->ty != ND_IDENT)
+    if (node->ty != TK_IDENT)
         error("代入の左辺値が変数ではありません", 0);
 
     //Nodeが変数の場合
@@ -52,16 +52,25 @@ void gen_lval(Node *node) {
 
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node) {
-    if (node->ty == ND_NUM) {
+    if (node->ty == TK_NUM) {
         printf("  push %d\n", node->val);
         return;
     }
 
-    if (node->ty == ND_IDENT) {
+    if (node->ty == TK_IDENT) {
         gen_lval(node);
         printf("  pop rax\n");          // スタックからpopしてraxに格納
         printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
         printf("  push rax\n");         // スタックにraxをpush
+        return;
+    }
+
+    if (node->ty == TK_BLOCK ) {
+        int block_len = node->block_items->len;
+        for (int i = 0; i < block_len; i++) {
+            gen((Node *) node->block_items->data[i]);
+            printf("  pop rax\n");
+        }
         return;
     }
 
@@ -108,7 +117,7 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == ND_RETURN) {
+    if (node->ty == TK_RETURN) {
         gen(node->lhs);
         printf("  pop rax\n");          // genで生成された値をraxにpopして格納
 
