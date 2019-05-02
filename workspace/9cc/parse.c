@@ -49,6 +49,13 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
+Node *new_node_func(int ty, char *name) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = TK_CALL;
+    node->name = name;
+    return node;
+}
+
 Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->ty = ty;
@@ -86,6 +93,13 @@ void tokenize(char *p) {
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
             add_token(tokens, TK_RETURN, p);
             p += 6;
+            continue;
+        }
+
+        if (strncmp(p, "hoge", 4) == 0 && !is_alnum(p[4])) { // 暫定hoge固定で関数呼び出しに対応
+            Token* t = add_token(tokens, TK_CALL, p);
+            t->name = "hoge";
+            p += 4;
             continue;
         }
 
@@ -276,6 +290,15 @@ Node *term() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
+    }
+
+    if (consume(TK_CALL)) {
+        if(!consume('('))
+            error("function callは(が必要です\n", ((Token *)tokens->data[pos])->input);
+        if(!consume(')'))
+            error("function callは)が必要です\n", ((Token *)tokens->data[pos])->input);
+
+        return new_node_func(TK_CALL, t->name);
     }
 
     if (t->ty == TK_IDENT) {

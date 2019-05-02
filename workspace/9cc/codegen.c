@@ -65,6 +65,12 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->ty == TK_CALL) {
+        printf("  call %s\n", node->name);         // 関数の呼び出し
+        printf("  push rax\n");         // スタックに結果を積む
+        return;
+    }
+
     if (node->ty == TK_BLOCK ) {
         int block_len = node->block_items->len;
         for (int i = 0; i < block_len; i++) {

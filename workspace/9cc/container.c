@@ -113,6 +113,16 @@ void test_for_tokenize() {
     expect(__LINE__, '(', ((Token *) tokens->data[5])->ty);
 }
 
+void test_function_call_tokenize() {
+    printf("function call) tokenize \n");
+    tokens = new_vector();
+    char *args = "return hoge();";
+    tokenize(args);
+    expect(__LINE__, 6, tokens->len);
+    expect(__LINE__, TK_CALL, ((Token *) tokens->data[1])->ty);
+    expect(__LINE__, '(', ((Token *) tokens->data[2])->ty);
+}
+
 
 void test_tokenize() {
     printf("1) tokenize\n");
@@ -150,6 +160,7 @@ void test_tokenize() {
 
     test_while_tokenize();
     test_for_tokenize();
+    test_function_call_tokenize();
 
     printf("tokenize OK\n");
 }

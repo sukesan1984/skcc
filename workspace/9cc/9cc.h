@@ -45,6 +45,7 @@ enum {
     TK_GE, // >=
     TK_L,  // <
     TK_G,  // >
+    TK_CALL, // 関数のトークン
 };
 
 
