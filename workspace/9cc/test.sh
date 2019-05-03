@@ -4,7 +4,7 @@ try() {
     input="$2"
 
     ./9cc "$input" > tmp.s
-    gcc -static -o tmp tmp.s tmp-hoge.o
+    gcc -static -o tmp tmp.s tmp-hoge.o tmp-fuga.o
     ./tmp
     actual="$?"
 
@@ -16,6 +16,7 @@ try() {
     fi
 }
 
+echo 'int fuga() { return 5; }' | gcc -xc -c -o tmp-fuga.o -
 echo 'int hoge() { return 20; }' | gcc -xc -c -o tmp-hoge.o -
 
 
@@ -84,5 +85,6 @@ try 3 'a = 1; if (a == 1) { b = 4; a = 3; } return a;'
 try 4 'a = 1; if (a == 1) { b = 4; a = 3; } return b;'
 try 20 'return hoge();'
 try 30 'a = hoge(); b = 10; return a + b;'
+try 25 'fuga = fuga(); hoge = hoge(); return fuga + hoge;'
 
 echo OK

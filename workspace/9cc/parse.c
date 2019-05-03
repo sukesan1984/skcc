@@ -96,13 +96,6 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (strncmp(p, "hoge", 4) == 0 && !is_alnum(p[4])) { // 暫定hoge固定で関数呼び出しに対応
-            Token* t = add_token(tokens, TK_CALL, p);
-            t->name = "hoge";
-            p += 4;
-            continue;
-        }
-
         if (tokenize_comparable(tokens, TK_EQ, p, "==")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
@@ -292,16 +285,15 @@ Node *term() {
         return new_node_num(((Token *)tokens->data[pos++])->val);
     }
 
-    if (consume(TK_CALL)) {
-        if(!consume('('))
-            error("function callは(が必要です\n", ((Token *)tokens->data[pos])->input);
-        if(!consume(')'))
-            error("function callは)が必要です\n", ((Token *)tokens->data[pos])->input);
+    if (consume(TK_IDENT)) {
+        // 変数と関数
+        // 関数かチェック
+        if(consume('(')) {
+            if(!consume(')'))
+                error("function callは)が必要です\n", ((Token *)tokens->data[pos])->input);
+            return new_node_func(TK_CALL, t->name);
+        }
 
-        return new_node_func(TK_CALL, t->name);
-    }
-
-    if (t->ty == TK_IDENT) {
         // すでに使われた変数かどうか
         long offset = (long) map_get(variable_map, t->name);
 
@@ -312,7 +304,7 @@ Node *term() {
             map_put(variable_map, t->name, (void *) offset);
             variables++;
         }
-        return new_node_ident(((Token *)tokens->data[pos++])->name);
+        return new_node_ident(t->name);
     }
 
     if(consume('(')) {

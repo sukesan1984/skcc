@@ -119,7 +119,7 @@ void test_function_call_tokenize() {
     char *args = "return hoge();";
     tokenize(args);
     expect(__LINE__, 6, tokens->len);
-    expect(__LINE__, TK_CALL, ((Token *) tokens->data[1])->ty);
+    expect(__LINE__, TK_IDENT, ((Token *) tokens->data[1])->ty);
     expect(__LINE__, '(', ((Token *) tokens->data[2])->ty);
 }
 
