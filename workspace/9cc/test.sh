@@ -101,6 +101,8 @@ try 33 "main() { return add6(3, 4, 5, 6, 7, 8); }"
 try 36 "main() { return add2(1, 2) + add6(3, 4, 5, 6, 7, 8); }"
 try 1 'one() { return 1; } main() { return one(); }'
 try 3 'one() { return 1; } two() { return 2; } main() { return one()+two(); }'
+try 7 'add(x, y) { return x + y; } main() { return add(3, 4); }'
+try 1 'local(a) { a = 3; return 3; } main() { a = 1; local(a); return a;}'
 
 
 echo OK

@@ -4,7 +4,6 @@
 
 void gen_main(Vector* v) {
     gen_initial();
-//    gen_prolog();
 
     int len = v->len;
     for (int i = 0; i < len; i++) {
@@ -18,18 +17,28 @@ void gen_main(Vector* v) {
     gen_epilog();
 }
 
+char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
 void gen_initial() {
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
 }
 
-void gen_prolog() {
+// 関数のプロローグ
+// args: 関数の引数
+void gen_prolog(Vector *args) {
     // プロローグ
     // 使用した変数分の領域を確保する
     printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
     printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
     printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+    int args_len = args->len;                   // argsのlengthを取得
+    for(int i = 0; i < args_len; i++) {
+        gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
+        printf("  pop rax\n");          // 変数のアドレスがraxに格納
+        printf("  mov [rax], %s\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+    }
 }
 
 void gen_epilog() {
@@ -61,7 +70,7 @@ void gen(Node *node) {
     // 関数定義
     if (node->ty == TK_FUNC) {
         printf("%s:\n", node->name);
-        gen_prolog();
+        gen_prolog(node->args);
         gen(node->body);
         return;
     }
@@ -84,7 +93,6 @@ void gen(Node *node) {
 
     if (node->ty == TK_CALL) {
         int args_len = node->args->len;
-        char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
         for (int i = 0; i < args_len; i++) {
             gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
             printf("  pop  rax\n");                     // 結果をraxに格納

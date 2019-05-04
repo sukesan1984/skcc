@@ -182,7 +182,7 @@ Node *function() {
     pos++;
 
     expect('(');
-    while(!consume(')'))
+    while(consume(',') || !consume(')'))
         vec_push(node->args, term());
     expect('{');
     node->body = compound_stmt();
