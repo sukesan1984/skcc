@@ -2,20 +2,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void gen_main(Vector* v) {
-    gen_initial();
-
-    int len = v->len;
-    for (int i = 0; i < len; i++) {
-        // 抽象構文木を下りながらコード生成
-        gen((Node *) v->data[i]);
-        // 式の評価結果としてスタックに一つの値が残ってる
-        // はずなので、スタックが溢れないようにポップしておく
-        printf("  pop rax\n");
-    }
-
-    gen_epilog();
-}
 
 char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
@@ -25,21 +11,6 @@ void gen_initial() {
     printf(".global main\n");
 }
 
-// 関数のプロローグ
-// args: 関数の引数
-void gen_prolog(Vector *args) {
-    // プロローグ
-    // 使用した変数分の領域を確保する
-    printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
-    printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
-    printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
-    int args_len = args->len;                   // argsのlengthを取得
-    for(int i = 0; i < args_len; i++) {
-        gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
-        printf("  pop rax\n");          // 変数のアドレスがraxに格納
-        printf("  mov [rax], %s\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
-    }
-}
 
 void gen_epilog() {
     // エピローグ
@@ -58,6 +29,22 @@ void gen_lval(Node *node) {
     printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
     printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax\n");             // raxをスタックにプッシュ
+}
+
+// 関数のプロローグ
+// args: 関数の引数
+void gen_prolog(Vector *args) {
+    // プロローグ
+    // 使用した変数分の領域を確保する
+    printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
+    printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
+    printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+    int args_len = args->len;                   // argsのlengthを取得
+    for(int i = 0; i < args_len; i++) {
+        gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
+        printf("  pop rax\n");          // 変数のアドレスがraxに格納
+        printf("  mov [rax], %s\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+    }
 }
 
 int jump_num = 0;                    // ifでjumpする回数を保存
@@ -225,4 +212,19 @@ void gen(Node *node) {
             printf("  div rdi\n");
     }
     printf("  push rax\n");
+}
+
+void gen_main(Vector* v) {
+    gen_initial();
+
+    int len = v->len;
+    for (int i = 0; i < len; i++) {
+        // 抽象構文木を下りながらコード生成
+        gen((Node *) v->data[i]);
+        // 式の評価結果としてスタックに一つの値が残ってる
+        // はずなので、スタックが溢れないようにポップしておく
+        printf("  pop rax\n");
+    }
+
+    gen_epilog();
 }

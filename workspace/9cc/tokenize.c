@@ -9,6 +9,15 @@ void error_token(int i){
     error("予期せぬトークンです:", t->input);
 }
 
+Token *add_token(Vector *v, int ty, char *input) {
+    Token * token = malloc(sizeof(Token));
+    token->ty = ty;
+    token->input = input;
+    vec_push(v, (void *)token);
+    return token;
+}
+
+
 int is_alnum(char c) {
     return ('a' <= c && c <= 'z') ||
            ('A' <= c && c <= 'Z') ||

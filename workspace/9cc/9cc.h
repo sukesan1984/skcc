@@ -65,31 +65,13 @@ enum {
 
 // parse.c
 void error(char *str, char *i);
-void error_token(int i);
-int consume(int ty);
-Node *new_node(int ty, Node *lhs, Node *rhs);
-Node *new_node_num(int val);
-Node *new_node_ident(char* name);
-int is_alnum(char c);
-void tokenize(char *p);
 Vector *parse();
-Node *function();
-Node *compound_stmt();
-Node *control();
-Node *stmt();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *term();
+
+// tokenize.c
+void tokenize(char *p);
 
 // codegen.c
 void gen_main(Vector* v);
-void gen_initial();
-void gen_epilog();
-void gen_lval(Node *node);
-void gen(Node *node);
 
 // Vectorを操作する関数群
 Vector *new_vector();
@@ -100,8 +82,6 @@ Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 
-// Vectorにtokenを足す
-Token *add_token(Vector *v, int ty, char *input);
 
 void runtest();
 

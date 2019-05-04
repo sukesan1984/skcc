@@ -4,12 +4,10 @@
 #include <string.h>
 #include "9cc.h"
 
-Token *add_token(Vector *v, int ty, char *input) {
-    Token * token = malloc(sizeof(Token));
-    token->ty = ty;
-    token->input = input;
-    vec_push(v, (void *)token);
-    return token;
+// エラーを報告するための関数
+void error(char *str, char *i){
+    fprintf(stderr, "%s%s\n", str, i);
+    exit(1);
 }
 
 // 可変長Vector
