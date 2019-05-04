@@ -263,11 +263,14 @@ Node *function() {
     node->ty = ND_FUNC;
     node->args = new_vector();
 
-    Token *t = tokens->data[pos];
-    if (t->ty != TK_IDENT)
+    
+    if (!consume(TK_INT))
+        error("method type specifier missing.%s", ((Token *) tokens->data[pos])->input);
+
+    Token *t = (Token *) tokens->data[pos];
+    if (!consume(TK_IDENT))
         error("function name expected, but got %s", t->input);
     node->name = t->name;
-    pos++;
 
     expect('(');
     while(consume(',') || !consume(')'))
