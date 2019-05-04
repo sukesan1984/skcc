@@ -44,21 +44,21 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = TK_NUM;
+    node->ty = ND_NUM;
     node->val = val;
     return node;
 }
 
 Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
-    node->ty = TK_IDENT;
+    node->ty = ND_IDENT;
     node->name = name;
     return node;
 }
 
 Node *new_node_func(int ty, char *name, Vector *args) {
     Node *node = malloc(sizeof(Node));
-    node->ty = TK_CALL;
+    node->ty = ND_CALL;
     node->name = name;
     node->args = args;
     return node;
@@ -108,8 +108,6 @@ void tokenize(char *p) {
         if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_L, p, "<")) { p += 1; continue; };
-        if (tokenize_comparable(tokens, TK_G, p, ">")) { p += 1; continue; };
 
         if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
             add_token(tokens, TK_IF, p);
@@ -129,7 +127,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}' || *p == ',') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}' || *p == ',' || *p == '<' || *p  == '>') {
             add_token(tokens, *p, p);
             p++;
             continue;
@@ -172,7 +170,7 @@ Vector *parse() {
 
 Node *function() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = TK_FUNC;
+    node->ty = ND_FUNC;
     node->args = new_vector();
 
     Token *t = tokens->data[pos];
@@ -191,7 +189,7 @@ Node *function() {
 
 Node* compound_stmt() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = TK_COMP_STMT;
+    node->ty = ND_COMP_STMT;
     node->stmts = new_vector();
     while(!consume('}'))
         vec_push(node->stmts, control());
@@ -199,8 +197,7 @@ Node* compound_stmt() {
 }
 
 Node *control() {
-    int ty = ((Token *) tokens->data[pos])->ty;
-    if (consume(TK_IF) || consume(TK_WHILE)) {
+    if (consume(TK_IF)) {
         if(consume('(')) {
             Node *node = assign(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
@@ -208,7 +205,19 @@ Node *control() {
                 error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
             }
             pos++;
-            return new_node(ty, node, control());
+            return new_node(ND_IF, node, control());
+        }
+    }
+
+    if (consume(TK_WHILE)) {
+        if(consume('(')) {
+            Node *node = assign(); // if/while分のカッコ内の処理
+            Token *t = tokens->data[pos];
+            if (t->ty != ')') {
+                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
+            }
+            pos++;
+            return new_node(ND_WHILE, node, control());
         }
     }
 
@@ -224,7 +233,7 @@ Node *control() {
             Node *lhs3 = assign();
             if (!consume(')'))
                 error("forは閉じ括弧で閉じる必要があります: %s", ((Token *) tokens->data[pos])->input);
-            return new_node_for(TK_FOR, lhs, lhs2, lhs3, control());
+            return new_node_for(ND_FOR, lhs, lhs2, lhs3, control());
         }
     }
 
@@ -239,14 +248,14 @@ Node *stmt() {
             vec_push(block_items, (void *) stmt());
         }
         node = malloc(sizeof(Node));
-        node->ty = TK_BLOCK;
+        node->ty = '{';
         node->block_items  = block_items;
         return node;
     }
 
     if (consume(TK_RETURN)) {
         node = malloc(sizeof(Node));
-        node->ty = TK_RETURN;
+        node->ty = ND_RETURN;
         node->lhs = assign();
     } else {
         node = assign();
@@ -265,22 +274,22 @@ Node *assign() {
 Node *equality() {
     Node *lhs = relational();
     if(consume(TK_EQ))
-        return new_node(TK_EQ, lhs, equality());
+        return new_node(ND_EQ, lhs, equality());
     if(consume(TK_NE))
-        return new_node(TK_NE, lhs, equality());
+        return new_node(ND_NE, lhs, equality());
     return lhs;
 }
 
 Node *relational() {
     Node *lhs = add();
     if(consume(TK_LE))
-        return new_node(TK_LE, lhs, relational());
-    if(consume(TK_L))
-        return new_node(TK_L, lhs, relational());
+        return new_node(ND_LE, lhs, relational());
+    if(consume('<'))
+        return new_node('<', lhs, relational());
     if(consume(TK_GE))
-        return new_node(TK_GE, lhs, relational());
-    if(consume(TK_G))
-        return new_node(TK_G, lhs, relational());
+        return new_node(ND_LE, relational(), lhs);
+    if(consume('>'))
+        return new_node('>', relational(), lhs);
 
     return lhs;
 }
@@ -332,7 +341,7 @@ Node *term() {
                 Node *node = add();
                 vec_push(args, (void *) node);
             }
-            return new_node_func(TK_CALL, t->name, args);
+            return new_node_func(ND_CALL, t->name, args);
         }
 
         // すでに使われた変数かどうか

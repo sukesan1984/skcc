@@ -35,22 +35,31 @@ typedef struct Node {
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
-    TK_RETURN,
     TK_IDENT,
-    TK_BLOCK,
     TK_IF, // ifのトークン
+    TK_RETURN,
     TK_WHILE, // whileのトークン
     TK_FOR, // forのトークン
-    TK_EOF = 1,
     TK_EQ, // ==
     TK_NE, // !=
     TK_LE, // <=
     TK_GE, // >=
-    TK_L,  // <
-    TK_G,  // >
-    TK_CALL, // 関数のトークン
-    TK_FUNC, // 関数定義
-    TK_COMP_STMT,
+    TK_EOF,
+};
+
+enum {
+    ND_NUM = 256,
+    ND_IDENT,
+    ND_RETURN,
+    ND_CALL,
+    ND_FUNC,
+    ND_COMP_STMT,
+    ND_IF,
+    ND_FOR,
+    ND_WHILE,
+    ND_EQ,
+    ND_NE,
+    ND_LE,
 };
 
 
