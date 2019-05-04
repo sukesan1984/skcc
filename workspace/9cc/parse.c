@@ -27,6 +27,13 @@ int consume(int ty) {
     return 1;
 }
 
+int expect(int ty ) {
+    Token *t = tokens->data[pos];
+    if (!consume(ty))
+        error("%d is expected but got %s", t->input);
+    return 1;
+}
+
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->ty = ty;
@@ -155,11 +162,40 @@ void tokenize(char *p) {
     add_token(tokens, TK_EOF, p);
 }
 
-void program() {
-    int i = 0;
+Vector *parse() {
+    pos = 0;
+    Vector *v = new_vector();
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
-        code[i++] = control();
-    code[i] = NULL;
+        vec_push(v, function());
+    return v;
+}
+
+Node *function() {
+    Node *node = calloc(1, sizeof(Node));
+    node->ty = TK_FUNC;
+    node->args = new_vector();
+
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_IDENT)
+        error("function name expected, but got %s", t->input);
+    node->name = t->name;
+    pos++;
+
+    expect('(');
+    while(!consume(')'))
+        vec_push(node->args, term());
+    expect('{');
+    node->body = compound_stmt();
+    return node;
+}
+
+Node* compound_stmt() {
+    Node *node = calloc(1, sizeof(Node));
+    node->ty = TK_COMP_STMT;
+    node->stmts = new_vector();
+    while(!consume('}'))
+        vec_push(node->stmts, control());
+    return node;
 }
 
 Node *control() {

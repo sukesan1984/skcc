@@ -2,17 +2,19 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void gen_main() {
+void gen_main(Vector* v) {
     gen_initial();
-    gen_prolog();
+//    gen_prolog();
 
-    for (int i = 0; code[i]; i++) {
+    int len = v->len;
+    for (int i = 0; i < len; i++) {
         // 抽象構文木を下りながらコード生成
-        gen(code[i]);
+        gen((Node *) v->data[i]);
         // 式の評価結果としてスタックに一つの値が残ってる
         // はずなので、スタックが溢れないようにポップしておく
         printf("  pop rax\n");
     }
+
     gen_epilog();
 }
 
@@ -20,7 +22,6 @@ void gen_initial() {
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
-    printf("main:\n");
 }
 
 void gen_prolog() {
@@ -54,6 +55,22 @@ int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node) {
     if (node->ty == TK_NUM) {
         printf("  push %d\n", node->val);
+        return;
+    }
+
+    // 関数定義
+    if (node->ty == TK_FUNC) {
+        printf("%s:\n", node->name);
+        gen_prolog();
+        gen(node->body);
+        return;
+    }
+
+    if (node->ty == TK_COMP_STMT) {
+        int stmt_len = node->stmts->len;
+        for (int i = 0; i < stmt_len; i++) {
+            gen(node->stmts->data[i]);
+        }
         return;
     }
 

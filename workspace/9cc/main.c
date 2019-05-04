@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-Node *code[100];
+//Node *code[100];
 // トークナイズした結果のトークン列はvecに格納する
 Vector* tokens;
 Map* variable_map;
@@ -21,8 +21,8 @@ int main(int argc, char **argv) {
         return 0;
     }
     tokenize(argv[1]);
-    program();
-    gen_main();
+    Vector *v = parse();
+    gen_main(v);
 
     return 0;
 }
