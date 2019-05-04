@@ -21,11 +21,17 @@ void gen_epilog() {
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->ty != ND_IDENT)
+    if (node->ty != ND_IDENT && node->ty != ND_DEREF)
         error("代入の左辺値が変数ではありません", 0);
 
-    //Nodeが変数の場合
-    int offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
+    int offset = 0;
+    if (node->ty == ND_IDENT) {
+        //Nodeが変数の場合
+        offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
+    // もしポインタなら
+    } else {
+        offset = (intptr_t) map_get(variable_map, node->lhs->name);
+    }
     printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
     printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax\n");             // raxをスタックにプッシュ
@@ -75,6 +81,11 @@ void gen(Node *node) {
         printf("  pop rax\n");          // スタックからpopしてraxに格納
         printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
         printf("  push rax\n");         // スタックにraxをpush
+        return;
+    }
+
+    if (node->ty == ND_DEREF) {
+        gen(node->lhs);
         return;
     }
 

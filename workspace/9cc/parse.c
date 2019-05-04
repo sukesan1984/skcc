@@ -61,8 +61,9 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
 }
 
 
-Node* add();
+Node *add();
 Node *assign();
+Node *unary();
 
 Node *term() {
     Token *t = tokens->data[pos];
@@ -71,8 +72,14 @@ Node *term() {
     }
 
     if (consume(TK_INT)) {
-        Token *t = (Token *) tokens->data[pos];
+        int tmp_pos = pos;
+        Token *t = (Token *) tokens->data[tmp_pos];
         // すでに使われた変数かどうか
+        while(t->ty == '*') {
+            tmp_pos++;
+            t = (Token *) tokens->data[tmp_pos];
+        }
+
         long offset = (long) map_get(variable_map, t->name);
 
         // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
@@ -83,7 +90,7 @@ Node *term() {
             variables++;
         }
 
-        return term();
+        return unary();
     }
 
     if (consume(TK_IDENT)) {
@@ -120,8 +127,20 @@ Node *term() {
     exit(1);
 }
 
+
+Node *mul();
+Node *unary() {
+    if (consume('*')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->ty = ND_DEREF;
+        node->lhs = mul();
+        return node;
+    }
+    return term();
+}
+
 Node *mul() {
-    Node *lhs = term();
+    Node *lhs = unary();
     Token *t = tokens->data[pos];
     if(t->ty == TK_EOF)
         return lhs;

@@ -103,5 +103,6 @@ try 1 'int one() { return 1; } int main() { return one(); }'
 try 3 'int one() { return 1; } int two() { return 2; } int main() { return one()+two(); }'
 try 7 'int add(int x, int y) { return x + y; } int main() { return add(3, 4); }'
 try 1 'int local(int a) { a = 3; return 3; } int main() { a = 1; local(a); return a;}'
+try 1 'int main() {int *p; *p = 1; return *p;}'
 
 echo OK
