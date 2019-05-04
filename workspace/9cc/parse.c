@@ -127,7 +127,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}' || *p == ',' || *p == '<' || *p  == '>') {
+        if (strchr("+-*/()=;{},<>", *p)) {
             add_token(tokens, *p, p);
             p++;
             continue;
