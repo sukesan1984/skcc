@@ -72,6 +72,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
+            add_token(tokens, TK_INT, p);
+            p += 3;
+            continue;
+        }
+
         if (strchr("+-*/()=;{},<>", *p)) {
             add_token(tokens, *p, p);
             p++;

@@ -70,6 +70,22 @@ Node *term() {
         return new_node_num(((Token *)tokens->data[pos++])->val);
     }
 
+    if (consume(TK_INT)) {
+        Token *t = (Token *) tokens->data[pos];
+        // すでに使われた変数かどうか
+        long offset = (long) map_get(variable_map, t->name);
+
+        // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
+        if (offset == 0){
+            offset = (variables + 1) * 8;
+
+            map_put(variable_map, t->name, (void *) offset);
+            variables++;
+        }
+
+        return term();
+    }
+
     if (consume(TK_IDENT)) {
         // 変数と関数
         // 関数かチェック
@@ -83,16 +99,10 @@ Node *term() {
             return new_node_func(ND_CALL, t->name, args);
         }
 
-        // すでに使われた変数かどうか
         long offset = (long) map_get(variable_map, t->name);
+        if (offset == 0)
+            error("%s は宣言されていません", t->name);
 
-        // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
-        if (offset == 0){
-            offset = (variables + 1) * 8;
-
-            map_put(variable_map, t->name, (void *) offset);
-            variables++;
-        }
         return new_node_ident(t->name);
     }
 
