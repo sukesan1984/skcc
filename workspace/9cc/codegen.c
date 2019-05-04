@@ -21,11 +21,11 @@ void gen_epilog() {
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->ty != ND_IDENT && node->ty != ND_DEREF)
+    if (node->op != ND_IDENT && node->op != ND_DEREF)
         error("代入の左辺値が変数ではありません", 0);
 
     int offset = 0;
-    if (node->ty == ND_IDENT) {
+    if (node->op == ND_IDENT) {
         //Nodeが変数の場合
         offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
     // もしポインタなら
@@ -55,20 +55,20 @@ void gen_prolog(Vector *args) {
 
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node) {
-    if (node->ty == ND_NUM) {
+    if (node->op == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
     }
 
     // 関数定義
-    if (node->ty == ND_FUNC) {
+    if (node->op == ND_FUNC) {
         printf("%s:\n", node->name);
         gen_prolog(node->args);
         gen(node->body);
         return;
     }
 
-    if (node->ty == ND_COMP_STMT) {
+    if (node->op == ND_COMP_STMT) {
         int stmt_len = node->stmts->len;
         for (int i = 0; i < stmt_len; i++) {
             gen(node->stmts->data[i]);
@@ -76,7 +76,7 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == ND_IDENT) {
+    if (node->op == ND_IDENT) {
         gen_lval(node);
         printf("  pop rax\n");          // スタックからpopしてraxに格納
         printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
@@ -84,12 +84,12 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == ND_DEREF) {
+    if (node->op == ND_DEREF) {
         gen(node->lhs);
         return;
     }
 
-    if (node->ty == ND_CALL) {
+    if (node->op == ND_CALL) {
         int args_len = node->args->len;
         for (int i = 0; i < args_len; i++) {
             gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
@@ -101,7 +101,7 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == '{') {
+    if (node->op == '{') {
         int block_len = node->block_items->len;
         for (int i = 0; i < block_len; i++) {
             gen((Node *) node->block_items->data[i]);
@@ -111,7 +111,7 @@ void gen(Node *node) {
     }
 
     // if(lhs) rhsをコンパイル
-    if (node->ty == ND_IF) {
+    if (node->op == ND_IF) {
         gen(node->lhs);                             // lhsの結果をスタックにpush
         printf("  pop rax\n");                      // lhsの結果をraxにコピー
         printf("  cmp rax, 0\n");                   // raxの結果と0を比較
@@ -124,7 +124,7 @@ void gen(Node *node) {
     }
 
     // while(lhs) rhsをコンパイル
-    if (node->ty == ND_WHILE) {
+    if (node->op == ND_WHILE) {
         printf("  .Lbegin%d:\n", jump_num);      // ループの開始
         gen(node->lhs);                         // lhsをコンパイルしてスタックにpush
         printf("  pop rax\n");                  // raxにstackを格納
@@ -138,7 +138,7 @@ void gen(Node *node) {
     }
 
     // for(lhs, lhs2, lhs3) rhsをコンパイル
-    if (node->ty == ND_FOR) {
+    if (node->op == ND_FOR) {
         gen(node->lhs);                     // lhsをまず実行してスタックに積む
         printf(".Lbegin%d:\n", jump_num);   // ループの開始
         gen(node->lhs2);                    // lhs2の実行結果をスタックに積む
@@ -153,7 +153,7 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == ND_RETURN) {
+    if (node->op == ND_RETURN) {
         gen(node->lhs);
         printf("  pop rax\n");          // genで生成された値をraxにpopして格納
 
@@ -164,11 +164,11 @@ void gen(Node *node) {
         return;
     }
 
-    if (node->ty == ND_EQ ||
-        node->ty == ND_NE ||
-        node->ty == ND_LE ||
-        node->ty == '<'  ||
-        node->ty == '>') {
+    if (node->op == ND_EQ ||
+        node->op == ND_NE ||
+        node->op == ND_LE ||
+        node->op == '<'  ||
+        node->op == '>') {
         gen(node->lhs);                 // lhsの値がスタックにのる
         gen(node->rhs);                 // rhsの値がスタックにのる
 
@@ -176,13 +176,13 @@ void gen(Node *node) {
         printf("  pop rax\n");          // 右辺をraxにpop
         printf("  cmp rax, rdi\n");     // 2つのレジスタの値が同じかどうか比較する
 
-        if (node->ty == ND_EQ)
+        if (node->op == ND_EQ)
             printf("  sete al\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
-        if (node->ty == ND_NE)
+        if (node->op == ND_NE)
             printf("  setne al\n");
-        if (node->ty == '<' || node->ty == '>')
+        if (node->op == '<' || node->op == '>')
             printf("  setl al\n");
-        if (node->ty == ND_LE)
+        if (node->op == ND_LE)
             printf("  setle al\n");
         printf("  movzb rax, al\n");    // raxを0クリアしてからalの結果をraxに格納
         printf("  push rax\n");         // スタックに結果を積む
@@ -190,7 +190,7 @@ void gen(Node *node) {
     }
 
     // 変数に格納
-    if (node->ty == '=') {
+    if (node->op == '=') {
         // 左辺が変数であるはず
         gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
         gen(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
@@ -208,7 +208,7 @@ void gen(Node *node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
-    switch(node->ty) {
+    switch(node->op) {
         case '+':
             printf("  add rax, rdi\n");
             break;

@@ -22,7 +22,7 @@ int expect(int ty ) {
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ty;
+    node->op = ty;
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -30,21 +30,21 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_NUM;
+    node->op = ND_NUM;
     node->val = val;
     return node;
 }
 
 Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_IDENT;
+    node->op = ND_IDENT;
     node->name = name;
     return node;
 }
 
 Node *new_node_func(int ty, char *name, Vector *args) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_CALL;
+    node->op = ND_CALL;
     node->name = name;
     node->args = args;
     return node;
@@ -52,7 +52,7 @@ Node *new_node_func(int ty, char *name, Vector *args) {
 
 Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ty;
+    node->op = ty;
     node->lhs = lhs;
     node->lhs2 = lhs2;
     node->lhs3 = lhs3;
@@ -132,7 +132,7 @@ Node *mul();
 Node *unary() {
     if (consume('*')) {
         Node *node = calloc(1, sizeof(Node));
-        node->ty = ND_DEREF;
+        node->op = ND_DEREF;
         node->lhs = mul();
         return node;
     }
@@ -151,7 +151,7 @@ Node *mul() {
     if(consume('/'))
         return new_node('/', lhs, mul());
 
-    if (lhs->ty == TK_NUM)
+    if (lhs->op == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -165,7 +165,7 @@ Node *add() {
     if(consume('-'))
         return new_node('-', lhs, add());
 
-    if (lhs->ty == TK_NUM)
+    if (lhs->op == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -208,14 +208,14 @@ Node *stmt() {
             vec_push(block_items, (void *) stmt());
         }
         node = malloc(sizeof(Node));
-        node->ty = '{';
+        node->op = '{';
         node->block_items  = block_items;
         return node;
     }
 
     if (consume(TK_RETURN)) {
         node = malloc(sizeof(Node));
-        node->ty = ND_RETURN;
+        node->op = ND_RETURN;
         node->lhs = assign();
     } else {
         node = assign();
@@ -270,7 +270,7 @@ Node *control() {
 
 Node* compound_stmt() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = ND_COMP_STMT;
+    node->op = ND_COMP_STMT;
     node->stmts = new_vector();
     while(!consume('}'))
         vec_push(node->stmts, control());
@@ -279,7 +279,7 @@ Node* compound_stmt() {
 
 Node *function() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = ND_FUNC;
+    node->op = ND_FUNC;
     node->args = new_vector();
 
     

@@ -19,7 +19,7 @@ typedef struct {
 } Token;
 
 typedef struct Node {
-    int ty; // 演算子かTK_NUM
+    int op; // 演算子かTK_NUM
     struct Node *lhs; // 左辺(tyがTK_FORのときforの左)
     struct Node *lhs2; //tyがTK_FORのときのforの真ん中
     struct Node *lhs3; //tyがTK_FORのときのforの右
