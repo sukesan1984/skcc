@@ -49,10 +49,11 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
-Node *new_node_func(int ty, char *name) {
+Node *new_node_func(int ty, char *name, Vector *args) {
     Node *node = malloc(sizeof(Node));
     node->ty = TK_CALL;
     node->name = name;
+    node->args = args;
     return node;
 }
 
@@ -121,7 +122,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '=' || *p == ';' || *p == '{' || *p == '}' || *p == ',') {
             add_token(tokens, *p, p);
             p++;
             continue;
@@ -289,9 +290,13 @@ Node *term() {
         // 変数と関数
         // 関数かチェック
         if(consume('(')) {
-            if(!consume(')'))
-                error("function callは)が必要です\n", ((Token *)tokens->data[pos])->input);
-            return new_node_func(TK_CALL, t->name);
+            // 引数は一旦6個まで対応する
+            Vector* args = new_vector(); // 引数を格納する引数Nodeが入る
+            while(consume(',') || !consume(')')) {
+                Node *node = add();
+                vec_push(args, (void *) node);
+            }
+            return new_node_func(TK_CALL, t->name, args);
         }
 
         // すでに使われた変数かどうか

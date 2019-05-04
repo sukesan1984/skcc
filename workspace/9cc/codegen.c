@@ -66,6 +66,13 @@ void gen(Node *node) {
     }
 
     if (node->ty == TK_CALL) {
+        int args_len = node->args->len;
+        char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+        for (int i = 0; i < args_len; i++) {
+            gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+            printf("  pop  rax\n");                     // 結果をraxに格納
+            printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
+        }
         printf("  call %s\n", node->name);         // 関数の呼び出し
         printf("  push rax\n");         // スタックに結果を積む
         return;

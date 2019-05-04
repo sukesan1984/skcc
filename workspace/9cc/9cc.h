@@ -25,6 +25,7 @@ typedef struct Node {
     struct Node *lhs3; //tyがTK_FORのときのforの右
     struct Node *rhs; // 右辺
     Vector *block_items; // blockのitemを入れるvector
+    Vector *args;      // 関数の場合の引数が格納される
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
 } Node;
