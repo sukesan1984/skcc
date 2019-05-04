@@ -2,9 +2,6 @@ FROM ubuntu:latest
 
 LABEL maintainer "Sukesan1984"
 
-RUN mkdir /workspace
-ADD ./workspace /workspace
-WORKDIR /workspace
 
 RUN apt-get update
 RUN apt-get -y install sudo && \
@@ -17,3 +14,6 @@ RUN apt-get -y install sudo && \
     sudo apt-get -y install gdb && \
     apt-get install -y strace
 
+RUN mkdir /workspace
+ADD ./workspace /workspace
+WORKDIR /workspace
