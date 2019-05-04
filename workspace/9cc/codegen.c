@@ -2,33 +2,43 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void gen_main() {
+void gen_main(Vector* v) {
     gen_initial();
-    gen_prolog();
 
-    for (int i = 0; code[i]; i++) {
+    int len = v->len;
+    for (int i = 0; i < len; i++) {
         // 抽象構文木を下りながらコード生成
-        gen(code[i]);
+        gen((Node *) v->data[i]);
         // 式の評価結果としてスタックに一つの値が残ってる
         // はずなので、スタックが溢れないようにポップしておく
         printf("  pop rax\n");
     }
+
     gen_epilog();
 }
+
+char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_initial() {
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
-    printf("main:\n");
 }
 
-void gen_prolog() {
+// 関数のプロローグ
+// args: 関数の引数
+void gen_prolog(Vector *args) {
     // プロローグ
     // 使用した変数分の領域を確保する
     printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
     printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
     printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+    int args_len = args->len;                   // argsのlengthを取得
+    for(int i = 0; i < args_len; i++) {
+        gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
+        printf("  pop rax\n");          // 変数のアドレスがraxに格納
+        printf("  mov [rax], %s\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+    }
 }
 
 void gen_epilog() {
@@ -57,6 +67,22 @@ void gen(Node *node) {
         return;
     }
 
+    // 関数定義
+    if (node->ty == TK_FUNC) {
+        printf("%s:\n", node->name);
+        gen_prolog(node->args);
+        gen(node->body);
+        return;
+    }
+
+    if (node->ty == TK_COMP_STMT) {
+        int stmt_len = node->stmts->len;
+        for (int i = 0; i < stmt_len; i++) {
+            gen(node->stmts->data[i]);
+        }
+        return;
+    }
+
     if (node->ty == TK_IDENT) {
         gen_lval(node);
         printf("  pop rax\n");          // スタックからpopしてraxに格納
@@ -67,7 +93,6 @@ void gen(Node *node) {
 
     if (node->ty == TK_CALL) {
         int args_len = node->args->len;
-        char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
         for (int i = 0; i < args_len; i++) {
             gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
             printf("  pop  rax\n");                     // 結果をraxに格納

@@ -24,8 +24,10 @@ typedef struct Node {
     struct Node *lhs2; //tyがTK_FORのときのforの真ん中
     struct Node *lhs3; //tyがTK_FORのときのforの右
     struct Node *rhs; // 右辺
+    struct Node *body; // function definition
     Vector *block_items; // blockのitemを入れるvector
     Vector *args;      // 関数の場合の引数が格納される
+    Vector *stmts;     // stmtの集合が入る
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
 } Node;
@@ -47,6 +49,8 @@ enum {
     TK_L,  // <
     TK_G,  // >
     TK_CALL, // 関数のトークン
+    TK_FUNC, // 関数定義
+    TK_COMP_STMT,
 };
 
 
@@ -59,7 +63,9 @@ Node *new_node_num(int val);
 Node *new_node_ident(char* name);
 int is_alnum(char c);
 void tokenize(char *p);
-void program();
+Vector *parse();
+Node *function();
+Node *compound_stmt();
 Node *control();
 Node *stmt();
 Node *assign();
@@ -70,9 +76,8 @@ Node *mul();
 Node *term();
 
 // codegen.c
-void gen_main();
+void gen_main(Vector* v);
 void gen_initial();
-void gen_prolog();
 void gen_epilog();
 void gen_lval(Node *node);
 void gen(Node *node);
@@ -89,8 +94,6 @@ void *map_get(Map *map, char *key);
 // Vectorにtokenを足す
 Token *add_token(Vector *v, int ty, char *input);
 
-int expect(int line, int expected, int actual);
-int expect_token(int line, Token* expected, Token* actual);
 void runtest();
 
 // Global変数

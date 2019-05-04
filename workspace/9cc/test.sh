@@ -25,79 +25,84 @@ echo 'int add4(int a, int b, int c, int d) { return a + b + c + d; }' | gcc -xc 
 echo 'int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }' | gcc -xc -c -o tmp-add5.o -
 echo 'int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f; }' | gcc -xc -c -o tmp-add6.o -
 
-try 0 '0;'
-try 42 '42;'
-try 21 '5+20-4;'
-try 41 ' 12 + 34 - 5;'
-try 37 "5 * 6 + 7;"
-try 48 "5 + 6 * 7 + 1;"
-try 7 "5 + 14 / 7;"
-try 50 "5 + 6 * 7 + 1 * 3;"
-try 47 "5 + 6 * 7;"
-try 47 "2 + 3 + 6 * 7;"
-try 44 "6 / 3 + 6 * 7;"
-try 9 "(1 + 2) * 3;"
-try 9 "1 + 2;(1 + 2) * 3;"
-try 1 "2 == 2;"
-try 0 "2 == 3;"
-try 0 "2 != 2;"
-try 1 "2 != 3;"
-try 1 "3 >= 2;"
-try 1 "2 >= 2;"
-try 0 "1 >= 2;"
-try 0 "3 <= 2;"
-try 1 "2 <= 2;"
-try 1 "1 <= 2;"
-try 1 "3 > 2;"
-try 0 "2 > 2;"
-try 0 "1 > 2;"
-try 0 "3 < 2;"
-try 0 "2 < 2;"
-try 1 "1 < 2;"
-try 5 "a = 3;b = 2; a + b;"
-try 25 "d = 3 * 2 - 1;b = 5; d * b;"
-try 2 "return 2;"
-try 5 "return 5; return 6;"
-try 10 "return 1 * 2 * 3 + 4;"
-try 25 "abc = 3 * 2 - 1;b = 5; abc * b;"
-try 4 "a = 1;b = 2; a= 2;return a * b;"
-try 50 "abc = 3 * 2 - 1;b = abc + 5; abc * b;"
-try 6 "foo = 1; bar = 2 + 3;return foo + bar;"
-try 40 "if (2 == 2) return 40;"
-try 0 "if (1 == 2) return 40;"
-try 3 "if(a = 3) return 3;"
-try 0 "if(a = 0) return 3;"
-try 10 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(b == e) return 10;'
-try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(a == e) return 0;'
-try 0 'a = 1; b = 2; c = 3; d = 2; e = 2; if(a == d) if(a == e) return 0;'
-try 5 'a = 1; a = a + 4;return a;'
-try 6 'a = 1; while(a != 5) a = a + 1; return 6;'
-try 5 'a = 1; while(a != 5) a = a + 1; return a;'
+try 0 "main() { 0; }"
+try 42 "main() { 42; }"
+try 21 "main() { 5+20-4; }"
+try 41 "main() {  12 + 34 - 5; }"
+try 37 "main() { 5 * 6 + 7; }"
+try 48 "main() { 5 + 6 * 7 + 1; }"
+try 7 "main() { 5 + 14 / 7; }"
+try 50 "main() { 5 + 6 * 7 + 1 * 3; }"
+try 47 "main() { 5 + 6 * 7; }"
+try 47 "main() { 2 + 3 + 6 * 7; }"
+try 44 "main() { 6 / 3 + 6 * 7; }"
+try 9 "main() { (1 + 2) * 3; }"
+try 9 "main() { 1 + 2;(1 + 2) * 3; }"
+try 1 "main() { 2 == 2; }"
+try 0 "main() { 2 == 3; }"
+try 0 "main() { 2 != 2; }"
+try 1 "main() { 2 != 3; }"
+try 1 "main() { 3 >= 2; }"
+try 1 "main() { 2 >= 2; }"
+try 0 "main() { 1 >= 2; }"
+try 0 "main() { 3 <= 2; }"
+try 1 "main() { 2 <= 2; }"
+try 1 "main() { 1 <= 2; }"
+try 1 "main() { 3 > 2; }"
+try 0 "main() { 2 > 2; }"
+try 0 "main() { 1 > 2; }"
+try 0 "main() { 3 < 2; }"
+try 0 "main() { 2 < 2; }"
+try 1 "main() { 1 < 2; }"
+try 5 "main() { a = 3;b = 2; a + b; }"
+try 25 "main() { d = 3 * 2 - 1;b = 5; d * b; }"
+try 2 "main() { return 2; }"
+try 5 "main() { return 5; return 6; }"
+try 10 "main() { return 1 * 2 * 3 + 4; }"
+try 25 "main() { abc = 3 * 2 - 1;b = 5; abc * b; }"
+try 4 "main() { a = 1;b = 2; a= 2;return a * b; }"
+try 50 "main() { abc = 3 * 2 - 1;b = abc + 5; abc * b; }"
+try 6 "main() { foo = 1; bar = 2 + 3;return foo + bar; }"
+try 40 "main() { if (2 == 2) return 40; }"
+try 0 "main() { if (1 == 2) return 40; }"
+try 3 "main() { if(a = 3) return 3; }"
+try 0 "main() { if(a = 0) return 3; }"
+try 10 "main() { a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(b == e) return 10; }"
+try 0 "main() { a = 1; b = 2; c = 3; d = 2; e = 2; if(b == d) if(a == e) return 0; }"
+try 0 "main() { a = 1; b = 2; c = 3; d = 2; e = 2; if(a == d) if(a == e) return 0; }"
+try 5 "main() { a = 1; a = a + 4;return a; }"
+try 6 "main() { a = 1; while(a != 5) a = a + 1; return 6; }"
+try 5 "main() { a = 1; while(a != 5) a = a + 1; return a; }"
 
-try 11 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return b;'
-try 5 'b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return i;'
+try 11 "main() { b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return b; }"
+try 5 "main() { b = 3; for (i = 1; i < 5; i = i + 1) b = b + 2; return i; }"
 # block
-try 5 'a = 1; while(a < 5) { a = a + 1; b = 2; } return a;'
-try 5 'a = 1; while(a < 5) { b = 2; a = a + 1; } return a;'
-try 2 'a = 1; while(a < 5) { b = 2; a = a + 1; return a; } return a;'
-try 11 'b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return b;'
-try 5 'b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return i;'
-try 0 "if (1 == 2) { return 40; }"
-try 3 "if(a = 3) { return 3; }"
-try 0 "if(a = 0) { return 3; }"
-try 3 'a = 2; if (a != 1) { b = 2; a = 3; } return a;'
-try 3 'a = 1; if (a == 1) { b = 4; a = 3; } return a;'
-try 4 'a = 1; if (a == 1) { b = 4; a = 3; } return b;'
+try 5 "main() { a = 1; while(a < 5) { a = a + 1; b = 2; } return a; }"
+try 5 "main() { a = 1; while(a < 5) { b = 2; a = a + 1; } return a; }"
+try 2 "main() { a = 1; while(a < 5) { b = 2; a = a + 1; return a; } return a; }"
+try 11 "main() { b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return b; }"
+try 5 "main() { b = 3; for (i = 1; i < 5; i = i + 1) { b = b + 2; } return i; }"
+try 0 "main() { if (1 == 2) { return 40; } }"
+try 3 "main() { if(a = 3) { return 3; } }"
+try 0 "main() { if(a = 0) { return 3; } }"
+try 3 "main() { a = 2; if (a != 1) { b = 2; a = 3; } return a; }"
+try 3 "main() { a = 1; if (a == 1) { b = 4; a = 3; } return a; }"
+try 4 "main() { a = 1; if (a == 1) { b = 4; a = 3; } return b; }"
 # function call
-try 20 'return hoge();'
-try 30 'a = hoge(); b = 10; return a + b;'
-try 25 'fuga = fuga(); hoge = hoge(); return fuga + hoge;'
-try 3 'return add1(3);'
-try 7 'return add2(3, 4);'
-try 12 'return add3(3, 4, 5);'
-try 18 'return add4(3, 4, 5, 6);'
-try 25 'return add5(3, 4, 5, 6, 7);'
-try 33 'return add6(3, 4, 5, 6, 7, 8);'
-try 36 'return add2(1, 2) + add6(3, 4, 5, 6, 7, 8);'
+try 20 "main() { return hoge(); }"
+try 30 "main() { a = hoge(); b = 10; return a + b; }"
+try 25 "main() { fuga = fuga(); hoge = hoge(); return fuga + hoge; }"
+try 3 "main() { return add1(3); }"
+try 7 "main() { return add2(3, 4); }"
+try 12 "main() { return add3(3, 4, 5); }"
+try 18 "main() { return add4(3, 4, 5, 6); }"
+try 25 "main() { return add5(3, 4, 5, 6, 7); }"
+try 33 "main() { return add6(3, 4, 5, 6, 7, 8); }"
+try 36 "main() { return add2(1, 2) + add6(3, 4, 5, 6, 7, 8); }"
+try 1 'one() { return 1; } main() { return one(); }'
+try 3 'one() { return 1; } two() { return 2; } main() { return one()+two(); }'
+try 7 'add(x, y) { return x + y; } main() { return add(3, 4); }'
+try 1 'local(a) { a = 3; return 3; } main() { a = 1; local(a); return a;}'
+
 
 echo OK
