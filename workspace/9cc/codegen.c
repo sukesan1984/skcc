@@ -148,12 +148,7 @@ void gen_lval(Node *node) {
 
 // 関数のプロローグ
 // args: 関数の引数
-void gen_prolog(Vector *args) {
-    // プロローグ
-    // 使用した変数分の領域を確保する
-    printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
-    printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
-    printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+void gen_args(Vector *args) {
     int args_len = args->len;                   // argsのlengthを取得
     for(int i = 0; i < args_len; i++) {
         gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
@@ -254,7 +249,12 @@ void gen_main(Vector* v) {
         // 関数定義
         if (node->op == ND_FUNC) {
             printf("%s:\n", node->name);
-            gen_prolog(node->args);
+            // プロローグ
+            // 使用した変数分の領域を確保する
+            printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
+            printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
+            printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+            gen_args(node->args);
             gen_stmt(node->body);
             // 抽象構文木を下りながらコード生成
             // 式の評価結果としてスタックに一つの値が残ってる
