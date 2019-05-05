@@ -11,12 +11,30 @@ void gen_initial() {
     printf(".global main\n");
 }
 
-
 void gen_epilog() {
     // エピローグ
     printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
     printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
     printf("  ret\n");
+}
+
+void gen_expr(Node *node){
+    switch(node->op) {
+        case '+':
+            printf("  add rax, rdi\n");
+            break;
+        case '-':
+            printf("  sub rax, rdi\n");
+            break;
+        case '*':
+            printf("  mul rdi\n");
+            break;
+        case '/':
+            printf("  mov rdx, 0\n");
+            printf("  div rdi\n");
+    }
+    printf("  push rax\n");
+    return;
 }
 
 // 左辺値を計算する
@@ -214,21 +232,7 @@ void gen(Node *node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
-    switch(node->op) {
-        case '+':
-            printf("  add rax, rdi\n");
-            break;
-        case '-':
-            printf("  sub rax, rdi\n");
-            break;
-        case '*':
-            printf("  mul rdi\n");
-            break;
-        case '/':
-            printf("  mov rdx, 0\n");
-            printf("  div rdi\n");
-    }
-    printf("  push rax\n");
+    gen_expr(node);
 }
 
 void gen_main(Vector* v) {
