@@ -199,16 +199,7 @@ static Type *type() {
     return ty;
 }
 
-Node *decl() {
-    Node *node = calloc(1, sizeof(Node));
-    Token *t = (Token *) tokens->data[pos];
-    while(t->ty == '*') {
-        pos++;
-        t = (Token *) tokens->data[pos];
-    }
-    node->op = ND_VARDEF;
-    if (t->ty != TK_IDENT)
-        error("variable name expected, but got %s", t->input);
+void put_variable_offset(Token *t) {
 
     // すでに使われた変数かどうか
     long offset = (long) map_get(variable_map, t->name);
@@ -220,6 +211,31 @@ Node *decl() {
         map_put(variable_map, t->name, (void *) offset);
         variables++;
     }
+}
+
+
+Node *decl() {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_VARDEF;
+    node->ty = type();
+    Token *t = (Token *) tokens->data[pos];
+    if (t->ty != TK_IDENT)
+        error("variable name expected, but got %s", t->input);
+    put_variable_offset(t);
+    node->name = t->name;
+    pos++;
+    return node;
+}
+
+Node *param() {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_VARDEF;
+    node->ty = type();
+
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_IDENT)
+        error("parameter name expected, but got %s", t->input);
+    put_variable_offset(t);
     node->name = t->name;
     pos++;
     return node;
@@ -227,7 +243,9 @@ Node *decl() {
 
 Node *stmt() {
     Node *node;
-    if (consume(TK_INT))  {
+    Token *t = tokens->data[pos];
+
+    if (t->ty == TK_INT)  {
         node = decl();
         expect(';');
         return node;
@@ -314,7 +332,6 @@ Node *function() {
     node->op = ND_FUNC;
     node->args = new_vector();
 
-    
     if (!consume(TK_INT))
         error("method type specifier missing.%s", ((Token *) tokens->data[pos])->input);
 
@@ -324,10 +341,11 @@ Node *function() {
     node->name = t->name;
 
     expect('(');
-    while(consume(',') || !consume(')')) {
-        if(!consume(TK_INT))
-            error("function variable type must be needed: %s", ((Token *) tokens->data[pos])->input);
-        vec_push(node->args, decl());
+    if (!consume(')')) {
+        vec_push(node->args, param());
+        while(consume(','))
+            vec_push(node->args, param());
+        expect(')');
     }
     expect('{');
     node->body = compound_stmt();
