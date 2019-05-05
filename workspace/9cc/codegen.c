@@ -51,7 +51,7 @@ void gen_expr(Node *node){
         case ND_CALL: {
             int args_len = node->args->len;
             for (int i = 0; i < args_len; i++) {
-                gen_stmt((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+                gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
                 printf("  pop  rax\n");                     // 結果をraxに格納
                 printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
             }
@@ -239,6 +239,7 @@ void gen_stmt(Node *node) {
         return;
     }
 
+    //fprintf(stderr, "ここに来るのは・・？: %d \n", node->op);
     gen_expr(node);
 }
 
