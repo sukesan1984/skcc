@@ -97,10 +97,6 @@ Node *term() {
             return new_node_func(ND_CALL, t->name, args);
         }
 
-        long offset = (long) map_get(variable_map, t->name);
-        if (offset == 0)
-            error("%s は宣言されていません", t->name);
-
         return new_node_ident(t->name);
     }
 

@@ -32,6 +32,9 @@ void gen_lval(Node *node) {
     } else {
         offset = (intptr_t) map_get(variable_map, node->lhs->name);
     }
+    if(offset == 0)
+        error("変数が宣言されていません:", node->name);
+
     printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
     printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax\n");             // raxをスタックにプッシュ
