@@ -127,16 +127,16 @@ void gen_expr(Node *node){
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->op != ND_IDENT && node->op != ND_DEREF && node-> op != ND_VARDEF)
+    if (node->op == ND_DEREF)
+        return gen_lval(node->lhs);
+
+    if (node->op != ND_IDENT && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
     Var* var;
     if (node->op == ND_IDENT || node->op == ND_VARDEF) {
         //Nodeが変数か宣言の場合
         var = map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
-    // もしポインタなら
-    } else {
-        var = map_get(variable_map, node->lhs->name);
     }
     if(var->offset == 0)
         error("変数が宣言されていません:", node->name);
