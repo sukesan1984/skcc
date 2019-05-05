@@ -21,12 +21,12 @@ void gen_epilog() {
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->op != ND_IDENT && node->op != ND_DEREF)
+    if (node->op != ND_IDENT && node->op != ND_DEREF && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
     int offset = 0;
-    if (node->op == ND_IDENT) {
-        //Nodeが変数の場合
+    if (node->op == ND_IDENT || node->op == ND_VARDEF) {
+        //Nodeが変数か宣言の場合
         offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
     // もしポインタなら
     } else {
@@ -75,6 +75,9 @@ void gen(Node *node) {
         }
         return;
     }
+
+    if (node->op == ND_VARDEF)
+        return;
 
     if (node->op == ND_IDENT) {
         gen_lval(node);

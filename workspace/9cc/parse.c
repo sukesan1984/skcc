@@ -24,8 +24,10 @@ int consume(int ty) {
 
 int expect(int ty ) {
     Token *t = tokens->data[pos];
-    if (!consume(ty))
-        error("%d is expected but got %s", t->input);
+    if (!consume(ty)) {
+        fprintf(stderr, "%d is expected but got %s", ty, t->input);
+        exit(1);
+    }
     return 1;
 }
 
@@ -80,28 +82,6 @@ Node *term() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
-    }
-
-    if (consume(TK_INT)) {
-        int tmp_pos = pos;
-        Token *t = (Token *) tokens->data[tmp_pos];
-        // すでに使われた変数かどうか
-        while(t->ty == '*') {
-            tmp_pos++;
-            t = (Token *) tokens->data[tmp_pos];
-        }
-
-        long offset = (long) map_get(variable_map, t->name);
-
-        // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
-        if (offset == 0){
-            offset = (variables + 1) * 8;
-
-            map_put(variable_map, t->name, (void *) offset);
-            variables++;
-        }
-
-        return unary();
     }
 
     if (consume(TK_IDENT)) {
@@ -223,8 +203,39 @@ static Type *type() {
     return ty;
 }
 
+Node *decl() {
+    Node *node = calloc(1, sizeof(Node));
+    Token *t = (Token *) tokens->data[pos];
+    while(t->ty == '*') {
+        pos++;
+        t = (Token *) tokens->data[pos];
+    }
+    node->op = ND_VARDEF;
+    if (t->ty != TK_IDENT)
+        error("variable name expected, but got %s", t->input);
+
+    // すでに使われた変数かどうか
+    long offset = (long) map_get(variable_map, t->name);
+
+    // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
+    if (offset == 0){
+        offset = (variables + 1) * 8;
+
+        map_put(variable_map, t->name, (void *) offset);
+        variables++;
+    }
+    node->name = t->name;
+    pos++;
+    return node;
+}
+
 Node *stmt() {
     Node *node;
+    if (consume(TK_INT))  {
+        node = decl();
+        expect(';');
+        return node;
+    }
     if (consume('{')) {
         Vector* block_items = new_vector();
         while (!consume('}')) {
@@ -315,8 +326,11 @@ Node *function() {
     node->name = t->name;
 
     expect('(');
-    while(consume(',') || !consume(')'))
-        vec_push(node->args, term());
+    while(consume(',') || !consume(')')) {
+        if(!consume(TK_INT))
+            error("function variable type must be needed: %s", ((Token *) tokens->data[pos])->input);
+        vec_push(node->args, decl());
+    }
     expect('{');
     node->body = compound_stmt();
     return node;

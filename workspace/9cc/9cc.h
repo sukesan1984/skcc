@@ -73,6 +73,7 @@ enum {
     ND_NE,
     ND_LE,
     ND_DEREF,
+    ND_VARDEF,
 };
 
 // parse.c
