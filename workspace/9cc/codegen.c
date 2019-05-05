@@ -164,7 +164,7 @@ void gen_stmt(Node *node) {
 
     // if(lhs) rhsをコンパイル
     if (node->op == ND_IF) {
-        gen_stmt(node->lhs);                             // lhsの結果をスタックにpush
+        gen_expr(node->lhs);                             // lhsの結果をスタックにpush
         printf("  pop rax\n");                      // lhsの結果をraxにコピー
         printf("  cmp rax, 0\n");                   // raxの結果と0を比較
         printf("  je .Lend%d\n", jump_num);      // lhsが0のとき（false) Lendに飛ぶ
