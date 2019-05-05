@@ -75,7 +75,8 @@ void gen_prolog(Vector *args) {
 }
 
 int jump_num = 0;                    // ifでjumpする回数を保存
-void gen(Node *node) {
+void gen(Node *node);
+void gen_stmt(Node *node) {
     if (node->op == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
@@ -85,14 +86,14 @@ void gen(Node *node) {
     if (node->op == ND_FUNC) {
         printf("%s:\n", node->name);
         gen_prolog(node->args);
-        gen(node->body);
+        gen_stmt(node->body);
         return;
     }
 
     if (node->op == ND_COMP_STMT) {
         int stmt_len = node->stmts->len;
         for (int i = 0; i < stmt_len; i++) {
-            gen(node->stmts->data[i]);
+            gen_stmt(node->stmts->data[i]);
         }
         return;
     }
@@ -109,14 +110,14 @@ void gen(Node *node) {
     }
 
     if (node->op == ND_DEREF) {
-        gen(node->lhs);
+        gen_stmt(node->lhs);
         return;
     }
 
     if (node->op == ND_CALL) {
         int args_len = node->args->len;
         for (int i = 0; i < args_len; i++) {
-            gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+            gen_stmt((Node *)  node->args->data[i]);         // スタックに引数を順に積む
             printf("  pop  rax\n");                     // 結果をraxに格納
             printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
         }
@@ -128,7 +129,7 @@ void gen(Node *node) {
     if (node->op == '{') {
         int block_len = node->block_items->len;
         for (int i = 0; i < block_len; i++) {
-            gen((Node *) node->block_items->data[i]);
+            gen_stmt((Node *) node->block_items->data[i]);
             printf("  pop rax\n");
         }
         return;
@@ -136,11 +137,11 @@ void gen(Node *node) {
 
     // if(lhs) rhsをコンパイル
     if (node->op == ND_IF) {
-        gen(node->lhs);                             // lhsの結果をスタックにpush
+        gen_stmt(node->lhs);                             // lhsの結果をスタックにpush
         printf("  pop rax\n");                      // lhsの結果をraxにコピー
         printf("  cmp rax, 0\n");                   // raxの結果と0を比較
         printf("  je .Lend%d\n", jump_num);      // lhsが0のとき（false) Lendに飛ぶ
-        gen(node->rhs);                             // rhsの結果をスタックにpush
+        gen_stmt(node->rhs);                             // rhsの結果をスタックにpush
         printf(".Lend%d:\n", jump_num);          // 終わる
         printf("  push %d\n", 0);                   // Lendのときは0をstackに積む
         jump_num++;
@@ -150,11 +151,11 @@ void gen(Node *node) {
     // while(lhs) rhsをコンパイル
     if (node->op == ND_WHILE) {
         printf("  .Lbegin%d:\n", jump_num);      // ループの開始
-        gen(node->lhs);                         // lhsをコンパイルしてスタックにpush
+        gen_stmt(node->lhs);                         // lhsをコンパイルしてスタックにpush
         printf("  pop rax\n");                  // raxにstackを格納
         printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
         printf("  je .Lend%d\n", jump_num);
-        gen(node->rhs);                         // ループの中身をコンパイル
+        gen_stmt(node->rhs);                         // ループの中身をコンパイル
         printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
         printf(".Lend%d:\n", jump_num);
         jump_num++;
@@ -163,14 +164,14 @@ void gen(Node *node) {
 
     // for(lhs, lhs2, lhs3) rhsをコンパイル
     if (node->op == ND_FOR) {
-        gen(node->lhs);                     // lhsをまず実行してスタックに積む
+        gen_stmt(node->lhs);                     // lhsをまず実行してスタックに積む
         printf(".Lbegin%d:\n", jump_num);   // ループの開始
-        gen(node->lhs2);                    // lhs2の実行結果をスタックに積む
+        gen_stmt(node->lhs2);                    // lhs2の実行結果をスタックに積む
         printf("  pop rax\n");              // lhs2の実行結果をraxに格納
         printf("  cmp rax, 0\n");           // lhsの実行結果が0と等しい。falseになったらおわる
         printf("  je .Lend%d\n", jump_num);
-        gen(node->rhs);                     // rhsを実行
-        gen(node->lhs3);                    // lhs3の実行結果をスタックに積む
+        gen_stmt(node->rhs);                     // rhsを実行
+        gen_stmt(node->lhs3);                    // lhs3の実行結果をスタックに積む
         printf("  jmp .Lbegin%d\n", jump_num);// ループの開始に戻る
         printf(".Lend%d:\n", jump_num);
         jump_num++;
@@ -178,7 +179,7 @@ void gen(Node *node) {
     }
 
     if (node->op == ND_RETURN) {
-        gen(node->lhs);
+        gen_stmt(node->lhs);
         printf("  pop rax\n");          // genで生成された値をraxにpopして格納
 
         //関数のエピローグ
@@ -193,8 +194,8 @@ void gen(Node *node) {
         node->op == ND_LE ||
         node->op == '<'  ||
         node->op == '>') {
-        gen(node->lhs);                 // lhsの値がスタックにのる
-        gen(node->rhs);                 // rhsの値がスタックにのる
+        gen_stmt(node->lhs);                 // lhsの値がスタックにのる
+        gen_stmt(node->rhs);                 // rhsの値がスタックにのる
 
         printf("  pop rdi\n");          // 左辺をrdiにpop
         printf("  pop rax\n");          // 右辺をraxにpop
@@ -217,7 +218,7 @@ void gen(Node *node) {
     if (node->op == '=') {
         // 左辺が変数であるはず
         gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
-        gen(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
+        gen_stmt(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
 
         printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
         printf("  pop rax\n");          // 変数のアドレスがraxに格納
@@ -225,9 +226,13 @@ void gen(Node *node) {
         printf("  push rdi\n");         // rdiの値をスタックにプッシュする
         return;
     }
+    gen(node);
+}
 
-    gen(node->lhs);
-    gen(node->rhs);
+void gen(Node *node) {
+
+    gen_stmt(node->lhs);
+    gen_stmt(node->rhs);
 
     printf("  pop rdi\n");
     printf("  pop rax\n");
@@ -241,7 +246,7 @@ void gen_main(Vector* v) {
     int len = v->len;
     for (int i = 0; i < len; i++) {
         // 抽象構文木を下りながらコード生成
-        gen((Node *) v->data[i]);
+        gen_stmt((Node *) v->data[i]);
         // 式の評価結果としてスタックに一つの値が残ってる
         // はずなので、スタックが溢れないようにポップしておく
         printf("  pop rax\n");
