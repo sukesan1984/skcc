@@ -19,14 +19,15 @@ void gen_epilog() {
     printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
     printf("  ret\n");
 }
-void gen_stmt(Node *node);
+void gen_expr(Node *node);
 
 void gen_binop(Node *lhs, Node *rhs){
-    gen_stmt(lhs);
-    gen_stmt(rhs);
+    gen_expr(lhs);
+    gen_expr(rhs);
 }
 
 void gen_lval(Node *node);
+void gen_stmt(Node *node);
 
 void gen_expr(Node *node){
     switch(node->op) {
@@ -228,6 +229,7 @@ void gen_stmt(Node *node) {
         }
         return;
     }
+
     if (node->op == '{') {
         int block_len = node->block_items->len;
         for (int i = 0; i < block_len; i++) {
