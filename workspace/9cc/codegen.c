@@ -134,37 +134,8 @@ void gen_prolog(Vector *args) {
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node);
 void gen_stmt(Node *node) {
-    // 関数定義
-    if (node->op == ND_FUNC) {
-        printf("%s:\n", node->name);
-        gen_prolog(node->args);
-        gen_stmt(node->body);
-        return;
-    }
-
-    if (node->op == ND_COMP_STMT) {
-        int stmt_len = node->stmts->len;
-        for (int i = 0; i < stmt_len; i++) {
-            gen_stmt(node->stmts->data[i]);
-        }
-        return;
-    } 
     if (node->op == ND_VARDEF)
         return;
-
-
-    if (node->op == ND_DEREF) {
-        gen_stmt(node->lhs);
-        return;
-    }
-    if (node->op == '{') {
-        int block_len = node->block_items->len;
-        for (int i = 0; i < block_len; i++) {
-            gen_stmt((Node *) node->block_items->data[i]);
-            printf("  pop rax\n");
-        }
-        return;
-    }
 
     // if(lhs) rhsをコンパイル
     if (node->op == ND_IF) {
@@ -175,20 +146,6 @@ void gen_stmt(Node *node) {
         gen_stmt(node->rhs);                             // rhsの結果をスタックにpush
         printf(".Lend%d:\n", jump_num);          // 終わる
         printf("  push %d\n", 0);                   // Lendのときは0をstackに積む
-        jump_num++;
-        return;
-    }
-
-    // while(lhs) rhsをコンパイル
-    if (node->op == ND_WHILE) {
-        printf("  .Lbegin%d:\n", jump_num);      // ループの開始
-        gen_stmt(node->lhs);                         // lhsをコンパイルしてスタックにpush
-        printf("  pop rax\n");                  // raxにstackを格納
-        printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
-        printf("  je .Lend%d\n", jump_num);
-        gen_stmt(node->rhs);                         // ループの中身をコンパイル
-        printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
-        printf(".Lend%d:\n", jump_num);
         jump_num++;
         return;
     }
@@ -209,6 +166,20 @@ void gen_stmt(Node *node) {
         return;
     }
 
+    // while(lhs) rhsをコンパイル
+    if (node->op == ND_WHILE) {
+        printf("  .Lbegin%d:\n", jump_num);      // ループの開始
+        gen_stmt(node->lhs);                         // lhsをコンパイルしてスタックにpush
+        printf("  pop rax\n");                  // raxにstackを格納
+        printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
+        printf("  je .Lend%d\n", jump_num);
+        gen_stmt(node->rhs);                         // ループの中身をコンパイル
+        printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
+        printf(".Lend%d:\n", jump_num);
+        jump_num++;
+        return;
+    }
+
     if (node->op == ND_RETURN) {
         gen_stmt(node->lhs);
         printf("  pop rax\n");          // genで生成された値をraxにpopして格納
@@ -219,6 +190,37 @@ void gen_stmt(Node *node) {
         printf("  ret\n");
         return;
     }
+
+    // 関数定義
+    if (node->op == ND_FUNC) {
+        printf("%s:\n", node->name);
+        gen_prolog(node->args);
+        gen_stmt(node->body);
+        return;
+    }
+
+    if (node->op == ND_COMP_STMT) {
+        int stmt_len = node->stmts->len;
+        for (int i = 0; i < stmt_len; i++) {
+            gen_stmt(node->stmts->data[i]);
+        }
+        return;
+    }
+
+
+    if (node->op == ND_DEREF) {
+        gen_stmt(node->lhs);
+        return;
+    }
+    if (node->op == '{') {
+        int block_len = node->block_items->len;
+        for (int i = 0; i < block_len; i++) {
+            gen_stmt((Node *) node->block_items->data[i]);
+            printf("  pop rax\n");
+        }
+        return;
+    }
+
 
     if (node->op == ND_EQ ||
         node->op == ND_NE ||
