@@ -199,16 +199,16 @@ static Type *type() {
     return ty;
 }
 
-void put_variable_offset(Token *t) {
+void put_variable_offset(Node *node) {
 
     // すでに使われた変数かどうか
-    long offset = (long) map_get(variable_map, t->name);
+    long offset = (long) map_get(variable_map, node->name);
 
     // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
     if (offset == 0){
         offset = (variables + 1) * 8;
 
-        map_put(variable_map, t->name, (void *) offset);
+        map_put(variable_map, node->name, (void *) offset);
         variables++;
     }
 }
@@ -221,8 +221,8 @@ Node *decl() {
     Token *t = (Token *) tokens->data[pos];
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
-    put_variable_offset(t);
     node->name = t->name;
+    put_variable_offset(node);
     pos++;
     return node;
 }
@@ -235,8 +235,8 @@ Node *param() {
     Token *t = tokens->data[pos];
     if (t->ty != TK_IDENT)
         error("parameter name expected, but got %s", t->input);
-    put_variable_offset(t);
     node->name = t->name;
+    put_variable_offset(node);
     pos++;
     return node;
 }
