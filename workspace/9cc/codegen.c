@@ -194,7 +194,7 @@ void gen_stmt(Node *node) {
     // while(lhs) rhsをコンパイル
     if (node->op == ND_WHILE) {
         printf("  .Lbegin%d:\n", jump_num);      // ループの開始
-        gen_stmt(node->lhs);                         // lhsをコンパイルしてスタックにpush
+        gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
         printf("  pop rax\n");                  // raxにstackを格納
         printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
         printf("  je .Lend%d\n", jump_num);
