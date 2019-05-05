@@ -66,6 +66,11 @@ void gen_expr(Node *node){
             printf("  push rax\n");         // スタックにraxをpush
             return;
         }
+
+        case ND_DEREF: {
+            gen_expr(node->lhs);
+            return;
+        }
         case ND_EQ:
         case ND_NE:
         case ND_LE:
@@ -206,7 +211,7 @@ void gen_stmt(Node *node) {
     }
 
     if (node->op == ND_RETURN) {
-        gen_stmt(node->lhs);
+        gen_expr(node->lhs);
         printf("  pop rax\n");          // genで生成された値をraxにpopして格納
 
         //関数のエピローグ
@@ -221,12 +226,6 @@ void gen_stmt(Node *node) {
         for (int i = 0; i < stmt_len; i++) {
             gen_stmt(node->stmts->data[i]);
         }
-        return;
-    }
-
-
-    if (node->op == ND_DEREF) {
-        gen_stmt(node->lhs);
         return;
     }
     if (node->op == '{') {
