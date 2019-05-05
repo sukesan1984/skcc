@@ -208,7 +208,10 @@ void put_variable_offset(Node *node) {
     if (offset == 0){
         offset = (variables + 1) * 8;
 
-        map_put(variable_map, node->name, (void *) offset);
+        Var *var = calloc(1, sizeof(Var));
+        var->ty = node->ty;
+        var->offset = offset;
+        map_put(variable_map, node->name, var);
         variables++;
     }
 }

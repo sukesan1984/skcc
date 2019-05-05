@@ -130,19 +130,19 @@ void gen_lval(Node *node) {
     if (node->op != ND_IDENT && node->op != ND_DEREF && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
-    int offset = 0;
+    Var* var;
     if (node->op == ND_IDENT || node->op == ND_VARDEF) {
         //Nodeが変数か宣言の場合
-        offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
+        var = map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
     // もしポインタなら
     } else {
-        offset = (intptr_t) map_get(variable_map, node->lhs->name);
+        var = map_get(variable_map, node->lhs->name);
     }
-    if(offset == 0)
+    if(var->offset == 0)
         error("変数が宣言されていません:", node->name);
 
     printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
-    printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+    printf("  sub rax, %d\n", var->offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax\n");             // raxをスタックにプッシュ
 }
 

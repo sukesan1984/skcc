@@ -28,6 +28,11 @@ typedef struct Type {
     struct Type *ptr_of;
 } Type;
 
+typedef struct {
+    Type *ty;
+    int offset;
+} Var;
+
 typedef struct Node {
     int op; // 演算子かTK_NUM
     Type *ty;         // C type
