@@ -5,6 +5,15 @@
 int pos = 0;
 int variables = 0;
 
+static Type int_ty = {INT, NULL};
+
+static Type *ptr_of(Type *base) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->ty = PTR;
+    ty->ptr_of = base;
+    return ty;
+}
+
 int consume(int ty) {
     Token *t = tokens->data[pos];
     if (t->ty != ty)
@@ -30,6 +39,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
+    node->ty = &int_ty;
     node->op = ND_NUM;
     node->val = val;
     return node;
@@ -64,6 +74,7 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
 Node *add();
 Node *assign();
 Node *unary();
+static Type *type();
 
 Node *term() {
     Token *t = tokens->data[pos];
@@ -198,6 +209,18 @@ Node *assign() {
     if (consume('='))
         return new_node('=', lhs, assign());
     return lhs;
+}
+
+static Type *type() {
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_INT)
+        error("typename expected, but got %s", t->input);
+    pos++;
+
+    Type *ty = &int_ty;
+    while(consume('*'))
+        ty = ptr_of(ty);
+    return ty;
 }
 
 Node *stmt() {
