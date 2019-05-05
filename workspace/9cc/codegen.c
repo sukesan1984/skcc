@@ -177,14 +177,14 @@ void gen_stmt(Node *node) {
 
     // for(lhs, lhs2, lhs3) rhsをコンパイル
     if (node->op == ND_FOR) {
-        gen_stmt(node->lhs);                     // lhsをまず実行してスタックに積む
+        gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
         printf(".Lbegin%d:\n", jump_num);   // ループの開始
-        gen_stmt(node->lhs2);                    // lhs2の実行結果をスタックに積む
+        gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
         printf("  pop rax\n");              // lhs2の実行結果をraxに格納
         printf("  cmp rax, 0\n");           // lhsの実行結果が0と等しい。falseになったらおわる
         printf("  je .Lend%d\n", jump_num);
         gen_stmt(node->rhs);                     // rhsを実行
-        gen_stmt(node->lhs3);                    // lhs3の実行結果をスタックに積む
+        gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
         printf("  jmp .Lbegin%d\n", jump_num);// ループの開始に戻る
         printf(".Lend%d:\n", jump_num);
         jump_num++;
