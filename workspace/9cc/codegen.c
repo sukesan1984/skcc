@@ -25,10 +25,44 @@ void gen_binop(Node *lhs, Node *rhs){
     gen_stmt(rhs);
 }
 
+void gen_lval(Node *node);
+
 void gen_expr(Node *node){
     switch(node->op) {
         case ND_NUM: {
             printf("  push %d\n", node->val);
+            return;
+        }
+        // 変数に格納
+        case '=': {
+            // 左辺が変数であるはず
+            gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
+            gen_stmt(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
+
+            printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
+            printf("  pop rax\n");          // 変数のアドレスがraxに格納
+            printf("  mov [rax], rdi\n");   // raxのレジスタのアドレスにrdiの値をストアする
+            printf("  push rdi\n");         // rdiの値をスタックにプッシュする
+            return;
+        }
+
+        case ND_CALL: {
+            int args_len = node->args->len;
+            for (int i = 0; i < args_len; i++) {
+                gen_stmt((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+                printf("  pop  rax\n");                     // 結果をraxに格納
+                printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
+            }
+            printf("  call %s\n", node->name);         // 関数の呼び出し
+            printf("  push rax\n");         // スタックに結果を積む
+            return;
+        }
+
+        case ND_IDENT: {
+            gen_lval(node);
+            printf("  pop rax\n");          // スタックからpopしてraxに格納
+            printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
+            printf("  push rax\n");         // スタックにraxをpush
             return;
         }
         case '+':
@@ -100,7 +134,6 @@ void gen_prolog(Vector *args) {
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node);
 void gen_stmt(Node *node) {
-
     // 関数定義
     if (node->op == ND_FUNC) {
         printf("%s:\n", node->name);
@@ -115,36 +148,15 @@ void gen_stmt(Node *node) {
             gen_stmt(node->stmts->data[i]);
         }
         return;
-    }
-
+    } 
     if (node->op == ND_VARDEF)
         return;
 
-    if (node->op == ND_IDENT) {
-        gen_lval(node);
-        printf("  pop rax\n");          // スタックからpopしてraxに格納
-        printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
-        printf("  push rax\n");         // スタックにraxをpush
-        return;
-    }
 
     if (node->op == ND_DEREF) {
         gen_stmt(node->lhs);
         return;
     }
-
-    if (node->op == ND_CALL) {
-        int args_len = node->args->len;
-        for (int i = 0; i < args_len; i++) {
-            gen_stmt((Node *)  node->args->data[i]);         // スタックに引数を順に積む
-            printf("  pop  rax\n");                     // 結果をraxに格納
-            printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
-        }
-        printf("  call %s\n", node->name);         // 関数の呼び出し
-        printf("  push rax\n");         // スタックに結果を積む
-        return;
-    }
-
     if (node->op == '{') {
         int block_len = node->block_items->len;
         for (int i = 0; i < block_len; i++) {
@@ -233,28 +245,19 @@ void gen_stmt(Node *node) {
         return;
     }
 
-    // 変数に格納
-    if (node->op == '=') {
-        // 左辺が変数であるはず
-        gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
-        gen_stmt(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
-
-        printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
-        printf("  pop rax\n");          // 変数のアドレスがraxに格納
-        printf("  mov [rax], rdi\n");   // raxのレジスタのアドレスにrdiの値をストアする
-        printf("  push rdi\n");         // rdiの値をスタックにプッシュする
-        return;
-    }
     gen(node);
 }
 
 void gen(Node *node) {
-    if(!strchr("+-/*", node->op)) {
-        gen_stmt(node->lhs);
-        gen_stmt(node->rhs);
+    if(strchr("+-/*=", node->op)) {
+        return gen_expr(node);
     }
+    if(node->op == ND_IDENT
+    || node->op == ND_CALL)
+        return gen_expr(node);
 
-    gen_expr(node);
+    gen_stmt(node->lhs);
+    gen_stmt(node->rhs);
 }
 
 void gen_main(Vector* v) {
