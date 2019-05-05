@@ -222,6 +222,11 @@ void gen_stmt(Node *node) {
         return;
     }
 
+    if (node->op == ND_EXPR_STMT) {
+        gen_expr(node->lhs);
+        return;
+    }
+
     if (node->op == ND_COMP_STMT) {
         int stmt_len = node->stmts->len;
         for (int i = 0; i < stmt_len; i++) {

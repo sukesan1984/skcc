@@ -66,6 +66,7 @@ enum {
     ND_CALL,
     ND_FUNC,
     ND_COMP_STMT,
+    ND_EXPR_STMT,
     ND_IF,
     ND_FOR,
     ND_WHILE,

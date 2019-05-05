@@ -248,7 +248,9 @@ Node *stmt() {
         node->op = ND_RETURN;
         node->lhs = assign();
     } else {
-        node = assign();
+        node = malloc(sizeof(Node));
+        node->op = ND_EXPR_STMT;
+        node->lhs = assign();
     }
     consume(';');
     return node;
