@@ -1,6 +1,7 @@
 #include "9cc.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 
 char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -17,19 +18,37 @@ void gen_epilog() {
     printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
     printf("  ret\n");
 }
+void gen_stmt(Node *node);
+
+void gen_binop(Node *lhs, Node *rhs){
+    gen_stmt(lhs);
+    gen_stmt(rhs);
+}
 
 void gen_expr(Node *node){
     switch(node->op) {
         case '+':
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
             printf("  add rax, rdi\n");
             break;
         case '-':
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
             printf("  sub rax, rdi\n");
             break;
         case '*':
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
             printf("  mul rdi\n");
             break;
         case '/':
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
             printf("  mov rdx, 0\n");
             printf("  div rdi\n");
     }
@@ -230,12 +249,10 @@ void gen_stmt(Node *node) {
 }
 
 void gen(Node *node) {
-
-    gen_stmt(node->lhs);
-    gen_stmt(node->rhs);
-
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
+    if(!strchr("+-/*", node->op)) {
+        gen_stmt(node->lhs);
+        gen_stmt(node->rhs);
+    }
 
     gen_expr(node);
 }
