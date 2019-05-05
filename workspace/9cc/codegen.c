@@ -66,6 +66,30 @@ void gen_expr(Node *node){
             printf("  push rax\n");         // スタックにraxをpush
             return;
         }
+        case ND_EQ:
+        case ND_NE:
+        case ND_LE:
+        case '<':
+        case '>': {
+            gen_expr(node->lhs);                 // lhsの値がスタックにのる
+            gen_expr(node->rhs);                 // rhsの値がスタックにのる
+
+            printf("  pop rdi\n");          // 左辺をrdiにpop
+            printf("  pop rax\n");          // 右辺をraxにpop
+            printf("  cmp rax, rdi\n");     // 2つのレジスタの値が同じかどうか比較する
+
+            if (node->op == ND_EQ)
+                printf("  sete al\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
+            if (node->op == ND_NE)
+                printf("  setne al\n");
+            if (node->op == '<' || node->op == '>')
+                printf("  setl al\n");
+            if (node->op == ND_LE)
+                printf("  setle al\n");
+            printf("  movzb rax, al\n");    // raxを0クリアしてからalの結果をraxに格納
+            printf("  push rax\n");         // スタックに結果を積む
+            return;
+        }
         case '+':
             gen_binop(node->lhs, node->rhs);
             printf("  pop rdi\n");
@@ -211,31 +235,6 @@ void gen_stmt(Node *node) {
             gen_stmt((Node *) node->block_items->data[i]);
             printf("  pop rax\n");
         }
-        return;
-    }
-
-    if (node->op == ND_EQ ||
-        node->op == ND_NE ||
-        node->op == ND_LE ||
-        node->op == '<'  ||
-        node->op == '>') {
-        gen_stmt(node->lhs);                 // lhsの値がスタックにのる
-        gen_stmt(node->rhs);                 // rhsの値がスタックにのる
-
-        printf("  pop rdi\n");          // 左辺をrdiにpop
-        printf("  pop rax\n");          // 右辺をraxにpop
-        printf("  cmp rax, rdi\n");     // 2つのレジスタの値が同じかどうか比較する
-
-        if (node->op == ND_EQ)
-            printf("  sete al\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
-        if (node->op == ND_NE)
-            printf("  setne al\n");
-        if (node->op == '<' || node->op == '>')
-            printf("  setl al\n");
-        if (node->op == ND_LE)
-            printf("  setle al\n");
-        printf("  movzb rax, al\n");    // raxを0クリアしてからalの結果をraxに格納
-        printf("  push rax\n");         // スタックに結果を積む
         return;
     }
 
