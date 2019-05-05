@@ -239,19 +239,7 @@ void gen_stmt(Node *node) {
         return;
     }
 
-    gen(node);
-}
-
-void gen(Node *node) {
-    if(strchr("+-/*=", node->op)) {
-        return gen_expr(node);
-    }
-    if(node->op == ND_IDENT
-    || node->op == ND_CALL)
-        return gen_expr(node);
-
-    gen_stmt(node->lhs);
-    gen_stmt(node->rhs);
+    gen_expr(node);
 }
 
 void gen_main(Vector* v) {
