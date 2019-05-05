@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -191,14 +192,6 @@ void gen_stmt(Node *node) {
         return;
     }
 
-    // 関数定義
-    if (node->op == ND_FUNC) {
-        printf("%s:\n", node->name);
-        gen_prolog(node->args);
-        gen_stmt(node->body);
-        return;
-    }
-
     if (node->op == ND_COMP_STMT) {
         int stmt_len = node->stmts->len;
         for (int i = 0; i < stmt_len; i++) {
@@ -220,7 +213,6 @@ void gen_stmt(Node *node) {
         }
         return;
     }
-
 
     if (node->op == ND_EQ ||
         node->op == ND_NE ||
@@ -267,11 +259,20 @@ void gen_main(Vector* v) {
 
     int len = v->len;
     for (int i = 0; i < len; i++) {
-        // 抽象構文木を下りながらコード生成
-        gen_stmt((Node *) v->data[i]);
-        // 式の評価結果としてスタックに一つの値が残ってる
-        // はずなので、スタックが溢れないようにポップしておく
-        printf("  pop rax\n");
+        Node *node = v->data[i];
+        // 関数定義
+        if (node->op == ND_FUNC) {
+            printf("%s:\n", node->name);
+            gen_prolog(node->args);
+            gen_stmt(node->body);
+            // 抽象構文木を下りながらコード生成
+            // 式の評価結果としてスタックに一つの値が残ってる
+            // はずなので、スタックが溢れないようにポップしておく
+            printf("  pop rax\n");
+        } else {
+            fprintf(stderr, "node->op must be ND_FUNC but got: %d", node->op);
+            exit(1);
+        }
     }
 
     gen_epilog();
