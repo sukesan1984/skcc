@@ -39,7 +39,7 @@ void gen_expr(Node *node){
         case '=': {
             // 左辺が変数であるはず
             gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
-            gen_stmt(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
+            gen_expr(node->rhs);            // 右辺値が評価されてスタックのトップに入っている
 
             printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
             printf("  pop rax\n");          // 変数のアドレスがraxに格納
@@ -243,9 +243,6 @@ void gen_stmt(Node *node) {
         }
         return;
     }
-
-    //fprintf(stderr, "ここに来るのは・・？: %d \n", node->op);
-    gen_expr(node);
 }
 
 void gen_main(Vector* v) {
