@@ -27,6 +27,10 @@ void gen_binop(Node *lhs, Node *rhs){
 
 void gen_expr(Node *node){
     switch(node->op) {
+        case ND_NUM: {
+            printf("  push %d\n", node->val);
+            return;
+        }
         case '+':
             gen_binop(node->lhs, node->rhs);
             printf("  pop rdi\n");
@@ -96,10 +100,6 @@ void gen_prolog(Vector *args) {
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node);
 void gen_stmt(Node *node) {
-    if (node->op == ND_NUM) {
-        printf("  push %d\n", node->val);
-        return;
-    }
 
     // 関数定義
     if (node->op == ND_FUNC) {
