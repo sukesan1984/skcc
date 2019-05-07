@@ -103,5 +103,6 @@ try 1 'int one() { return 1; } int main() { return one(); }'
 try 3 'int one() { return 1; } int two() { return 2; } int main() { return one()+two(); }'
 try 7 'int add(int x, int y) { return x + y; } int main() { return add(3, 4); }'
 try 1 'int local(int a) { a = 3; return 3; } int main() { a = 1; local(a); return a;}'
+try 55 'int fib(int x) {    if (x == 1) {        return 1;    }    if (x == 2) {        return 1;    }    if (x >= 3) {        return fib(x - 1) + fib(x - 2);    }    return 0;}int main () {    return fib(10);}'
 
 echo OK
