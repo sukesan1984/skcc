@@ -124,6 +124,13 @@ Node *unary() {
         node->name = node->lhs->name;
         return node;
     }
+
+    if (consume('&')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_ADDR;
+        node->lhs = mul();
+        return node;
+    }
     return term();
 }
 

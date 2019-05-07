@@ -71,7 +71,6 @@ void gen_expr(Node *node){
 
         case ND_IDENT: {
             printf("#gen_expr ND_IDENTの処理開始\n");
-            printf("#左辺値コンパイル\n");
             gen_lval(node);
             printf("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
             printf("  mov rax, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n");   // raxをアドレスとして値をロードしてraxに格納
@@ -86,6 +85,12 @@ void gen_expr(Node *node){
             printf("  pop rax        \n");          // スタックからpopしてraxに格納
             printf("  mov rax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
+            return;
+        }
+
+        case ND_ADDR: {
+            // 左辺値としてコンパイルすると変数のアドレスが取得できる
+            gen_lval(node->lhs);
             return;
         }
         case ND_EQ:

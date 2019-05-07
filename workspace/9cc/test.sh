@@ -124,5 +124,7 @@ try 55 'int fib(int x) {    if (x == 1) {        return 1;    }    if (x == 2) {
 try 39 'int main() { int **q; q = alloc2(39); return **q; }'
 try 42 'int main() { int *p; p = alloc(42); return *p; }'
 try 22 'int main() { int *p; int **q; p = alloc(42); q = alloc2(22); p = *q; return *p; }'
+try 5 'int main() { int x; int *p; p = &x; x = 5; return *p;}'
+try 3 'int main() { int x; int y; int* p; int** q; y = 3; x = 5; p = &x; q = &p; *q = &y; return **q; }'
 
 echo OK
