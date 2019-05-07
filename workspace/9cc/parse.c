@@ -5,6 +5,15 @@
 int pos = 0;
 int variables = 0;
 
+static Type int_ty = {INT, NULL};
+
+static Type *ptr_of(Type *base) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->ty = PTR;
+    ty->ptr_of = base;
+    return ty;
+}
+
 int consume(int ty) {
     Token *t = tokens->data[pos];
     if (t->ty != ty)
@@ -15,14 +24,16 @@ int consume(int ty) {
 
 int expect(int ty ) {
     Token *t = tokens->data[pos];
-    if (!consume(ty))
-        error("%d is expected but got %s", t->input);
+    if (!consume(ty)) {
+        fprintf(stderr, "%d is expected but got %s", ty, t->input);
+        exit(1);
+    }
     return 1;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ty;
+    node->op = ty;
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -30,21 +41,22 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_NUM;
+    node->ty = &int_ty;
+    node->op = ND_NUM;
     node->val = val;
     return node;
 }
 
 Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_IDENT;
+    node->op = ND_IDENT;
     node->name = name;
     return node;
 }
 
 Node *new_node_func(int ty, char *name, Vector *args) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ND_CALL;
+    node->op = ND_CALL;
     node->name = name;
     node->args = args;
     return node;
@@ -52,7 +64,7 @@ Node *new_node_func(int ty, char *name, Vector *args) {
 
 Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->ty = ty;
+    node->op = ty;
     node->lhs = lhs;
     node->lhs2 = lhs2;
     node->lhs3 = lhs3;
@@ -61,29 +73,15 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
 }
 
 
-Node* add();
+Node *add();
 Node *assign();
+Node *unary();
+static Type *type();
 
 Node *term() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
-    }
-
-    if (consume(TK_INT)) {
-        Token *t = (Token *) tokens->data[pos];
-        // すでに使われた変数かどうか
-        long offset = (long) map_get(variable_map, t->name);
-
-        // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
-        if (offset == 0){
-            offset = (variables + 1) * 8;
-
-            map_put(variable_map, t->name, (void *) offset);
-            variables++;
-        }
-
-        return term();
     }
 
     if (consume(TK_IDENT)) {
@@ -98,10 +96,6 @@ Node *term() {
             }
             return new_node_func(ND_CALL, t->name, args);
         }
-
-        long offset = (long) map_get(variable_map, t->name);
-        if (offset == 0)
-            error("%s は宣言されていません", t->name);
 
         return new_node_ident(t->name);
     }
@@ -120,8 +114,28 @@ Node *term() {
     exit(1);
 }
 
+
+Node *mul();
+Node *unary() {
+    if (consume('*')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DEREF;
+        node->lhs = mul();
+        node->name = node->lhs->name;
+        return node;
+    }
+
+    if (consume('&')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_ADDR;
+        node->lhs = mul();
+        return node;
+    }
+    return term();
+}
+
 Node *mul() {
-    Node *lhs = term();
+    Node *lhs = unary();
     Token *t = tokens->data[pos];
     if(t->ty == TK_EOF)
         return lhs;
@@ -132,7 +146,7 @@ Node *mul() {
     if(consume('/'))
         return new_node('/', lhs, mul());
 
-    if (lhs->ty == TK_NUM)
+    if (lhs->op == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -146,7 +160,7 @@ Node *add() {
     if(consume('-'))
         return new_node('-', lhs, add());
 
-    if (lhs->ty == TK_NUM)
+    if (lhs->op == ND_NUM)
         return lhs;
     return lhs;
 }
@@ -181,25 +195,90 @@ Node *assign() {
     return lhs;
 }
 
+static Type *type() {
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_INT)
+        error("typename expected, but got %s", t->input);
+    pos++;
+
+    Type *ty = &int_ty;
+    while(consume('*'))
+        ty = ptr_of(ty);
+    return ty;
+}
+
+void put_variable_offset(Node *node) {
+
+    // すでに使われた変数かどうか
+    long offset = (long) map_get(variable_map, node->name);
+
+    // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
+    if (offset == 0){
+        offset = (variables + 1) * 8;
+
+        Var *var = calloc(1, sizeof(Var));
+        var->ty = node->ty;
+        var->offset = offset;
+        map_put(variable_map, node->name, var);
+        variables++;
+    }
+}
+
+Node *decl() {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_VARDEF;
+    node->ty = type();
+    Token *t = (Token *) tokens->data[pos];
+    if (t->ty != TK_IDENT)
+        error("variable name expected, but got %s", t->input);
+    node->name = t->name;
+    put_variable_offset(node);
+    pos++;
+    return node;
+}
+
+Node *param() {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_VARDEF;
+    node->ty = type();
+
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_IDENT)
+        error("parameter name expected, but got %s", t->input);
+    node->name = t->name;
+    put_variable_offset(node);
+    pos++;
+    return node;
+}
+
 Node *stmt() {
     Node *node;
+    Token *t = tokens->data[pos];
+
+    if (t->ty == TK_INT)  {
+        node = decl();
+        expect(';');
+        return node;
+    }
     if (consume('{')) {
         Vector* block_items = new_vector();
         while (!consume('}')) {
             vec_push(block_items, (void *) stmt());
         }
         node = malloc(sizeof(Node));
-        node->ty = '{';
+        node->op = '{';
         node->block_items  = block_items;
         return node;
     }
 
     if (consume(TK_RETURN)) {
         node = malloc(sizeof(Node));
-        node->ty = ND_RETURN;
+        node->op = ND_RETURN;
         node->lhs = assign();
     } else {
-        node = assign();
+        node = malloc(sizeof(Node));
+        node->op = ND_EXPR_STMT;
+        node->lhs = assign();
     }
     consume(';');
     return node;
@@ -251,7 +330,7 @@ Node *control() {
 
 Node* compound_stmt() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = ND_COMP_STMT;
+    node->op = ND_COMP_STMT;
     node->stmts = new_vector();
     while(!consume('}'))
         vec_push(node->stmts, control());
@@ -260,10 +339,9 @@ Node* compound_stmt() {
 
 Node *function() {
     Node *node = calloc(1, sizeof(Node));
-    node->ty = ND_FUNC;
+    node->op = ND_FUNC;
     node->args = new_vector();
 
-    
     if (!consume(TK_INT))
         error("method type specifier missing.%s", ((Token *) tokens->data[pos])->input);
 
@@ -273,8 +351,12 @@ Node *function() {
     node->name = t->name;
 
     expect('(');
-    while(consume(',') || !consume(')'))
-        vec_push(node->args, term());
+    if (!consume(')')) {
+        vec_push(node->args, param());
+        while(consume(','))
+            vec_push(node->args, param());
+        expect(')');
+    }
     expect('{');
     node->body = compound_stmt();
     return node;

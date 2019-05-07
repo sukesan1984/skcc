@@ -1,9 +1,15 @@
 #include "9cc.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 
 char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
+void dump_explain(char* text) {
+    fprintf(stderr, "%s", text);
+}
 
 void gen_initial() {
     // アセンブリの前半部分を出力
@@ -11,207 +17,271 @@ void gen_initial() {
     printf(".global main\n");
 }
 
-
 void gen_epilog() {
     // エピローグ
-    printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
-    printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
-    printf("  ret\n");
+    printf("#gen_epilog\n");
+    printf("  mov rsp, rbp # ベースポインタをrspにコピーして \n");     // ベースポインタをrspにコピーして
+    printf("  pop rbp      # スタックの値をrbpに持ってくる\n");        // スタックの値をrbpに持ってくる
+    printf("  ret          # return \n");
+}
+void gen_expr(Node *node);
+
+void gen_binop(Node *lhs, Node *rhs){
+    gen_expr(lhs);
+    gen_expr(rhs);
+}
+
+void gen_lval(Node *node);
+void gen_stmt(Node *node);
+
+void gen_expr(Node *node){
+    switch(node->op) {
+        case ND_NUM: {
+            printf("#gen_expr ND_NUM \n");
+            printf("  push %d        # スタックに数字を積む\n", node->val);
+            return;
+        }
+        // 変数に格納
+        case '=': {
+            // 左辺が変数であるはず
+            gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
+            gen_expr(node->rhs);            // 右辺値が評価されてスタックのトップに入っている
+
+            printf("#gen_expr =の処理開始\n");
+            printf("  pop rdi        # 評価された右辺値をrdiにロード\n");          // 評価された右辺値がrdiにロード
+            printf("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
+            printf("  mov [rax], rdi # raxのレジスタのアドレスにrdiの値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n");   // raxのレジスタのアドレスにrdiの値をストアする
+            printf("  push rdi       # 右辺値をスタックにプッシュする\n");         // rdiの値をスタックにプッシュする
+            return;
+        }
+
+        case ND_CALL: {
+            printf("#gen_expr ND_CALL開始:\n");
+            int args_len = node->args->len;
+            for (int i = 0; i < args_len; i++) {
+                gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+                printf("#gen_expr ND_CALL(引数処理): %d番目の引数\n", i);
+                printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
+                printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", regs[i]);        // raxから各レジスタに格納
+            }
+            printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
+            printf("  push rax      #関数の結果をスタックに積む \n");         // スタックに結果を積む
+            return;
+        }
+
+        case ND_IDENT: {
+            printf("#gen_expr ND_IDENTの処理開始\n");
+            gen_lval(node);
+            printf("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
+            printf("  mov rax, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n");   // raxをアドレスとして値をロードしてraxに格納
+            printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
+            return;
+        }
+
+        case ND_DEREF: {
+            printf("#gen_expr ND_DEREFが右辺にきたときの処理開始\n");
+            gen_lval(node);
+            printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
+            printf("  pop rax        \n");          // スタックからpopしてraxに格納
+            printf("  mov rax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
+            printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
+            return;
+        }
+
+        case ND_ADDR: {
+            // 左辺値としてコンパイルすると変数のアドレスが取得できる
+            gen_lval(node->lhs);
+            return;
+        }
+        case ND_EQ:
+        case ND_NE:
+        case ND_LE:
+        case '<':
+        case '>': {
+            printf("#gen_expr == != <= < >などの処理開始\n");
+            printf("#評価の左辺をスタックに乗せる \n");
+            gen_expr(node->lhs);                 // lhsの値がスタックにのる
+            printf("#評価の右辺をスタックに乗せる \n");
+            gen_expr(node->rhs);                 // rhsの値がスタックにのる
+
+            printf("  pop rdi      # 右辺をrdiにpop\n");          // 左辺をrdiにpop
+            printf("  pop rax      # 左辺をraxにpop\n");          // 右辺をraxにpop
+            printf("  cmp rax, rdi # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+
+            if (node->op == ND_EQ)
+                printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
+            if (node->op == ND_NE)
+                printf("  setne al  # != \n");
+            if (node->op == '<' || node->op == '>')
+                printf("  setl al   # < \n");
+            if (node->op == ND_LE)
+                printf("  setle al  # <= \n");
+            printf("  movzb rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            printf("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
+            return;
+        }
+        case '+':
+            printf("#gen_expr +の評価開始\n");
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi       # \n");
+            printf("  pop rax\n");
+            printf("  add rax, rdi\n");
+            break;
+        case '-':
+            printf("#gen_expr -の評価開始\n");
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
+            printf("  sub rax, rdi\n");
+            break;
+        case '*':
+            printf("#gen_expr *の評価開始\n");
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
+            printf("  mul rdi\n");
+            break;
+        case '/':
+            printf("#gen_expr /の評価開始\n");
+            gen_binop(node->lhs, node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
+            printf("  mov rdx, 0\n");
+            printf("  div rdi\n");
+    }
+    printf("  push rax   #gen_exprの結果をスタックに積む\n");
+    return;
 }
 
 // 左辺値を計算する
 void gen_lval(Node *node) {
-    if (node->ty != ND_IDENT)
+    printf("#gen_lvalの評価開始\n");
+    if (node->op == ND_DEREF)
+        return gen_expr(node->lhs);
+
+    if (node->op != ND_IDENT && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
-    //Nodeが変数の場合
-    int offset = (intptr_t) map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
-    printf("  mov rax, rbp\n");         // ベースポインタをraxにコピー
-    printf("  sub rax, %d\n", offset);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
-    printf("  push rax\n");             // raxをスタックにプッシュ
+    Var* var;
+    if (node->op == ND_IDENT || node->op == ND_VARDEF) {
+        //Nodeが変数か宣言の場合
+        var = map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
+    }
+    if(var->offset == 0)
+        error("変数が宣言されていません:", node->name);
+
+    printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
+    printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", var->offset, node->name, var->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+    printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
 }
 
 // 関数のプロローグ
 // args: 関数の引数
-void gen_prolog(Vector *args) {
-    // プロローグ
-    // 使用した変数分の領域を確保する
-    printf("  push rbp\n");                     // ベースポインタをスタックにプッシュする
-    printf("  mov rbp, rsp\n");                 // rspをrbpにコピーする
-    printf("  sub rsp, %d\n", variables * 8);   // rspを使用した変数分動かす
+void gen_args(Vector *args) {
     int args_len = args->len;                   // argsのlengthを取得
     for(int i = 0; i < args_len; i++) {
         gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
-        printf("  pop rax\n");          // 変数のアドレスがraxに格納
-        printf("  mov [rax], %s\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+        printf("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
+        printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
     }
 }
 
 int jump_num = 0;                    // ifでjumpする回数を保存
-void gen(Node *node) {
-    if (node->ty == ND_NUM) {
-        printf("  push %d\n", node->val);
-        return;
-    }
-
-    // 関数定義
-    if (node->ty == ND_FUNC) {
-        printf("%s:\n", node->name);
-        gen_prolog(node->args);
-        gen(node->body);
-        return;
-    }
-
-    if (node->ty == ND_COMP_STMT) {
-        int stmt_len = node->stmts->len;
-        for (int i = 0; i < stmt_len; i++) {
-            gen(node->stmts->data[i]);
-        }
-        return;
-    }
-
-    if (node->ty == ND_IDENT) {
-        gen_lval(node);
-        printf("  pop rax\n");          // スタックからpopしてraxに格納
-        printf("  mov rax, [rax]\n");   // raxをアドレスとして値をロードしてraxに格納
-        printf("  push rax\n");         // スタックにraxをpush
-        return;
-    }
-
-    if (node->ty == ND_CALL) {
-        int args_len = node->args->len;
-        for (int i = 0; i < args_len; i++) {
-            gen((Node *)  node->args->data[i]);         // スタックに引数を順に積む
-            printf("  pop  rax\n");                     // 結果をraxに格納
-            printf("  mov  %s, rax\n", regs[i]);        // raxから各レジスタに格納
-        }
-        printf("  call %s\n", node->name);         // 関数の呼び出し
-        printf("  push rax\n");         // スタックに結果を積む
-        return;
-    }
-
-    if (node->ty == '{') {
-        int block_len = node->block_items->len;
-        for (int i = 0; i < block_len; i++) {
-            gen((Node *) node->block_items->data[i]);
-            printf("  pop rax\n");
-        }
+void gen(Node *node);
+void gen_stmt(Node *node) {
+    if (node->op == ND_VARDEF) {
+        printf("#gen_stmt ND_VARDEFの処理がここはいる\n");
         return;
     }
 
     // if(lhs) rhsをコンパイル
-    if (node->ty == ND_IF) {
-        gen(node->lhs);                             // lhsの結果をスタックにpush
-        printf("  pop rax\n");                      // lhsの結果をraxにコピー
-        printf("  cmp rax, 0\n");                   // raxの結果と0を比較
-        printf("  je .Lend%d\n", jump_num);      // lhsが0のとき（false) Lendに飛ぶ
-        gen(node->rhs);                             // rhsの結果をスタックにpush
+    if (node->op == ND_IF) {
+        printf("#gen_stmt IFの処理\n");
+        gen_expr(node->lhs);                             // lhsの結果をスタックにpush
+        printf("  pop rax      # lhsの結果をraxにコピー\n");                      // lhsの結果をraxにコピー
+        printf("  cmp rax, 0   # raxの結果と0を比較する(if文の中身がfalseのときは1)\n");                   // raxの結果と0を比較
+        printf("  je .Lend%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+        gen_stmt(node->rhs);                             // rhsの結果をスタックにpush
         printf(".Lend%d:\n", jump_num);          // 終わる
-        printf("  push %d\n", 0);                   // Lendのときは0をstackに積む
+        printf("  push %d      # if文の結果がfalseの場合は0をスタックに積む\n", 0);                   // Lendのときは0をstackに積む
+        jump_num++;
+        return;
+    }
+
+    // for(lhs, lhs2, lhs3) rhsをコンパイル
+    if (node->op == ND_FOR) {
+        printf("#gen_stmt FORの処理\n");
+        gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
+        printf(".Lbegin%d:      # ループの開始\n", jump_num);   // ループの開始
+        gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
+        printf("  pop rax       # 二つ目の実行結果をraxに格納\n");              // lhs2の実行結果をraxに格納
+        printf("  cmp rax, 0    # 0と等しい(二つ目がfalseになったら)終わる\n");           // lhsの実行結果が0と等しい。falseになったらおわる
+        printf("  je .Lend%d\n", jump_num);
+        printf("# for文の内部を処理\n");
+        gen_stmt(node->rhs);                     // rhsを実行
+        printf("# forの３つ目の領域の処理実行\n");
+        gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
+        printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", jump_num);// ループの開始に戻る
+        printf(".Lend%d:        # for文終わり\n", jump_num);
         jump_num++;
         return;
     }
 
     // while(lhs) rhsをコンパイル
-    if (node->ty == ND_WHILE) {
-        printf("  .Lbegin%d:\n", jump_num);      // ループの開始
-        gen(node->lhs);                         // lhsをコンパイルしてスタックにpush
-        printf("  pop rax\n");                  // raxにstackを格納
-        printf("  cmp rax, 0\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
+    if (node->op == ND_WHILE) {
+        printf("#gen_stmt WHILEの処理\n");
+        printf("  .Lbegin%d: # ループの開始\n", jump_num);      // ループの開始
+        gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
+        printf("  pop rax      # while評価の結果を格納(0 or 1) \n");                  // raxにstackを格納
+        printf("  cmp rax, 0   # while評価が0ならば終わり\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
         printf("  je .Lend%d\n", jump_num);
-        gen(node->rhs);                         // ループの中身をコンパイル
+        printf("#WHILEの中身の処理\n");
+        gen_stmt(node->rhs);                         // ループの中身をコンパイル
         printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
         printf(".Lend%d:\n", jump_num);
         jump_num++;
         return;
     }
 
-    // for(lhs, lhs2, lhs3) rhsをコンパイル
-    if (node->ty == ND_FOR) {
-        gen(node->lhs);                     // lhsをまず実行してスタックに積む
-        printf(".Lbegin%d:\n", jump_num);   // ループの開始
-        gen(node->lhs2);                    // lhs2の実行結果をスタックに積む
-        printf("  pop rax\n");              // lhs2の実行結果をraxに格納
-        printf("  cmp rax, 0\n");           // lhsの実行結果が0と等しい。falseになったらおわる
-        printf("  je .Lend%d\n", jump_num);
-        gen(node->rhs);                     // rhsを実行
-        gen(node->lhs3);                    // lhs3の実行結果をスタックに積む
-        printf("  jmp .Lbegin%d\n", jump_num);// ループの開始に戻る
-        printf(".Lend%d:\n", jump_num);
-        jump_num++;
-        return;
-    }
-
-    if (node->ty == ND_RETURN) {
-        gen(node->lhs);
-        printf("  pop rax\n");          // genで生成された値をraxにpopして格納
+    if (node->op == ND_RETURN) {
+        printf("#gen_stmt ND_RETURNの処理\n");
+        gen_expr(node->lhs);
+        printf("  pop rax #returnしたい結果がスタックに入っているのでをraxにロード\n");          // genで生成された値をraxにpopして格納
 
         //関数のエピローグ
-        printf("  mov rsp, rbp\n");     // ベースポインタをrspにコピーして
-        printf("  pop rbp\n");          // スタックの値をrbpに持ってくる
-        printf("  ret\n");
+        printf("# return したのでエピローグ\n");
+        printf("  mov rsp, rbp # ベースポインタをrspに格納\n");     // ベースポインタをrspにコピーして
+        printf("  pop rbp      # スタックには呼び出し元のrbpが入ってるはずなのでrbpにロードする\n");          // スタックの値をrbpに持ってくる
+        printf("  ret          # returnする\n");
         return;
     }
 
-    if (node->ty == ND_EQ ||
-        node->ty == ND_NE ||
-        node->ty == ND_LE ||
-        node->ty == '<'  ||
-        node->ty == '>') {
-        gen(node->lhs);                 // lhsの値がスタックにのる
-        gen(node->rhs);                 // rhsの値がスタックにのる
-
-        printf("  pop rdi\n");          // 左辺をrdiにpop
-        printf("  pop rax\n");          // 右辺をraxにpop
-        printf("  cmp rax, rdi\n");     // 2つのレジスタの値が同じかどうか比較する
-
-        if (node->ty == ND_EQ)
-            printf("  sete al\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
-        if (node->ty == ND_NE)
-            printf("  setne al\n");
-        if (node->ty == '<' || node->ty == '>')
-            printf("  setl al\n");
-        if (node->ty == ND_LE)
-            printf("  setle al\n");
-        printf("  movzb rax, al\n");    // raxを0クリアしてからalの結果をraxに格納
-        printf("  push rax\n");         // スタックに結果を積む
+    if (node->op == ND_EXPR_STMT) {
+        printf("#gen_stmt ND_EXPR_STMTの処理\n");
+        gen_expr(node->lhs);
         return;
     }
 
-    // 変数に格納
-    if (node->ty == '=') {
-        // 左辺が変数であるはず
-        gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
-        gen(node->rhs);                 // 右辺値が評価されてスタックのトップに入っている
-
-        printf("  pop rdi\n");          // 評価された右辺値がrdiにロード
-        printf("  pop rax\n");          // 変数のアドレスがraxに格納
-        printf("  mov [rax], rdi\n");   // raxのレジスタのアドレスにrdiの値をストアする
-        printf("  push rdi\n");         // rdiの値をスタックにプッシュする
+    if (node->op == ND_COMP_STMT) {
+        printf("#gen_stmt ND_COMP_STMTの処理\n");
+        int stmt_len = node->stmts->len;
+        for (int i = 0; i < stmt_len; i++) {
+            printf("# %d番目のステートメントの処理\n", i);
+            gen_stmt(node->stmts->data[i]);
+        }
         return;
     }
 
-    gen(node->lhs);
-    gen(node->rhs);
-
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
-
-    switch(node->ty) {
-        case '+':
-            printf("  add rax, rdi\n");
-            break;
-        case '-':
-            printf("  sub rax, rdi\n");
-            break;
-        case '*':
-            printf("  mul rdi\n");
-            break;
-        case '/':
-            printf("  mov rdx, 0\n");
-            printf("  div rdi\n");
+    if (node->op == '{') {
+        printf("#gen_stmt { の処理\n");
+        int block_len = node->block_items->len;
+        for (int i = 0; i < block_len; i++) {
+            printf("          # %d番目のブロックアイテムの処理\n", i);
+            gen_stmt((Node *) node->block_items->data[i]);
+            printf("  pop rax # %d番目のブロックアイテムの結果をraxに持ってくる\n", i);
+        }
+        return;
     }
-    printf("  push rax\n");
 }
 
 void gen_main(Vector* v) {
@@ -219,11 +289,28 @@ void gen_main(Vector* v) {
 
     int len = v->len;
     for (int i = 0; i < len; i++) {
-        // 抽象構文木を下りながらコード生成
-        gen((Node *) v->data[i]);
-        // 式の評価結果としてスタックに一つの値が残ってる
-        // はずなので、スタックが溢れないようにポップしておく
-        printf("  pop rax\n");
+        Node *node = v->data[i];
+        // 関数定義
+        if (node->op == ND_FUNC) {
+            printf("#ND_FUNCの処理\n");
+            printf("%s:\n", node->name);
+            // プロローグ
+            // 使用した変数分の領域を確保する
+            printf("  push rbp     # 呼び出し元のrbpをスタックにつんでおく(エピローグでpopしてrspをそこに戻す)\n");                     // ベースポインタをスタックにプッシュする
+            printf("  mov rbp, rsp # rspが今の関数のベースポインタを指しているのでrbpにコピーしておく\n");                 // rspをrbpにコピーする
+            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", variables * 8, variables);   // rspを使用した変数分動かす
+            printf("#関数の引数の処理\n");
+            gen_args(node->args);
+            printf("#関数本体の処理\n");
+            gen_stmt(node->body);
+            // 抽象構文木を下りながらコード生成
+            // 式の評価結果としてスタックに一つの値が残ってる
+            // はずなので、スタックが溢れないようにポップしておく
+            printf("  pop rax     # 関数の結果をraxにロード\n");
+        } else {
+            fprintf(stderr, "node->op must be ND_FUNC but got: %d", node->op);
+            exit(1);
+        }
     }
 
     gen_epilog();

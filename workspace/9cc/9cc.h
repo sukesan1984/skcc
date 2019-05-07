@@ -18,8 +18,24 @@ typedef struct {
     char *input; // トークン文字列(エラーメッセージ用)
 } Token;
 
+enum {
+    INT,
+    PTR,
+};
+
+typedef struct Type {
+    int ty;
+    struct Type *ptr_of;
+} Type;
+
+typedef struct {
+    Type *ty;
+    int offset;
+} Var;
+
 typedef struct Node {
-    int ty; // 演算子かTK_NUM
+    int op; // 演算子かTK_NUM
+    Type *ty;         // C type
     struct Node *lhs; // 左辺(tyがTK_FORのときforの左)
     struct Node *lhs2; //tyがTK_FORのときのforの真ん中
     struct Node *lhs3; //tyがTK_FORのときのforの右
@@ -55,14 +71,17 @@ enum {
     ND_CALL,
     ND_FUNC,
     ND_COMP_STMT,
+    ND_EXPR_STMT,
     ND_IF,
     ND_FOR,
     ND_WHILE,
     ND_EQ,
     ND_NE,
     ND_LE,
+    ND_DEREF,
+    ND_VARDEF,
+    ND_ADDR,
 };
-
 
 // parse.c
 void error(char *str, char *i);
