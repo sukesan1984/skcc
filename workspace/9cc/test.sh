@@ -4,7 +4,7 @@ try() {
     input="$2"
 
     ./9cc "$input" > tmp.s
-    gcc -static -o tmp tmp.s tmp-hoge.o tmp-fuga.o tmp-add1.o tmp-add2.o tmp-add3.o tmp-add4.o tmp-add5.o tmp-add6.o
+    gcc -static -o tmp tmp.s tmp-test.o tmp-hoge.o tmp-fuga.o tmp-add1.o tmp-add2.o tmp-add3.o tmp-add4.o tmp-add5.o tmp-add6.o
     ./tmp
     actual="$?"
 
@@ -24,6 +24,22 @@ echo 'int add3(int a, int b, int c) { return a + b + c; }' | gcc -xc -c -o tmp-a
 echo 'int add4(int a, int b, int c, int d) { return a + b + c + d; }' | gcc -xc -c -o tmp-add4.o -
 echo 'int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }' | gcc -xc -c -o tmp-add5.o -
 echo 'int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f; }' | gcc -xc -c -o tmp-add6.o -
+
+cat <<EOF | gcc -xc -c -o tmp-test.o -
+int plus(int x, int y) { return x + y; }
+int *alloc(int x) {
+  static int arr[1];
+  arr[0] = x;
+  return arr;
+}
+
+int **alloc2(int x) {
+    int p = x;
+    int* q = &p;
+    int** r = &q;
+    return r;
+}
+EOF
 
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
@@ -105,5 +121,8 @@ try 7 'int add(int x, int y) { return x + y; } int main() { return add(3, 4); }'
 try 1 'int local(int a) { a = 3; return 3; } int main() { a = 1; local(a); return a;}'
 try 1 'int main() {int *p; *p = 1; return *p;}'
 try 55 'int fib(int x) {    if (x == 1) {        return 1;    }    if (x == 2) {        return 1;    }    if (x >= 3) {        return fib(x - 1) + fib(x - 2);    }    return 0;}int main () {    return fib(10);}'
+try 39 'int main() { int **q; q = alloc2(39); return **q; }'
+try 42 'int main() { int *p; p = alloc(42); return *p; }'
+try 22 'int main() { int *p; int **q; p = alloc(42); q = alloc2(22); p = *q; return *p; }'
 
 echo OK

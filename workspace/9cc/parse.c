@@ -121,6 +121,7 @@ Node *unary() {
         Node *node = calloc(1, sizeof(Node));
         node->op = ND_DEREF;
         node->lhs = mul();
+        node->name = node->lhs->name;
         return node;
     }
     return term();
@@ -215,7 +216,6 @@ void put_variable_offset(Node *node) {
         variables++;
     }
 }
-
 
 Node *decl() {
     Node *node = calloc(1, sizeof(Node));

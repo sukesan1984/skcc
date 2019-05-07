@@ -80,8 +80,12 @@ void gen_expr(Node *node){
         }
 
         case ND_DEREF: {
-            printf("#gen_expr ND_DEREFの処理開始\n");
-            gen_expr(node->lhs);
+            printf("#gen_expr ND_DEREFが右辺にきたときの処理開始\n");
+            gen_lval(node);
+            printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
+            printf("  pop rax        \n");          // スタックからpopしてraxに格納
+            printf("  mov rax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
+            printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
             return;
         }
         case ND_EQ:
@@ -148,7 +152,7 @@ void gen_expr(Node *node){
 void gen_lval(Node *node) {
     printf("#gen_lvalの評価開始\n");
     if (node->op == ND_DEREF)
-        return gen_lval(node->lhs);
+        return gen_expr(node->lhs);
 
     if (node->op != ND_IDENT && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
