@@ -41,6 +41,7 @@ typedef struct Node {
     struct Node *lhs3; //tyがTK_FORのときのforの右
     struct Node *rhs; // 右辺
     struct Node *body; // function definition
+    struct Node *init;
     Vector *block_items; // blockのitemを入れるvector
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
