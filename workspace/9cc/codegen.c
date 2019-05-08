@@ -191,6 +191,18 @@ void gen(Node *node);
 void gen_stmt(Node *node) {
     if (node->op == ND_VARDEF) {
         printf("#gen_stmt ND_VARDEFの処理がここはいる\n");
+        if (!node->init)
+            return;
+        gen_expr(node->init);
+        // 右辺の結果がスタックに入る入る
+        Var *var = map_get(variable_map, node->name);
+        printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
+        printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", var->offset, node->name, var->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+        printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
+        printf("  pop rax       # 代入すべきアドレスがスタックされている\n");
+        printf("  pop rdi       # 宣言時の右辺の値が入っている\n");
+        printf("  mov [rax], rdi\n");
+
         return;
     }
 

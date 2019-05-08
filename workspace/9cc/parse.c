@@ -188,11 +188,14 @@ Node *equality() {
     return lhs;
 }
 
+
+Node *decl();
+
 Node *assign() {
-    Node *lhs = equality();
+    Node *node = equality();
     if (consume('='))
-        return new_node('=', lhs, assign());
-    return lhs;
+        return new_node('=', node, assign());
+    return node;
 }
 
 static Type *type() {
@@ -234,6 +237,10 @@ Node *decl() {
     node->name = t->name;
     put_variable_offset(node);
     pos++;
+    if(consume('=')) {
+        node->init = assign();
+    }
+
     return node;
 }
 
