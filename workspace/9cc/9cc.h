@@ -1,3 +1,11 @@
+#define _GNU_SOURCE
+#include <stdnoreturn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdarg.h>
+#include <ctype.h>
 // container.c
 typedef struct {
     void **data;  // 実際のデータ
@@ -85,7 +93,7 @@ enum {
 };
 
 // parse.c
-void error(char *str, char *i);
+noreturn void error(char *fmt, ...);
 Vector *parse();
 
 // tokenize.c

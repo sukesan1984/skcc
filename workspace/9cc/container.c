@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include "9cc.h"
-
-
 
 int equal(int line, int expected, int actual) {
     if (expected == actual)

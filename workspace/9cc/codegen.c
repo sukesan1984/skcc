@@ -1,9 +1,4 @@
 #include "9cc.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-
 
 char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
