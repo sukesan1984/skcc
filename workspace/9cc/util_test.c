@@ -33,6 +33,8 @@ void test_map() {
     map_put(map, "foo", (void *) 6);
     equal(__LINE__, 6, (long)map_get(map, "foo"));
 
+    equal(__LINE__, true, map_exists(map, "bar"));
+    equal(__LINE__, false, map_exists(map, "fuga"));
     printf("OK map\n");
 }
 
@@ -134,6 +136,7 @@ void runtest() {
     equal(__LINE__, 0, (intptr_t)vec->data[0]);
     equal(__LINE__, 50, (intptr_t)vec->data[50]);
     equal(__LINE__, 99, (intptr_t)vec->data[99]);
+
 
     expect_token(__LINE__, &token, (Token *)vec2->data[0]);
 

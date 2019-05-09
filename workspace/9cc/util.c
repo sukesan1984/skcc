@@ -45,3 +45,10 @@ void *map_get(Map *map, char *key) {
             return map->vals->data[i];
     return NULL;
 }
+
+bool map_exists(Map *map, char *key) {
+    for (int i = map->keys->len -1; i >= 0; i--)
+        if (strcmp(map->keys->data[i], key) == 0)
+            return true;
+    return false;
+}

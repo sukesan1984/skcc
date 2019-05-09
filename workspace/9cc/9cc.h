@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <stdbool.h>
 // container.c
 typedef struct {
     void **data;  // 実際のデータ
@@ -110,6 +111,7 @@ void vec_push(Vector *vec, void *elem);
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
+bool map_exists(Map *map, char *key);
 
 
 void runtest();
