@@ -72,6 +72,8 @@ enum {
     TK_GE, // >=
     TK_EOF,
     TK_INT, // int
+    TK_LOGOR, // ||
+    TK_LOGAND, // &&
 };
 
 enum {
@@ -91,6 +93,8 @@ enum {
     ND_DEREF,
     ND_VARDEF,
     ND_ADDR,
+    ND_LOGOR, // ||
+    ND_LOGAND, // &&
 };
 
 // parse.c

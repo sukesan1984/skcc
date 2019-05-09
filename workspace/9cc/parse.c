@@ -186,13 +186,32 @@ Node *equality() {
     return lhs;
 }
 
+Node *logand() {
+    Node *node = equality();
+    for (;;) {
+        Token *t = tokens->data[pos];
+        if (t->ty != TK_LOGAND)
+            return node;
+        pos++;
+        node = new_node(ND_LOGAND, node, equality());
+    }
+}
 
-Node *decl();
+Node *logor() {
+    Node *node = logand();
+    for (;;) {
+        Token *t = tokens->data[pos];
+        if (t->ty != TK_LOGOR)
+            return node;
+        pos++;
+        node = new_node(ND_LOGOR, node, logand());
+    }
+}
 
 Node *assign() {
-    Node *node = equality();
+    Node *node = logor();
     if (consume('='))
-        return new_node('=', node, assign());
+        return new_node('=', node, logor());
     return node;
 }
 

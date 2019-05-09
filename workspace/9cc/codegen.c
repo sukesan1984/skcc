@@ -29,6 +29,7 @@ void gen_binop(Node *lhs, Node *rhs){
 void gen_lval(Node *node);
 void gen_stmt(Node *node);
 
+int jump_num = 0;                    // ifでjumpする回数を保存
 void gen_expr(Node *node){
     switch(node->op) {
         case ND_NUM: {
@@ -115,6 +116,40 @@ void gen_expr(Node *node){
             printf("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
             return;
         }
+        case ND_LOGOR:
+            // 左辺と右辺の内いずれかが1なら1
+            gen_expr(node->lhs);
+            printf("  pop rdi\n");
+            printf("  cmp rdi, 1 # 1と等しければje..\n");
+            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            gen_expr(node->rhs);
+            printf("  pop rdi\n");
+            printf("  cmp rdi, 1 # 1と等しければ..\n");
+            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            printf("  push 0\n"); // 両方0の時
+            printf("  jmp .Lend%d\n", jump_num);
+            printf(".Ltrue%d:\n", jump_num);
+            printf("  push 1\n");
+            printf(".Lend%d:\n", jump_num);
+            jump_num++;
+            return;
+        case ND_LOGAND:
+            // 左辺と右辺の内いずれかが1なら1
+            gen_expr(node->lhs);
+            printf("  pop rdi\n");
+            printf("  cmp rdi, 0 # 0と等しければje..\n");
+            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            gen_expr(node->rhs);
+            printf("  pop rdi\n");
+            printf("  cmp rdi, 0 # 0と等しければ..\n");
+            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            printf("  push 1\n"); // 両方0の時
+            printf("  jmp .Lend%d\n", jump_num);
+            printf(".Lfalse%d:\n", jump_num);
+            printf("  push 0\n");
+            printf(".Lend%d:\n", jump_num);
+            jump_num++;
+            return;
         case '+':
             printf("#gen_expr +の評価開始\n");
             gen_binop(node->lhs, node->rhs);
@@ -181,7 +216,6 @@ void gen_args(Vector *args) {
     }
 }
 
-int jump_num = 0;                    // ifでjumpする回数を保存
 void gen(Node *node);
 void gen_stmt(Node *node) {
     if (node->op == ND_VARDEF) {

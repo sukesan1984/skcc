@@ -40,7 +40,6 @@ int **alloc2(int x) {
     return r;
 }
 EOF
-
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
 try 21 "int main() { 5+20-4; }"
@@ -128,5 +127,16 @@ try 5 'int main() { int x; int *p; p = &x; x = 5; return *p;}'
 try 3 'int main() { int x; int y; int* p; int** q; y = 3; x = 5; p = &x; q = &p; *q = &y; return **q; }'
 try 3 "int main() { int x = 3; return x;}"
 try 3 "int main() { int x = 3; int *y = &x; return *y;}"
+try 0 'int main() { return 0&&0; }'
+try 0 'int main() { return 1&&0; }'
+try 0 'int main() { return 0&&1; }'
+try 1 'int main() { return 1&&1; }'
+
+try 0 'int main() { return 0||0; }'
+try 1 'int main() { return 1||0; }'
+try 1 'int main() { return 0||1; }'
+try 1 'int main() { return 1||1; }'
+
+
 
 echo OK

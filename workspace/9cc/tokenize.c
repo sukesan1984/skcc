@@ -49,6 +49,8 @@ void tokenize(char *p) {
         if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_LOGOR, p, "||")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_LOGAND, p, "&&")) { p += 2; continue; };
 
         if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
             add_token(tokens, TK_IF, p);
