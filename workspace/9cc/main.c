@@ -1,6 +1,4 @@
 #include "9cc.h"
-#include <stdio.h>
-#include <string.h>
 
 //Node *code[100];
 // トークナイズした結果のトークン列はvecに格納する

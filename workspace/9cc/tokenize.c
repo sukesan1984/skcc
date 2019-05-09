@@ -1,7 +1,3 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "9cc.h"
 
 void error_token(int i){
