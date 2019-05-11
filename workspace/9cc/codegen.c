@@ -1,10 +1,6 @@
 #include "9cc.h"
 
-char* regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-
-void dump_explain(char* text) {
-    fprintf(stderr, "%s", text);
-}
+char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_initial() {
     // アセンブリの前半部分を出力
@@ -58,7 +54,7 @@ void gen_expr(Node *node){
                 gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
                 printf("#gen_expr ND_CALL(引数処理): %d番目の引数\n", i);
                 printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
-                printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", regs[i]);        // raxから各レジスタに格納
+                printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
             }
             printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
             printf("  push rax      #関数の結果をスタックに積む \n");         // スタックに結果を積む
@@ -212,7 +208,7 @@ void gen_args(Vector *args) {
     for(int i = 0; i < args_len; i++) {
         gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
         printf("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
-        printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", regs[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+        printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
     }
 }
 
