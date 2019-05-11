@@ -308,17 +308,6 @@ void gen_stmt(Node *node) {
         }
         return;
     }
-
-    if (node->op == '{') {
-        printf("#gen_stmt { の処理\n");
-        int block_len = node->block_items->len;
-        for (int i = 0; i < block_len; i++) {
-            printf("          # %d番目のブロックアイテムの処理\n", i);
-            gen_stmt((Node *) node->block_items->data[i]);
-            printf("  pop rax # %d番目のブロックアイテムの結果をraxに持ってくる\n", i);
-        }
-        return;
-    }
 }
 
 void gen_main(Vector* v) {

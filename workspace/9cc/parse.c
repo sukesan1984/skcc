@@ -2,7 +2,6 @@
 
 int pos = 0;
 int variables = 0;
-
 static Type int_ty = {INT, NULL};
 
 static Type *ptr_of(Type *base) {
@@ -290,8 +289,8 @@ Node *stmt() {
             vec_push(block_items, (void *) stmt());
         }
         node = malloc(sizeof(Node));
-        node->op = '{';
-        node->block_items  = block_items;
+        node->op = ND_COMP_STMT;
+        node->stmts  = block_items;
         return node;
     }
 

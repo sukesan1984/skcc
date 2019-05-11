@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <assert.h>
 #include <stdnoreturn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,11 +52,12 @@ typedef struct Node {
     struct Node *rhs; // 右辺
     struct Node *body; // function definition
     struct Node *init;
-    Vector *block_items; // blockのitemを入れるvector
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
+    int stacksize;
+    int offset;
 } Node;
 
 // トークンの型を表す値
@@ -103,6 +105,9 @@ Vector *parse();
 
 // tokenize.c
 void tokenize(char *p);
+
+// sema.c
+void sema(Vector *nodes);
 
 // codegen.c
 void gen_main(Vector* v);

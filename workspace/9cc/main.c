@@ -19,8 +19,9 @@ int main(int argc, char **argv) {
         return 0;
     }
     tokenize(argv[1]);
-    Vector *v = parse();
-    gen_main(v);
+    Vector *nodes = parse();
+    sema(nodes);
+    gen_main(nodes);
 
     return 0;
 }
