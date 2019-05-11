@@ -1,7 +1,7 @@
 #include "9cc.h"
 
 int pos = 0;
-int variables = 0;
+//int variables = 0;
 static Type int_ty = {INT, NULL};
 
 static Type *ptr_of(Type *base) {
@@ -226,23 +226,6 @@ static Type *type() {
     return ty;
 }
 
-void put_variable_offset(Node *node) {
-
-    // すでに使われた変数かどうか
-    long offset = (long) map_get(variable_map, node->name);
-
-    // 使われてなければ、識別子をキーとしてRBPからのオフセットを追加する
-    if (offset == 0){
-        offset = (variables + 1) * 8;
-
-        Var *var = calloc(1, sizeof(Var));
-        var->ty = node->ty;
-        var->offset = offset;
-        map_put(variable_map, node->name, var);
-        variables++;
-    }
-}
-
 Node *decl() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
@@ -251,7 +234,6 @@ Node *decl() {
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
     node->name = t->name;
-    put_variable_offset(node);
     pos++;
     if(consume('=')) {
         node->init = assign();
@@ -269,7 +251,6 @@ Node *param() {
     if (t->ty != TK_IDENT)
         error("parameter name expected, but got %s", t->input);
     node->name = t->name;
-    put_variable_offset(node);
     pos++;
     return node;
 }
