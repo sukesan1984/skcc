@@ -188,16 +188,8 @@ void gen_lval(Node *node) {
     if (node->op != ND_IDENT && node-> op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
-    Var* var;
-    if (node->op == ND_IDENT || node->op == ND_VARDEF) {
-        //Nodeが変数か宣言の場合
-        var = map_get(variable_map, node->name);// ('z' - node->name + 1) * 8;
-    }
-    if(var->offset == 0)
-        error("変数が宣言されていません:", node->name);
-
     printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
-    printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", var->offset, node->name, var->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+    printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
     printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
 }
 
@@ -220,9 +212,8 @@ void gen_stmt(Node *node) {
             return;
         gen_expr(node->init);
         // 右辺の結果がスタックに入る入る
-        Var *var = map_get(variable_map, node->name);
         printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
-        printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", var->offset, node->name, var->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+        printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
         printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
         printf("  pop rax       # 代入すべきアドレスがスタックされている\n");
         printf("  pop rdi       # 宣言時の右辺の値が入っている\n");
@@ -308,17 +299,6 @@ void gen_stmt(Node *node) {
         }
         return;
     }
-
-    if (node->op == '{') {
-        printf("#gen_stmt { の処理\n");
-        int block_len = node->block_items->len;
-        for (int i = 0; i < block_len; i++) {
-            printf("          # %d番目のブロックアイテムの処理\n", i);
-            gen_stmt((Node *) node->block_items->data[i]);
-            printf("  pop rax # %d番目のブロックアイテムの結果をraxに持ってくる\n", i);
-        }
-        return;
-    }
 }
 
 void gen_main(Vector* v) {
@@ -335,7 +315,7 @@ void gen_main(Vector* v) {
             // 使用した変数分の領域を確保する
             printf("  push rbp     # 呼び出し元のrbpをスタックにつんでおく(エピローグでpopしてrspをそこに戻す)\n");                     // ベースポインタをスタックにプッシュする
             printf("  mov rbp, rsp # rspが今の関数のベースポインタを指しているのでrbpにコピーしておく\n");                 // rspをrbpにコピーする
-            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", variables * 8, variables);   // rspを使用した変数分動かす
+            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", node->stacksize, node->stacksize);   // rspを使用した変数分動かす
             printf("#関数の引数の処理\n");
             gen_args(node->args);
             printf("#関数本体の処理\n");
