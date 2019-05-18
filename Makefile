@@ -4,3 +4,6 @@ build:
 test:
 	make build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make test'
+
+in:
+	docker run --rm -it sukesan1984/make_compiler bash

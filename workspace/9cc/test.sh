@@ -26,6 +26,8 @@ echo 'int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }'
 echo 'int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f; }' | gcc -xc -c -o tmp-add6.o -
 
 cat <<EOF | gcc -xc -c -o tmp-test.o -
+#include <stdio.h>
+#include <stdlib.h>
 int plus(int x, int y) { return x + y; }
 int *alloc(int x) {
   static int arr[1];
@@ -39,6 +41,24 @@ int **alloc2(int x) {
     int** r = &q;
     return r;
 }
+
+int* alloc4(int a, int b, int c, int d) {
+    int* q = calloc(4, sizeof(int));
+    q[0] = a;
+    q[1] = b;
+    q[2] = c;
+    q[3] = d;
+    return q;
+}
+
+int*** alloc5(int** pp, int** pq) {
+    int*** s = calloc(2, sizeof(int**)); //= { a, b };
+    s[0] = pp;
+    s[1] = pq;
+    return  s;
+}
+
+
 EOF
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
@@ -137,6 +157,13 @@ try 1 'int main() { return 1||0; }'
 try 1 'int main() { return 0||1; }'
 try 1 'int main() { return 1||1; }'
 
+try 4 "int main() { int *p; p = alloc4(1, 2, 4, 8); p = p + 2;  return *p; }"
+try 8 "int main() { int *p; p = alloc4(1, 2, 4, 8); p = p + 3;  return *p; }"
+try 2 "int main() { int *p; p = alloc4(1, 2, 4, 8); p = p + 3; p = p -2;  return *p; }"
+# alloc
 
+try 3 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); tpp = tpp + 1; return ***tpp; }"
+try 8 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); pp = pp + 3; return ***tpp; }"
+try 2 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); **tpp = **tpp + 1; return ***tpp; }"
 
 echo OK

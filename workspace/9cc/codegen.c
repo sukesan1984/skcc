@@ -148,15 +148,41 @@ void gen_expr(Node *node){
             return;
         case '+':
             printf("#gen_expr +の評価開始\n");
-            gen_binop(node->lhs, node->rhs);
+            gen_expr(node->lhs);
+            gen_expr(node->rhs);
             printf("  pop rdi       # \n");
+            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF) {
+                printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
+                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mul rsi\n");
+                printf("  push rax\n");
+            }
+            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF) {
+                printf("  mov rax, rdi\n");
+                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mul rsi\n");
+                printf("  mov rdi, rax\n");
+            }
             printf("  pop rax\n");
             printf("  add rax, rdi\n");
             break;
         case '-':
             printf("#gen_expr -の評価開始\n");
-            gen_binop(node->lhs, node->rhs);
+            gen_expr(node->lhs);
+            gen_expr(node->rhs);
             printf("  pop rdi\n");
+            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF) {
+                printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
+                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mul rsi\n");
+                printf("  push rax\n");
+            }
+            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF) {
+                printf("  mov rax, rdi\n");
+                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mul rsi\n");
+                printf("  mov rdi, rax\n");
+            }
             printf("  pop rax\n");
             printf("  sub rax, rdi\n");
             break;
