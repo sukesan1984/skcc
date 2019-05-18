@@ -5,10 +5,21 @@ static Type int_ty = {INT, NULL};
 static Map *vars;
 static int stacksize;
 
+int get_stacksize(Node *node) {
+    if(node->ty->ty == INT) {
+        return 1;
+    }
+    if (node->ty->ptr_of->ty == INT){
+        return 4;
+    } else {
+        return 8;
+    }
+}
+
 static void walk(Node *node) {
-//    fprintf(stderr, "node->op: %d\n", node->op);
     switch (node->op) {
     case ND_NUM:
+        node->stacksize = 1;
         return;
     case ND_IDENT: {
         Var *var = map_get(vars, node->name);
@@ -16,6 +27,7 @@ static void walk(Node *node) {
             error("undefined variable: %s", node->name);
         node->ty = var->ty;
         node->offset = var->offset;
+        node->stacksize = get_stacksize(node);
         return;
     }
     case ND_VARDEF: {
@@ -61,6 +73,10 @@ static void walk(Node *node) {
         node->ty = node->lhs->ty;
         return;
     case ND_DEREF:
+        walk(node->lhs);
+        node->ty = node->lhs->ty->ptr_of; // *p の場合 tyはptr_of
+        node->stacksize = get_stacksize(node);
+        return;
     case ND_ADDR:
     case ND_RETURN:
         walk(node->lhs);
