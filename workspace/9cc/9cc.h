@@ -76,6 +76,7 @@ enum {
     TK_INT, // int
     TK_LOGOR, // ||
     TK_LOGAND, // &&
+    TK_SIZEOF, //sizeof
 };
 
 enum {
