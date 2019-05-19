@@ -5,15 +5,18 @@ static Type int_ty = {INT, NULL};
 static Map *vars;
 static int stacksize;
 
+int size_of(Type *ty) {
+    if (ty->ty == INT)
+        return 4;
+    assert(ty->ty == PTR);
+    return 8;
+}
+
 int get_stacksize(Node *node) {
     if(node->ty->ty == INT) {
         return 1;
     }
-    if (node->ty->ptr_of->ty == INT){
-        return 4;
-    } else {
-        return 8;
-    }
+    return size_of(node->ty->ptr_of);
 }
 
 static void walk(Node *node) {
@@ -97,6 +100,11 @@ static void walk(Node *node) {
         return;
     case ND_EXPR_STMT:
         walk(node->lhs);
+        return;
+    case ND_SIZEOF:
+        walk(node->lhs);
+        node->op = ND_NUM;
+        node->val = size_of(node->lhs->ty);
         return;
     default:
         assert(0 && "unknown node type");

@@ -76,6 +76,7 @@ enum {
     TK_INT, // int
     TK_LOGOR, // ||
     TK_LOGAND, // &&
+    TK_SIZEOF, //sizeof
 };
 
 enum {
@@ -97,6 +98,7 @@ enum {
     ND_ADDR,
     ND_LOGOR, // ||
     ND_LOGAND, // &&
+    ND_SIZEOF,
 };
 
 // parse.c

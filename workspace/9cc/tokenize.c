@@ -76,11 +76,17 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
+            add_token(tokens, TK_SIZEOF, p);
+            p += 6;
+            continue;
+        }
         if (strchr("+-*/()=;{},<>&", *p)) {
             add_token(tokens, *p, p);
             p++;
             continue;
         }
+
 
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
