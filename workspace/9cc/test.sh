@@ -60,6 +60,7 @@ int*** alloc5(int** pp, int** pq) {
 
 
 EOF
+
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
 try 21 "int main() { 5+20-4; }"
@@ -165,5 +166,11 @@ try 2 "int main() { int *p; p = alloc4(1, 2, 4, 8); p = p + 3; p = p -2;  return
 try 3 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); tpp = tpp + 1; return ***tpp; }"
 try 8 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); pp = pp + 3; return ***tpp; }"
 try 2 "int main(){ int* pp = alloc4(1, 2, 4, 8); int* pq = alloc4(3, 5, 7, 9); int*** tpp = alloc5(&pp, &pq); **tpp = **tpp + 1; return ***tpp; }"
+# sizeof
+try 4 "int main() { return sizeof(1); }"
+try 4 "int main() { int x; return sizeof(x); }"
+try 8 "int main() { int *x; return sizeof(x); }"
+try 4 "int main() { int *x; return sizeof(*x); }"
+try 4 "int main() { return sizeof 1; }"
 
 echo OK

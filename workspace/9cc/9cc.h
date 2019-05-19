@@ -98,6 +98,7 @@ enum {
     ND_ADDR,
     ND_LOGOR, // ||
     ND_LOGAND, // &&
+    ND_SIZEOF,
 };
 
 // parse.c

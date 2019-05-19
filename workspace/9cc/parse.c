@@ -128,6 +128,13 @@ Node *unary() {
         node->lhs = mul();
         return node;
     }
+
+    if (consume(TK_SIZEOF)) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_SIZEOF;
+        node->lhs = unary();
+        return node;
+    }
     return term();
 }
 
