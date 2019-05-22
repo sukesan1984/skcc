@@ -35,6 +35,7 @@ static void walk(Node *node) {
         node->stacksize = get_stacksize(node);
         //node->ty->tyがARRAYの場合PTRに置き換える
         if(node->ty->ty == ARRAY) {
+            node->op = ND_ARRAY;
             Type *ty = calloc(1, sizeof(Type));
             ty->ty = PTR;
             ty->ptr_of = node->ty->ptr_of;

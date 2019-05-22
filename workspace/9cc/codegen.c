@@ -70,6 +70,12 @@ void gen_expr(Node *node){
             return;
         }
 
+        case ND_ARRAY: {
+            printf("#gen_expr ND_ARRAYの処理開始\n");
+            gen_lval(node);
+            return;
+        }
+
         case ND_DEREF: {
             printf("#gen_expr ND_DEREFが右辺にきたときの処理開始\n");
             gen_lval(node);
@@ -151,13 +157,13 @@ void gen_expr(Node *node){
             gen_expr(node->lhs);
             gen_expr(node->rhs);
             printf("  pop rdi       # \n");
-            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF) {
+            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF || node->rhs->op == ND_ARRAY) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
                 printf("  mov rsi, %d\n", node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
-            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF) {
+            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF || node->lhs->op == ND_ARRAY) {
                 printf("  mov rax, rdi\n");
                 printf("  mov rsi, %d\n", node->lhs->stacksize);
                 printf("  mul rsi\n");
@@ -171,13 +177,13 @@ void gen_expr(Node *node){
             gen_expr(node->lhs);
             gen_expr(node->rhs);
             printf("  pop rdi\n");
-            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF) {
+            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF || node->rhs->op == ND_ARRAY) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
                 printf("  mov rsi, %d\n", node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
-            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF) {
+            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF || node->lhs->op == ND_ARRAY) {
                 printf("  mov rax, rdi\n");
                 printf("  mov rsi, %d\n", node->lhs->stacksize);
                 printf("  mul rsi\n");
@@ -211,7 +217,7 @@ void gen_lval(Node *node) {
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
 
-    if (node->op != ND_IDENT && node-> op != ND_VARDEF)
+    if (node->op != ND_IDENT && node-> op != ND_VARDEF && node->op != ND_ARRAY)
         error("代入の左辺値が変数ではありません", 0);
 
     printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
