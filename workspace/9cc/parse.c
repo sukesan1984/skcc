@@ -86,6 +86,20 @@ Node *term() {
             return new_node_func(ND_CALL, t->name, args);
         }
 
+        if(consume('[')) {
+            Node *node = calloc(1, sizeof(Node));
+            node->op = ND_DEREF;
+
+            Node *ident = calloc(1, sizeof(Node));
+            ident->op = ND_IDENT;
+            ident->name = t->name;
+            t = (Token *) tokens->data[pos++];
+            node->lhs = new_node('+', ident, new_node_num(t->val));
+            expect(']');
+            consume(']');
+            return node;
+        }
+
         return new_node_ident(t->name);
     }
 

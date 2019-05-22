@@ -172,7 +172,11 @@ try 4 "int main() { int x; return sizeof(x); }"
 try 8 "int main() { int *x; return sizeof(x); }"
 try 4 "int main() { int *x; return sizeof(*x); }"
 try 4 "int main() { return sizeof 1; }"
-# array 
+# array
 try 4 "int main () { int q = 1; int a[2]; a = &q; *(a + 1) = 3; int *p; p = a; return *p + *(p + 1); }"
+try 3 "int main () { int q = 1; int a[2]; a = &q; a[1] = 3; return a[1]; }"
+try 12 "int main () { int q = 12; int a[2]; a = &q; return a[0]; }"
+try 12 "int main () { int q = 12; int i = 0; int a[2]; a = &q; return a[i]; }"
+
 
 echo OK
