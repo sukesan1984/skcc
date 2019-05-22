@@ -8,6 +8,8 @@ static int stacksize;
 int size_of(Type *ty) {
     if (ty->ty == INT)
         return 4;
+    if (ty->ty == ARRAY)
+        return 8;
     assert(ty->ty == PTR);
     return 8;
 }
@@ -31,10 +33,23 @@ static void walk(Node *node) {
         node->ty = var->ty;
         node->offset = var->offset;
         node->stacksize = get_stacksize(node);
+        //node->ty->tyがARRAYの場合PTRに置き換える
+        if(node->ty->ty == ARRAY) {
+            Type *ty = calloc(1, sizeof(Type));
+            ty->ty = PTR;
+            ty->ptr_of = node->ty->ptr_of;
+            node->ty = ty;
+        }
         return;
     }
-    case ND_VARDEF: {
-        stacksize += 8;
+
+    case ND_VARDEF:
+        if(node->ty->ty == ARRAY) {
+            stacksize += 8 * node->ty->array_size;
+        } else {
+            stacksize += 8;
+        }
+
         node->offset = stacksize;
 
         Var *var = calloc(1, sizeof(Var));
@@ -44,7 +59,6 @@ static void walk(Node *node) {
         if (node->init)
             walk(node->init);
         return;
-    }
     case ND_IF:
         walk(node->lhs);
         walk(node->rhs);

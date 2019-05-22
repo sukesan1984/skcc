@@ -172,5 +172,7 @@ try 4 "int main() { int x; return sizeof(x); }"
 try 8 "int main() { int *x; return sizeof(x); }"
 try 4 "int main() { int *x; return sizeof(*x); }"
 try 4 "int main() { return sizeof 1; }"
+# array 
+try 4 "int main () { int q = 1; int a[2]; a = &q; *(a + 1) = 3; int *p; p = a; return *p + *(p + 1); }"
 
 echo OK

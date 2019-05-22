@@ -52,3 +52,18 @@ bool map_exists(Map *map, char *key) {
             return true;
     return false;
 }
+
+Type *array_type(size_t size, Type *base) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->ty = ARRAY;
+    ty->array_size = size;
+    ty->ptr_of = base;
+    return ty;
+}
+
+Type *ptr_of(Type *base) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->ty = PTR;
+    ty->ptr_of = base;
+    return ty;
+}

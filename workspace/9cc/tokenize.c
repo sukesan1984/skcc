@@ -81,7 +81,7 @@ void tokenize(char *p) {
             p += 6;
             continue;
         }
-        if (strchr("+-*/()=;{},<>&", *p)) {
+        if (strchr("+-*/()=;{},<>&[]", *p)) {
             add_token(tokens, *p, p);
             p++;
             continue;

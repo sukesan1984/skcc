@@ -1,16 +1,8 @@
 #include "9cc.h"
 
 int pos = 0;
-//int variables = 0;
 static Type int_ty = {INT, NULL};
-
-static Type *ptr_of(Type *base) {
-    Type *ty = calloc(1, sizeof(Type));
-    ty->ty = PTR;
-    ty->ptr_of = base;
-    return ty;
-}
-
+//int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
     if (t->ty != ty)
@@ -237,11 +229,16 @@ Node *decl() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
     node->ty = type();
-    Token *t = (Token *) tokens->data[pos];
+    Token *t = (Token *) tokens->data[pos++];
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
     node->name = t->name;
-    pos++;
+    if(consume('[')) {
+        t = (Token *) tokens->data[pos++];
+        node->ty = array_type(t->val, node->ty);
+        expect(']');
+        consume(']');
+    }
     if(consume('=')) {
         node->init = assign();
     }
