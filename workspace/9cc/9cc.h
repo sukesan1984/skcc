@@ -28,15 +28,16 @@ typedef struct {
     char *input; // トークン文字列(エラーメッセージ用)
 } Token;
 
-enum {
-    INT,
-    PTR,
-};
-
 typedef struct Type {
-    int ty;
+    enum {INT, PTR, ARRAY} ty;
     struct Type *ptr_of;
+    struct Type *array_of;
+    size_t array_size;
 } Type;
+
+Type *ary_of(Type *base, size_t size);
+Type *ptr_of(Type *base);
+int size_of(Type* ty);
 
 typedef struct {
     Type *ty;

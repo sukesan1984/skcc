@@ -1,16 +1,8 @@
 #include "9cc.h"
 
 int pos = 0;
-//int variables = 0;
 static Type int_ty = {INT, NULL};
-
-static Type *ptr_of(Type *base) {
-    Type *ty = calloc(1, sizeof(Type));
-    ty->ty = PTR;
-    ty->ptr_of = base;
-    return ty;
-}
-
+//int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
     if (t->ty != ty)
@@ -75,7 +67,25 @@ Node *assign();
 Node *unary();
 static Type *type();
 
-Node *term() {
+Node *primary();
+
+static Type* read_array(Type *ty) {
+    Vector *v = new_vector();
+    while(consume('[')) {
+        Node *len = primary();
+        if (len->op != ND_NUM)
+            error("number expected");
+        vec_push(v, len);
+        expect(']');
+    }
+    for (int i = v->len - 1;  i >= 0; i--) {
+        Node *len = v->data[i];
+        ty = ary_of(ty, len->val);
+    }
+    return ty;
+}
+
+Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
@@ -111,6 +121,18 @@ Node *term() {
     exit(1);
 }
 
+static Node *postfix() {
+    Node *lhs = primary();
+    while(consume('[')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DEREF;
+        node->lhs = new_node('+', lhs, primary());
+        lhs = node;
+        expect(']');
+        consume(']');
+    }
+    return lhs;
+}
 
 Node *mul();
 Node *unary() {
@@ -135,7 +157,7 @@ Node *unary() {
         node->lhs = unary();
         return node;
     }
-    return term();
+    return postfix();
 }
 
 Node *mul() {
@@ -237,15 +259,14 @@ Node *decl() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
     node->ty = type();
-    Token *t = (Token *) tokens->data[pos];
+    Token *t = (Token *) tokens->data[pos++];
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
     node->name = t->name;
-    pos++;
+    node->ty = read_array(node->ty);
     if(consume('=')) {
         node->init = assign();
     }
-
     return node;
 }
 
