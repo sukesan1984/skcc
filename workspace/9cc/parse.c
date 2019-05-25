@@ -67,7 +67,25 @@ Node *assign();
 Node *unary();
 static Type *type();
 
-Node *term() {
+Node *primary();
+
+static Type* read_array(Type *ty) {
+    Vector *v = new_vector();
+    while(consume('[')) {
+        Node *len = primary();
+        if (len->op != ND_NUM)
+            error("number expected");
+        vec_push(v, len);
+        expect(']');
+    }
+    for (int i = v->len - 1;  i >= 0; i--) {
+        Node *len = v->data[i];
+        ty = ary_of(ty, len->val);
+    }
+    return ty;
+}
+
+Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
@@ -84,20 +102,6 @@ Node *term() {
                 vec_push(args, (void *) node);
             }
             return new_node_func(ND_CALL, t->name, args);
-        }
-
-        if(consume('[')) {
-            Node *node = calloc(1, sizeof(Node));
-            node->op = ND_DEREF;
-
-            Node *ident = calloc(1, sizeof(Node));
-            ident->op = ND_IDENT;
-            ident->name = t->name;
-            t = (Token *) tokens->data[pos++];
-            node->lhs = new_node('+', ident, new_node_num(t->val));
-            expect(']');
-            consume(']');
-            return node;
         }
 
         return new_node_ident(t->name);
@@ -117,6 +121,18 @@ Node *term() {
     exit(1);
 }
 
+static Node *postfix() {
+    Node *lhs = primary();
+    while(consume('[')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DEREF;
+        node->lhs = new_node('+', lhs, primary());
+        lhs = node;
+        expect(']');
+        consume(']');
+    }
+    return lhs;
+}
 
 Node *mul();
 Node *unary() {
@@ -141,7 +157,7 @@ Node *unary() {
         node->lhs = unary();
         return node;
     }
-    return term();
+    return postfix();
 }
 
 Node *mul() {
@@ -247,16 +263,10 @@ Node *decl() {
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
     node->name = t->name;
-    if(consume('[')) {
-        t = (Token *) tokens->data[pos++];
-        node->ty = array_type(t->val, node->ty);
-        expect(']');
-        consume(']');
-    }
+    node->ty = read_array(node->ty);
     if(consume('=')) {
         node->init = assign();
     }
-
     return node;
 }
 

@@ -31,11 +31,13 @@ typedef struct {
 typedef struct Type {
     enum {INT, PTR, ARRAY} ty;
     struct Type *ptr_of;
+    struct Type *array_of;
     size_t array_size;
 } Type;
 
-Type *array_type(size_t size, Type *base);
+Type *ary_of(Type *base, size_t size);
 Type *ptr_of(Type *base);
+int size_of(Type* ty);
 
 typedef struct {
     Type *ty;
@@ -98,7 +100,6 @@ enum {
     ND_LOGOR, // ||
     ND_LOGAND, // &&
     ND_SIZEOF,
-    ND_ARRAY,
 };
 
 // parse.c

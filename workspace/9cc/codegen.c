@@ -1,6 +1,7 @@
 #include "9cc.h"
 
 char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 
 void gen_initial() {
     // アセンブリの前半部分を出力
@@ -42,7 +43,12 @@ void gen_expr(Node *node){
             printf("#gen_expr =の処理開始\n");
             printf("  pop rdi        # 評価された右辺値をrdiにロード\n");          // 評価された右辺値がrdiにロード
             printf("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
-            printf("  mov [rax], rdi # raxのレジスタのアドレスにrdiの値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n");   // raxのレジスタのアドレスにrdiの値をストアする
+
+            char *reg = "rdi";
+            if (node->lhs->ty->ty == INT)
+                reg = "edi";
+
+            printf("  mov [rax], %s # raxのレジスタのアドレスにrdiの値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n", reg);   // raxのレジスタのアドレスにrdiの値をストアする
             printf("  push rdi       # 右辺値をスタックにプッシュする\n");         // rdiの値をスタックにプッシュする
             return;
         }
@@ -65,14 +71,11 @@ void gen_expr(Node *node){
             printf("#gen_expr ND_IDENTの処理開始\n");
             gen_lval(node);
             printf("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
-            printf("  mov rax, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n");   // raxをアドレスとして値をロードしてraxに格納
+            char *reg = "rax";
+            if (node->ty->ty == INT)
+                reg = "eax";
+            printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
-            return;
-        }
-
-        case ND_ARRAY: {
-            printf("#gen_expr ND_ARRAYの処理開始\n");
-            gen_lval(node);
             return;
         }
 
@@ -81,7 +84,10 @@ void gen_expr(Node *node){
             gen_lval(node);
             printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
             printf("  pop rax        \n");          // スタックからpopしてraxに格納
-            printf("  mov rax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
+            char *reg = "rax";
+            if (node->ty->ty == INT)
+                reg = "eax";
+            printf("  mov %s, [rax] # デリファレンスのアドレスから値をロード\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
             return;
         }
@@ -157,15 +163,15 @@ void gen_expr(Node *node){
             gen_expr(node->lhs);
             gen_expr(node->rhs);
             printf("  pop rdi       # \n");
-            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF || node->rhs->op == ND_ARRAY) {
+            if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_of));//node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
-            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF || node->lhs->op == ND_ARRAY) {
+            if (node->lhs->ty->ty == PTR) {
                 printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_of));//node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  mov rdi, rax\n");
             }
@@ -177,15 +183,15 @@ void gen_expr(Node *node){
             gen_expr(node->lhs);
             gen_expr(node->rhs);
             printf("  pop rdi\n");
-            if (node->rhs->op == ND_IDENT || node->rhs->op == ND_DEREF || node->rhs->op == ND_ARRAY) {
+            if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_of)); //node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
-            if (node->lhs->op == ND_IDENT || node->lhs->op == ND_DEREF || node->lhs->op == ND_ARRAY) {
+            if (node->lhs->ty->ty == PTR) {
                 printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_of));
                 printf("  mul rsi\n");
                 printf("  mov rdi, rax\n");
             }
@@ -217,7 +223,7 @@ void gen_lval(Node *node) {
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
 
-    if (node->op != ND_IDENT && node-> op != ND_VARDEF && node->op != ND_ARRAY)
+    if (node->op != ND_IDENT && node-> op != ND_VARDEF) // && node->op != ND_ARRAY)
         error("代入の左辺値が変数ではありません", 0);
 
     printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
@@ -230,9 +236,14 @@ void gen_lval(Node *node) {
 void gen_args(Vector *args) {
     int args_len = args->len;                   // argsのlengthを取得
     for(int i = 0; i < args_len; i++) {
-        gen_lval((Node *) args->data[i]);       // 関数の引数定義はlvalとして定義
+        Node *node = args->data[i];
+        gen_lval(node);       // 関数の引数定義はlvalとして定義
         printf("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
-        printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+
+        if (node->ty->ty == INT)
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg32[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+        else
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
     }
 }
 
@@ -249,7 +260,11 @@ void gen_stmt(Node *node) {
         printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
         printf("  pop rax       # 代入すべきアドレスがスタックされている\n");
         printf("  pop rdi       # 宣言時の右辺の値が入っている\n");
-        printf("  mov [rax], rdi\n");
+
+        char *reg = "rdi";
+        if (node->ty->ty == INT)
+            reg = "edi";
+        printf("  mov [rax], %s\n", reg);
 
         return;
     }

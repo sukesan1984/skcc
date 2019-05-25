@@ -179,6 +179,7 @@ try 5 "int main () { int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a; return *p + 
 try 3 "int main () { int a[2]; a[1] = 3; return a[1]; }"
 try 12 "int main () { int a[2]; a[0] = 12; return a[0]; }"
 try 12 "int main () { int i = 0; int a[2]; a[0] = 12; return a[i]; }"
+try 12 "int main () { int a[2][2]; a[0][0] = 12; return a[0][0]; }"
 
 
 echo OK
