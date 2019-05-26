@@ -181,5 +181,13 @@ try 12 "int main () { int a[2]; a[0] = 12; return a[0]; }"
 try 12 "int main () { int i = 0; int a[2]; a[0] = 12; return a[i]; }"
 try 12 "int main () { int a[2][2]; a[0][0] = 12; return a[0][0]; }"
 
+# Global variables
+try 10 "int x; int main() { x = 10; return x; }"
+try 0 'int x; int main() { return x; }'
+try 5 'int x; int main() { x = 5; return x; }'
+try 15 'int x[5]; int main() { x[0] = 5; x[4] = 10; return x[0] + x[4]; }'
+try 20 "int main() { int x[5]; return sizeof(x); }"
+try 20 'int x[5]; int main() { return sizeof(x); }'
+
 
 echo OK

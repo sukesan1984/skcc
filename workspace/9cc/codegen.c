@@ -3,9 +3,34 @@
 char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 
+static char *escape(char *s, int len) {
+    char *buf = malloc(len * 4);
+    char *p = buf;
+    for (int i = 0; i < len; i++) {
+        if(s[i] == '\\') {
+            *p++ = '\\';
+            *p++ = '\\';
+        } else if (isgraph(s[i]) || s[i] == ' ') {
+            *p++ = s[i];
+        } else {
+            sprintf(p, "\\%03o", s[i]);
+            p += 4;
+        }
+    }
+    *p = '\0';
+    return buf;
+}
+
 void gen_initial() {
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
+    printf(".data\n");
+    for (int i = 0; i < globals->len; i++) {
+        Var *var = globals->data[i];
+        printf("%s:\n", var->name);
+        printf("  .ascii \"%s\"\n", escape(var->data, var->len));
+    }
+
     printf(".global main\n");
 }
 
@@ -67,7 +92,8 @@ void gen_expr(Node *node){
             return;
         }
 
-        case ND_IDENT: {
+        case ND_GVAR:
+        case ND_LVAR: {
             printf("#gen_expr ND_IDENTの処理開始\n");
             gen_lval(node);
             printf("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
@@ -223,12 +249,21 @@ void gen_lval(Node *node) {
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
 
-    if (node->op != ND_IDENT && node-> op != ND_VARDEF) // && node->op != ND_ARRAY)
+    if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
 
-    printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
-    printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
-    printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
+    if (node->op == ND_LVAR || node->op == ND_VARDEF){
+        printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
+        printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
+        printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
+        return;
+    }
+
+    //fprintf(stderr, "node->op: %d\n", node->op);
+    assert(node->op == ND_GVAR);
+    printf("  lea rax, %s\n", node->name);
+    printf("  push rax\n");
+    return;
 }
 
 // 関数のプロローグ
@@ -371,6 +406,8 @@ void gen_main(Vector* v) {
             // 式の評価結果としてスタックに一つの値が残ってる
             // はずなので、スタックが溢れないようにポップしておく
             printf("  pop rax     # 関数の結果をraxにロード\n");
+        } else if (node->op == ND_VARDEF) {
+            continue;
         } else {
             fprintf(stderr, "node->op must be ND_FUNC but got: %d", node->op);
             exit(1);
