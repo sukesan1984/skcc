@@ -189,5 +189,9 @@ try 15 'int x[5]; int main() { x[0] = 5; x[4] = 10; return x[0] + x[4]; }'
 try 20 "int main() { int x[5]; return sizeof(x); }"
 try 20 'int x[5]; int main() { return sizeof(x); }'
 
+# char type
+try 6 "char x[3]; int main() { x[0] = 2; int y = 4; return x[0] + y; }"
+try 6 "int main() { char x[3]; x[0] = 2; int y = 4; return x[0] + y; }"
+
 
 echo OK

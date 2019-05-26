@@ -76,6 +76,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
+            add_token(tokens, TK_CHAR, p);
+            p += 4;
+            continue;
+        }
+
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
             add_token(tokens, TK_SIZEOF, p);
             p += 6;

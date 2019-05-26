@@ -2,6 +2,7 @@
 
 int pos = 0;
 static Type int_ty = {INT, NULL};
+static Type char_ty = {CHAR, NULL};
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -245,11 +246,17 @@ Node *assign() {
 
 static Type *type() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT)
+    if (t->ty != TK_INT && t->ty != TK_CHAR)
         error("typename expected, but got %s", t->input);
+
+    Type *ty;
+    if (t->ty == TK_INT)
+        ty = &int_ty;
+    if (t->ty == TK_CHAR)
+        ty = &char_ty;
+
     pos++;
 
-    Type *ty = &int_ty;
     while(consume('*'))
         ty = ptr_of(ty);
     return ty;
@@ -287,7 +294,7 @@ Node *stmt() {
     Node *node;
     Token *t = tokens->data[pos];
 
-    if (t->ty == TK_INT)  {
+    if (t->ty == TK_INT || t->ty == TK_CHAR)  {
         node = decl();
         expect(';');
         return node;

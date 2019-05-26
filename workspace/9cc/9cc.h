@@ -29,7 +29,7 @@ typedef struct {
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY} ty;
+    enum {INT, PTR, ARRAY, CHAR} ty;
     struct Type *ptr_of;
     struct Type *array_of;
     size_t array_size;
@@ -84,6 +84,7 @@ enum {
     TK_GE, // >=
     TK_EOF,
     TK_INT, // int
+    TK_CHAR, // char
     TK_LOGOR, // ||
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof

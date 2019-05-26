@@ -69,6 +69,8 @@ Type *ptr_of(Type *base) {
 }
 
 int size_of(Type *ty) {
+    if (ty->ty == CHAR)
+        return 1;
     if (ty->ty == INT)
         return 4;
     if (ty->ty == ARRAY)

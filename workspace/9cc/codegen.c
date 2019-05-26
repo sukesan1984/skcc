@@ -2,6 +2,7 @@
 
 char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+char* argreg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
 static char *escape(char *s, int len) {
     char *buf = malloc(len * 4);
@@ -72,6 +73,8 @@ void gen_expr(Node *node){
             char *reg = "rdi";
             if (node->lhs->ty->ty == INT)
                 reg = "edi";
+            else if(node->lhs->ty->ty == CHAR)
+                reg = "dil";
 
             printf("  mov [rax], %s # raxのレジスタのアドレスにrdiの値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n", reg);   // raxのレジスタのアドレスにrdiの値をストアする
             printf("  push rdi       # 右辺値をスタックにプッシュする\n");         // rdiの値をスタックにプッシュする
@@ -100,6 +103,8 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT)
                 reg = "eax";
+            else if(node->ty->ty == CHAR)
+                reg = "al";
             printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
             return;
@@ -113,6 +118,8 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT)
                 reg = "eax";
+            else if(node->ty->ty == CHAR)
+                reg = "al";
             printf("  mov %s, [rax] # デリファレンスのアドレスから値をロード\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
             return;
@@ -276,7 +283,9 @@ void gen_args(Vector *args) {
         printf("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
 
         if (node->ty->ty == INT)
-            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg32[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg32[i]);
+        else if (node->ty->ty == CHAR)
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg8[i]);
         else
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
     }
@@ -299,6 +308,8 @@ void gen_stmt(Node *node) {
         char *reg = "rdi";
         if (node->ty->ty == INT)
             reg = "edi";
+        else if(node->ty->ty == CHAR)
+            reg = "dil";
         printf("  mov [rax], %s\n", reg);
 
         return;
