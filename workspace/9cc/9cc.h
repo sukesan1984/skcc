@@ -24,12 +24,13 @@ typedef struct {
 typedef struct {
     int ty;      // トークンの型
     int val;     // tyがTK_NUMの場合,その数値
+    char *str;   // tyがTK_STRの場合はそのリテラル
     char *name;  // tyがTK_IDENTの場合、その名前
     char *input; // トークン文字列(エラーメッセージ用)
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY} ty;
+    enum {INT, PTR, ARRAY, CHAR} ty;
     struct Type *ptr_of;
     struct Type *array_of;
     size_t array_size;
@@ -73,6 +74,7 @@ typedef struct Node {
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
+    TK_STR, // String literal
     TK_IDENT,
     TK_IF, // ifのトークン
     TK_RETURN,
@@ -84,6 +86,7 @@ enum {
     TK_GE, // >=
     TK_EOF,
     TK_INT, // int
+    TK_CHAR, // char
     TK_LOGOR, // ||
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof
@@ -91,6 +94,7 @@ enum {
 
 enum {
     ND_NUM = 256,
+    ND_STR,
     ND_IDENT, //257
     ND_LVAR, //258
     ND_GVAR, //259
@@ -135,6 +139,7 @@ Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 bool map_exists(Map *map, char *key);
+char *format(char *fmt, ...);
 
 
 void runtest();

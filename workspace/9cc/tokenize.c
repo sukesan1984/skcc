@@ -76,6 +76,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
+            add_token(tokens, TK_CHAR, p);
+            p += 4;
+            continue;
+        }
+
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
             add_token(tokens, TK_SIZEOF, p);
             p += 6;
@@ -91,6 +97,22 @@ void tokenize(char *p) {
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
             t->val = strtol(p, &p, 10);
+            continue;
+        }
+
+        if (*p == '"') {
+            p++;
+            char* init_p = p;
+            int len = 0;
+            Token *t = add_token(tokens, TK_STR, p);
+            while(*p != '"') {
+                len++;
+                p++;
+            }
+            p++;
+            char *str = (char*) malloc(len + 1);
+            strncpy(str, init_p, len);
+            t->str = str;
             continue;
         }
 

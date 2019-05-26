@@ -2,8 +2,11 @@
 
 static Type int_ty = {INT, NULL};
 
+
+static int str_label;
 static Map *vars;
 Vector *globals;
+Vector *strings;
 static int stacksize;
 
 static Node *maybe_decay(Node *base, bool decay) {
@@ -16,13 +19,13 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
-static Var *new_global(Type* ty, char *name, char *data, int len) {
+static Var *new_global(Type* ty, char *data, int len) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
     var->is_local = false;
     var->data = data;
     var->len = len;
-    var->name = name;
+    var->name = format(".L.str%d", str_label++);
     return var;
 }
 
@@ -31,6 +34,15 @@ static Node* walk(Node *node, bool decay) {
     case ND_NUM:
         node->ty = &int_ty;
         return node;
+    case ND_STR: {
+        Var *var = new_global(node->ty, node->data, node->len);
+        vec_push(globals, var);
+        Node *ret = calloc(1, sizeof(Node));
+        ret->op = ND_GVAR;
+        ret->ty = node->ty;
+        ret->name = var->name;
+        return walk(ret, decay);
+    }
     case ND_IDENT: {
         Var *var = map_get(vars, node->name);
         if (!var)
@@ -50,6 +62,10 @@ static Node* walk(Node *node, bool decay) {
         return maybe_decay(ret, decay);
     }
 
+    case ND_GVAR:
+        if (decay && node->ty->ty == ARRAY)
+            return maybe_decay(node, decay);
+        return node;
     case ND_VARDEF:
         stacksize += size_of(node->ty);
 
@@ -141,6 +157,7 @@ static Node* walk(Node *node, bool decay) {
 }
 
 void sema(Vector *nodes) {
+    str_label = 0;
     globals = new_vector();
     vars = new_map();
     for (int i = 0; i < nodes->len; i++) {
@@ -148,7 +165,7 @@ void sema(Vector *nodes) {
 
         // Global Variables
         if (node->op == ND_VARDEF) {
-            Var *var = new_global(node->ty, node->name, node->data, node->len);
+            Var *var = new_global(node->ty, node->data, node->len);
             vec_push(globals, var);
             map_put(vars, node->name, var);
             continue;

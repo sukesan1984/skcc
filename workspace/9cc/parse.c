@@ -2,6 +2,7 @@
 
 int pos = 0;
 static Type int_ty = {INT, NULL};
+static Type char_ty = {CHAR, NULL};
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -33,6 +34,15 @@ Node *new_node_num(int val) {
     node->ty = &int_ty;
     node->op = ND_NUM;
     node->val = val;
+    return node;
+}
+
+Node *new_node_str(char *str) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = &char_ty;
+    node->op = ND_STR;
+    node->data = str;
+    node->len = strlen(str) + 1;
     return node;
 }
 
@@ -89,6 +99,10 @@ Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
+    }
+
+    if (t->ty == TK_STR) {
+        return new_node_str(((Token *) tokens->data[pos++])->str);
     }
 
     if (consume(TK_IDENT)) {
@@ -245,11 +259,17 @@ Node *assign() {
 
 static Type *type() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT)
+    if (t->ty != TK_INT && t->ty != TK_CHAR)
         error("typename expected, but got %s", t->input);
+
+    Type *ty;
+    if (t->ty == TK_INT)
+        ty = &int_ty;
+    if (t->ty == TK_CHAR)
+        ty = &char_ty;
+
     pos++;
 
-    Type *ty = &int_ty;
     while(consume('*'))
         ty = ptr_of(ty);
     return ty;
@@ -287,7 +307,7 @@ Node *stmt() {
     Node *node;
     Token *t = tokens->data[pos];
 
-    if (t->ty == TK_INT)  {
+    if (t->ty == TK_INT || t->ty == TK_CHAR)  {
         node = decl();
         expect(';');
         return node;

@@ -9,6 +9,15 @@ noreturn void error(char *fmt, ...){
     exit(1);
 }
 
+char *format(char *fmt, ...) {
+    char buf[2048];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    return strdup(buf);
+}
+
 // 可変長Vector
 // 任意蝶の入力をサポートする
 Vector *new_vector() {
@@ -69,6 +78,8 @@ Type *ptr_of(Type *base) {
 }
 
 int size_of(Type *ty) {
+    if (ty->ty == CHAR)
+        return 1;
     if (ty->ty == INT)
         return 4;
     if (ty->ty == ARRAY)
