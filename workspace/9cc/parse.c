@@ -369,28 +369,45 @@ Node* compound_stmt() {
     return node;
 }
 
-Node *function() {
-    Node *node = calloc(1, sizeof(Node));
-    node->op = ND_FUNC;
-    node->args = new_vector();
-
-    if (!consume(TK_INT))
-        error("method type specifier missing.%s", ((Token *) tokens->data[pos])->input);
+Node *toplevel() {
+    Type *ty = type();
+    if (!ty) {
+        Token *t = tokens->data[pos];
+        error("typename expected, but got %s", t->input);
+    }
 
     Token *t = (Token *) tokens->data[pos];
     if (!consume(TK_IDENT))
-        error("function name expected, but got %s", t->input);
-    node->name = t->name;
+        error("variable / function name expected, but got %s", t->input);
 
-    expect('(');
-    if (!consume(')')) {
-        vec_push(node->args, param());
-        while(consume(','))
+    char *name = t->name;
+
+    // Fuction
+    if (consume('(')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->name = name;
+        node->op = ND_FUNC;
+        node->args = new_vector();
+        if (!consume(')')) {
             vec_push(node->args, param());
-        expect(')');
+            while(consume(','))
+                vec_push(node->args, param());
+            expect(')');
+        }
+        expect('{');
+        node->body = compound_stmt();
+        return node;
     }
-    expect('{');
-    node->body = compound_stmt();
+
+    //Global variables
+    Node *node = calloc(1, sizeof(Node));
+    node->name = name;
+    node->op = ND_VARDEF;
+    node->ty = read_array(ty);
+    node->data = calloc(1, size_of(node->ty));
+    node->len = size_of(node->ty);
+    expect(';');
+
     return node;
 }
 
@@ -398,7 +415,7 @@ Vector *parse() {
     pos = 0;
     Vector *v = new_vector();
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
-        vec_push(v, function());
+        vec_push(v, toplevel());
     return v;
 }
 

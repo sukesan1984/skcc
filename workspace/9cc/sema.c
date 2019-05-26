@@ -3,18 +3,8 @@
 static Type int_ty = {INT, NULL};
 
 static Map *vars;
+Vector *globals;
 static int stacksize;
-
-static Node *addr_of(Node *base, Type *ty) {
-    Node *node = calloc(1, sizeof(Node));
-    node->op = ND_ADDR;
-    node->ty = ptr_of(ty);
-
-    Node *copy = calloc(1, sizeof(Node));
-    memcpy(copy, base, sizeof(Node));
-    node->lhs = copy;
-    return node;
-}
 
 static Node *maybe_decay(Node *base, bool decay) {
     if (!decay || base->ty->ty != ARRAY)
@@ -26,6 +16,16 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
+static Var *new_global(Type* ty, char *name, char *data, int len) {
+    Var *var = calloc(1, sizeof(Var));
+    var->ty = ty;
+    var->is_local = false;
+    var->data = data;
+    var->len = len;
+    var->name = name;
+    return var;
+}
+
 static Node* walk(Node *node, bool decay) {
     switch (node->op) {
     case ND_NUM:
@@ -35,12 +35,19 @@ static Node* walk(Node *node, bool decay) {
         Var *var = map_get(vars, node->name);
         if (!var)
             error("undefined variable: %s", node->name);
-        node->offset = var->offset;
-        if(decay && var->ty->ty == ARRAY)
-            *node = *addr_of(node, var->ty->array_of);
-        else
-            node->ty = var->ty;
-        return node;
+        if (var->is_local) {
+            Node *ret = calloc(1, sizeof(Node));
+            ret->op = ND_LVAR;
+            ret->ty = var->ty;
+            ret->offset = var->offset;
+            return maybe_decay(ret, decay);
+        }
+
+        Node *ret = calloc(1, sizeof(Node));
+        ret->op = ND_GVAR;
+        ret->ty = var->ty;
+        ret->name = var->name;
+        return maybe_decay(ret, decay);
     }
 
     case ND_VARDEF:
@@ -51,6 +58,7 @@ static Node* walk(Node *node, bool decay) {
         Var *var = calloc(1, sizeof(Var));
         var->ty = node->ty;
         var->offset = stacksize;
+        var->is_local = true;
         map_put(vars, node->name, var);
         if (node->init)
             node->init = walk(node->init, true);
@@ -123,7 +131,7 @@ static Node* walk(Node *node, bool decay) {
         node->lhs = walk(node->lhs, true);
         return node;
     case ND_SIZEOF:
-        node->lhs = walk(node->lhs, true);
+        node->lhs = walk(node->lhs, false);
         node->op = ND_NUM;
         node->val = size_of(node->lhs->ty);
         return node;
@@ -133,10 +141,20 @@ static Node* walk(Node *node, bool decay) {
 }
 
 void sema(Vector *nodes) {
+    globals = new_vector();
+    vars = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
+
+        // Global Variables
+        if (node->op == ND_VARDEF) {
+            Var *var = new_global(node->ty, node->name, node->data, node->len);
+            vec_push(globals, var);
+            map_put(vars, node->name, var);
+            continue;
+        }
+
         assert(node->op == ND_FUNC);
-        vars = new_map();
         stacksize = 0;
         node = walk(node, true);
         node->stacksize = stacksize;

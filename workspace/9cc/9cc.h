@@ -42,6 +42,10 @@ int size_of(Type* ty);
 typedef struct {
     Type *ty;
     int offset;
+    bool is_local;
+    char* data;
+    int len;
+    char *name;
 } Var;
 
 typedef struct Node {
@@ -57,6 +61,11 @@ typedef struct Node {
     Vector *stmts;     // stmtの集合が入る
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
+
+    // Global variable
+    char *data;
+    int len;
+
     int stacksize;
     int offset;
 } Node;
@@ -82,24 +91,26 @@ enum {
 
 enum {
     ND_NUM = 256,
-    ND_IDENT,
-    ND_RETURN,
-    ND_CALL,
-    ND_FUNC,
-    ND_COMP_STMT,
-    ND_EXPR_STMT,
-    ND_IF,
-    ND_FOR,
-    ND_WHILE,
-    ND_EQ,
-    ND_NE,
-    ND_LE,
-    ND_DEREF,
-    ND_VARDEF,
-    ND_ADDR,
-    ND_LOGOR, // ||
-    ND_LOGAND, // &&
-    ND_SIZEOF,
+    ND_IDENT, //257
+    ND_LVAR, //258
+    ND_GVAR, //259
+    ND_RETURN, //260
+    ND_CALL, //261
+    ND_FUNC, //262
+    ND_COMP_STMT, //263
+    ND_EXPR_STMT, //264
+    ND_IF, //265
+    ND_FOR, //266
+    ND_WHILE, //267
+    ND_EQ, // 268
+    ND_NE, // 269
+    ND_LE, // 270
+    ND_DEREF, //271
+    ND_VARDEF, //272
+    ND_ADDR, // 273
+    ND_LOGOR, // || 274
+    ND_LOGAND, // && 275
+    ND_SIZEOF, // 276
 };
 
 // parse.c
@@ -136,3 +147,4 @@ extern Vector* tokens;
 //変数名とRBPからのオフセットを管理する
 extern int variables;
 extern Map* variable_map;
+extern Vector *globals;
