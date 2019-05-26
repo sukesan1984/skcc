@@ -61,7 +61,6 @@ typedef struct Node {
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
     int val; // ty がTK_NUMの場合のみ使う
-    char *str; // String literal
     char* name;
 
     // Global variable
@@ -154,4 +153,3 @@ extern Vector* tokens;
 extern int variables;
 extern Map* variable_map;
 extern Vector *globals;
-extern Vector *strings;

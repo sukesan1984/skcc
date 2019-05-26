@@ -32,14 +32,6 @@ void gen_initial() {
         printf("  .ascii \"%s\"\n", escape(var->data, var->len));
     }
 
-    for (int i = 0; i < strings->len; i++) {
-        Node *node = strings->data[i];
-        assert(node->op == ND_STR);
-        printf("%s:\n", node->name);
-        printf("  .asciz \"%s\"\n", node->str);
-
-    }
-
     printf(".global main\n");
 }
 

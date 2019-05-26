@@ -19,13 +19,13 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
-static Var *new_global(Type* ty, char *name, char *data, int len) {
+static Var *new_global(Type* ty, char *data, int len) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
     var->is_local = false;
     var->data = data;
     var->len = len;
-    var->name = name;
+    var->name = format(".L.str%d", str_label++);
     return var;
 }
 
@@ -35,19 +35,12 @@ static Node* walk(Node *node, bool decay) {
         node->ty = &int_ty;
         return node;
     case ND_STR: {
-        char* name = format(".L.str%d", str_label++);
-        node->name = name;
-        vec_push(strings, node);
+        Var *var = new_global(node->ty, node->data, node->len);
+        vec_push(globals, var);
         Node *ret = calloc(1, sizeof(Node));
         ret->op = ND_GVAR;
         ret->ty = node->ty;
-        ret->name = name;
-
-        Var *var = calloc(1, sizeof(Var));
-        var->ty = node->ty;
-        var->is_local = false;
-        var->name = name;
-        map_put(vars, node->name, var);
+        ret->name = var->name;
         return walk(ret, decay);
     }
     case ND_IDENT: {
@@ -166,14 +159,13 @@ static Node* walk(Node *node, bool decay) {
 void sema(Vector *nodes) {
     str_label = 0;
     globals = new_vector();
-    strings = new_vector();
     vars = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
 
         // Global Variables
         if (node->op == ND_VARDEF) {
-            Var *var = new_global(node->ty, node->name, node->data, node->len);
+            Var *var = new_global(node->ty, node->data, node->len);
             vec_push(globals, var);
             map_put(vars, node->name, var);
             continue;

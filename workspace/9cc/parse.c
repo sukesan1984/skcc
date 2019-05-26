@@ -41,7 +41,8 @@ Node *new_node_str(char *str) {
     Node *node = malloc(sizeof(Node));
     node->ty = &char_ty;
     node->op = ND_STR;
-    node->str = str;
+    node->data = str;
+    node->len = strlen(str) + 1;
     return node;
 }
 
