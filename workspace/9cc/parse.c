@@ -37,6 +37,14 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *new_node_str(char *str) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = &char_ty;
+    node->op = ND_STR;
+    node->str = str;
+    return node;
+}
+
 Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
     node->op = ND_IDENT;
@@ -90,6 +98,10 @@ Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
         return new_node_num(((Token *)tokens->data[pos++])->val);
+    }
+
+    if (t->ty == TK_STR) {
+        return new_node_str(((Token *) tokens->data[pos++])->str);
     }
 
     if (consume(TK_IDENT)) {

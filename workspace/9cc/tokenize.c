@@ -100,6 +100,22 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (*p == '"') {
+            p++;
+            char* init_p = p;
+            int len = 0;
+            Token *t = add_token(tokens, TK_STR, p);
+            while(*p != '"') {
+                len++;
+                p++;
+            }
+            p++;
+            char *str = (char*) malloc(len + 1);
+            strncpy(str, init_p, len);
+            t->str = str;
+            continue;
+        }
+
         if (is_alnum(*p)) {
             char* init_p = p;
             int len = 0;

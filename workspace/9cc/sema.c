@@ -2,8 +2,11 @@
 
 static Type int_ty = {INT, NULL};
 
+
+static int str_label;
 static Map *vars;
 Vector *globals;
+Vector *strings;
 static int stacksize;
 
 static Node *maybe_decay(Node *base, bool decay) {
@@ -31,6 +34,22 @@ static Node* walk(Node *node, bool decay) {
     case ND_NUM:
         node->ty = &int_ty;
         return node;
+    case ND_STR: {
+        char* name = format(".L.str%d", str_label++);
+        node->name = name;
+        vec_push(strings, node);
+        Node *ret = calloc(1, sizeof(Node));
+        ret->op = ND_GVAR;
+        ret->ty = node->ty;
+        ret->name = name;
+
+        Var *var = calloc(1, sizeof(Var));
+        var->ty = node->ty;
+        var->is_local = false;
+        var->name = name;
+        map_put(vars, node->name, var);
+        return walk(ret, decay);
+    }
     case ND_IDENT: {
         Var *var = map_get(vars, node->name);
         if (!var)
@@ -50,6 +69,10 @@ static Node* walk(Node *node, bool decay) {
         return maybe_decay(ret, decay);
     }
 
+    case ND_GVAR:
+        if (decay && node->ty->ty == ARRAY)
+            return maybe_decay(node, decay);
+        return node;
     case ND_VARDEF:
         stacksize += size_of(node->ty);
 
@@ -141,7 +164,9 @@ static Node* walk(Node *node, bool decay) {
 }
 
 void sema(Vector *nodes) {
+    str_label = 0;
     globals = new_vector();
+    strings = new_vector();
     vars = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];

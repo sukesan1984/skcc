@@ -9,6 +9,15 @@ noreturn void error(char *fmt, ...){
     exit(1);
 }
 
+char *format(char *fmt, ...) {
+    char buf[2048];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    return strdup(buf);
+}
+
 // 可変長Vector
 // 任意蝶の入力をサポートする
 Vector *new_vector() {

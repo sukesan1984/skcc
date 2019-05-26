@@ -32,6 +32,14 @@ void gen_initial() {
         printf("  .ascii \"%s\"\n", escape(var->data, var->len));
     }
 
+    for (int i = 0; i < strings->len; i++) {
+        Node *node = strings->data[i];
+        assert(node->op == ND_STR);
+        printf("%s:\n", node->name);
+        printf("  .asciz \"%s\"\n", node->str);
+
+    }
+
     printf(".global main\n");
 }
 
@@ -103,8 +111,10 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT)
                 reg = "eax";
-            else if(node->ty->ty == CHAR)
-                reg = "al";
+            else if(node->ty->ty == CHAR) {
+                printf("  push rax\n");
+                return;
+            }
             printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
             return;
@@ -118,8 +128,12 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT)
                 reg = "eax";
-            else if(node->ty->ty == CHAR)
-                reg = "al";
+            else if(node->ty->ty == CHAR) {
+                printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
+                printf("  movzb rax, al\n");
+                printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
+                return;
+            }
             printf("  mov %s, [rax] # デリファレンスのアドレスから値をロード\n", reg);   // raxをアドレスとして値をロードしてraxに格納
             printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
             return;
@@ -266,7 +280,6 @@ void gen_lval(Node *node) {
         return;
     }
 
-    //fprintf(stderr, "node->op: %d\n", node->op);
     assert(node->op == ND_GVAR);
     printf("  lea rax, %s\n", node->name);
     printf("  push rax\n");

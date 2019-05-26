@@ -24,6 +24,7 @@ typedef struct {
 typedef struct {
     int ty;      // トークンの型
     int val;     // tyがTK_NUMの場合,その数値
+    char *str;   // tyがTK_STRの場合はそのリテラル
     char *name;  // tyがTK_IDENTの場合、その名前
     char *input; // トークン文字列(エラーメッセージ用)
 } Token;
@@ -60,6 +61,7 @@ typedef struct Node {
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
     int val; // ty がTK_NUMの場合のみ使う
+    char *str; // String literal
     char* name;
 
     // Global variable
@@ -73,6 +75,7 @@ typedef struct Node {
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
+    TK_STR, // String literal
     TK_IDENT,
     TK_IF, // ifのトークン
     TK_RETURN,
@@ -92,6 +95,7 @@ enum {
 
 enum {
     ND_NUM = 256,
+    ND_STR,
     ND_IDENT, //257
     ND_LVAR, //258
     ND_GVAR, //259
@@ -136,6 +140,7 @@ Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 bool map_exists(Map *map, char *key);
+char *format(char *fmt, ...);
 
 
 void runtest();
@@ -149,3 +154,4 @@ extern Vector* tokens;
 extern int variables;
 extern Map* variable_map;
 extern Vector *globals;
+extern Vector *strings;

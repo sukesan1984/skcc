@@ -58,9 +58,11 @@ int*** alloc5(int** pp, int** pq) {
     return  s;
 }
 
+void show(char* p) {
+    printf("%s\n", p);
+}
 
 EOF
-
 
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
@@ -193,5 +195,11 @@ try 20 'int x[5]; int main() { return sizeof(x); }'
 try 6 "char x[3]; int main() { x[0] = 2; int y = 4; return x[0] + y; }"
 try 6 "int main() { char x[3]; x[0] = 2; int y = 4; return x[0] + y; }"
 
+# string literal
+try 97 'int main() { char *p = "abc"; return p[0]; }'
+try 98 'int main() { char *p = "abc"; return p[1]; }'
+try 99 'int main() { char *p = "abc"; return p[2]; }'
+try 0 'int main() { char *p = "abc"; return p[3]; }'
+try 0 'int main() { char *p = "hello world"; show(p); return 0; }'
 
 echo OK
