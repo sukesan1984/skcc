@@ -1,18 +1,24 @@
 #!/bin/bash
 try() {
-    expected="$1"
     input="$2"
-
+    echo "$input"
     echo "$input" > tmp.c
-    ./9cc tmp.c > tmp.s
+    try_file $1 tmp.c
+}
+
+try_file() {
+    expected="$1"
+    filename="$2"
+
+    ./9cc $filename > tmp.s
     gcc -static -o tmp tmp.s tmp-test.o tmp-hoge.o tmp-fuga.o tmp-add1.o tmp-add2.o tmp-add3.o tmp-add4.o tmp-add5.o tmp-add6.o
     ./tmp
     actual="$?"
 
     if [ "$actual" == "$expected" ]; then
-        echo "$input => $actual"
+        echo "=> $actual"
     else
-        echo "$input expeted, but got $actual"
+        echo "$expected expeted, but got $actual"
         exit 1
     fi
 }
@@ -65,6 +71,7 @@ void show(char* p) {
 
 EOF
 
+try_file 45 test/comment.c
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
 try 21 "int main() { 5+20-4; }"

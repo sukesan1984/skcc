@@ -39,6 +39,19 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "//", 2) == 0) {
+            while(*p++ != '\n')
+            continue;
+        }
+
+        if (strncmp(p, "/*", 2) == 0) {
+            while(strncmp(p, "*/", 2) != 0) {
+                p++;
+            }
+            p += 2;
+            continue;
+        }
+
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
             add_token(tokens, TK_RETURN, p);
             p += 6;
@@ -94,6 +107,7 @@ void tokenize(char *p) {
         }
 
 
+
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
             t->val = strtol(p, &p, 10);
@@ -114,7 +128,7 @@ void tokenize(char *p) {
             strncpy(str, init_p, len);
             str[len] = '\0';
             t->str = str;
-            continue;
+            continue; 
         }
 
         if (is_alnum(*p)) {
