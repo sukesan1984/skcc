@@ -3,7 +3,8 @@ try() {
     expected="$1"
     input="$2"
 
-    ./9cc "$input" > tmp.s
+    echo "$input" > tmp.c
+    ./9cc tmp.c > tmp.s
     gcc -static -o tmp tmp.s tmp-test.o tmp-hoge.o tmp-fuga.o tmp-add1.o tmp-add2.o tmp-add3.o tmp-add4.o tmp-add5.o tmp-add6.o
     ./tmp
     actual="$?"

@@ -15,7 +15,9 @@ int main(int argc, char **argv) {
         runtest();
         return 0;
     }
-    tokenize(argv[1]);
+    char *filename = argv[1];
+    char *input = read_file(filename);
+    tokenize(input);
     Vector *nodes = parse();
     sema(nodes);
     gen_main(nodes);

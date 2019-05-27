@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <errno.h>
 // container.c
 typedef struct {
     void **data;  // 実際のデータ
@@ -140,6 +141,7 @@ void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 bool map_exists(Map *map, char *key);
 char *format(char *fmt, ...);
+char *read_file(char *path);
 
 
 void runtest();

@@ -112,6 +112,7 @@ void tokenize(char *p) {
             p++;
             char *str = (char*) malloc(len + 1);
             strncpy(str, init_p, len);
+            str[len] = '\0';
             t->str = str;
             continue;
         }
@@ -127,6 +128,7 @@ void tokenize(char *p) {
             }
             char *name = (char *) malloc(len + 1);
             strncpy(name, init_p, len);
+            name[len] = '\0';
             t->name = name;
             continue;
         }
