@@ -40,7 +40,9 @@ void tokenize(char *p) {
         }
 
         if (strncmp(p, "//", 2) == 0) {
-            while(*p++ != '\n')
+            while(*p != '\n') {
+                p++;
+            }
             continue;
         }
 
