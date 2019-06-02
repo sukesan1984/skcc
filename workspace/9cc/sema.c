@@ -14,7 +14,7 @@ static Node *maybe_decay(Node *base, bool decay) {
         return base;
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_ADDR;
-    node->ty = ptr_of(base->ty->array_of);
+    node->ty = ptr_to(base->ty->array_of);
     node->lhs = base;
     return node;
 }
@@ -120,11 +120,11 @@ static Node* walk(Node *node, bool decay) {
 
         if(node->lhs->ty->ty != PTR)
             error("operand must be a pointer");
-        node->ty = node->lhs->ty->ptr_of; // *p の場合 tyはptr_of
+        node->ty = node->lhs->ty->ptr_to; // *p の場合 tyはptr_of
         return maybe_decay(node, decay);
     case ND_ADDR:
         node->lhs = walk(node->lhs, true);
-        node->ty = ptr_of(node->lhs->ty);
+        node->ty = ptr_to(node->lhs->ty);
         return node;
     case ND_RETURN:
         node->lhs = walk(node->lhs, true);

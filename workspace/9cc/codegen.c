@@ -204,13 +204,13 @@ void gen_expr(Node *node){
             printf("  pop rdi       # \n");
             if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_of));//node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_to));//node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
             if (node->lhs->ty->ty == PTR) {
                 printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_of));//node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_to));//node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  mov rdi, rax\n");
             }
@@ -224,13 +224,13 @@ void gen_expr(Node *node){
             printf("  pop rdi\n");
             if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_of)); //node->lhs->stacksize);
+                printf("  mov rsi, %d\n", size_of(node->rhs->ty->ptr_to)); //node->lhs->stacksize);
                 printf("  mul rsi\n");
                 printf("  push rax\n");
             }
             if (node->lhs->ty->ty == PTR) {
                 printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_of));
+                printf("  mov rsi, %d\n", size_of(node->lhs->ty->ptr_to));
                 printf("  mul rsi\n");
                 printf("  mov rdi, rax\n");
             }

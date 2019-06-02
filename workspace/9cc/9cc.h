@@ -32,13 +32,13 @@ typedef struct {
 
 typedef struct Type {
     enum {INT, PTR, ARRAY, CHAR} ty;
-    struct Type *ptr_of;
+    struct Type *ptr_to;
     struct Type *array_of;
     size_t array_size;
 } Type;
 
 Type *ary_of(Type *base, size_t size);
-Type *ptr_of(Type *base);
+Type *ptr_to(Type *base);
 int size_of(Type* ty);
 
 typedef struct {
