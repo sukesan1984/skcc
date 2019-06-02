@@ -1,8 +1,8 @@
 #include "9cc.h"
 
 int pos = 0;
-static Type int_ty = {INT, NULL};
-static Type char_ty = {CHAR, NULL};
+//static Type int_ty = {INT, NULL};
+//static Type char_ty = {CHAR, NULL};
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -11,6 +11,17 @@ int consume(int ty) {
     pos++;
     return 1;
 }
+
+static Type *new_prim_ty(int ty, int size) {
+    Type *ret = calloc(1, sizeof(Type));
+    ret->ty = ty;
+    ret->size = size;
+    ret->align = size;
+    return ret;
+}
+
+Type *char_ty() { return new_prim_ty(CHAR, 1); }
+Type *int_ty() { return new_prim_ty(INT, 4); }
 
 int expect(int ty ) {
     Token *t = tokens->data[pos];
@@ -31,7 +42,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = &int_ty;
+    node->ty = int_ty();
     node->op = ND_NUM;
     node->val = val;
     return node;
@@ -39,7 +50,7 @@ Node *new_node_num(int val) {
 
 Node *new_node_str(char *str) {
     Node *node = malloc(sizeof(Node));
-    node->ty = &char_ty;
+    node->ty = char_ty();
     node->op = ND_STR;
     node->data = str;
     node->len = strlen(str) + 1;
@@ -257,18 +268,37 @@ Node *assign() {
     return node;
 }
 
+static Node *decl();
+
+static Type *read_type() {
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_INT) {
+        pos++;
+        return int_ty();
+    }
+
+    if (t->ty == TK_CHAR) {
+        pos++;
+        return char_ty();
+    }
+
+    if (t->ty == TK_STRUCT) {
+        pos++;
+        expect('{');
+        Vector *members = new_vector();
+        while(!consume('}')){
+            vec_push(members, decl());
+        }
+        return struct_of(members);
+    }
+    return NULL;
+}
+
 static Type *type() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR)
+    Type *ty = read_type();
+    if (!ty)
         error("typename expected, but got %s", t->input);
-
-    Type *ty;
-    if (t->ty == TK_INT)
-        ty = &int_ty;
-    if (t->ty == TK_CHAR)
-        ty = &char_ty;
-
-    pos++;
 
     while(consume('*'))
         ty = ptr_to(ty);
@@ -287,6 +317,7 @@ Node *decl() {
     if(consume('=')) {
         node->init = assign();
     }
+    expect(';');
     return node;
 }
 
@@ -309,7 +340,6 @@ Node *stmt() {
 
     if (t->ty == TK_INT || t->ty == TK_CHAR)  {
         node = decl();
-        expect(';');
         return node;
     }
     if (consume('{')) {
@@ -424,8 +454,8 @@ Node *toplevel() {
     node->name = name;
     node->op = ND_VARDEF;
     node->ty = read_array(ty);
-    node->data = calloc(1, size_of(node->ty));
-    node->len = size_of(node->ty);
+    node->data = calloc(1, node->ty->size);
+    node->len = node->ty->size;
     expect(';');
 
     return node;

@@ -102,6 +102,12 @@ void tokenize(char *p) {
             p += 6;
             continue;
         }
+
+        if (strncmp(p, "struct", 6) == 0 && !is_alnum(p[6])) {
+            add_token(tokens, TK_STRUCT, p);
+            p += 6;
+            continue;
+        }
         if (strchr("+-*/()=;{},<>&[]", *p)) {
             add_token(tokens, *p, p);
             p++;

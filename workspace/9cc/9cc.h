@@ -31,15 +31,27 @@ typedef struct {
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY, CHAR} ty;
+    enum {INT, PTR, ARRAY, CHAR, STRUCT} ty;
+    int size;
+    int align;
+
+    // Pointer
     struct Type *ptr_to;
+
+    // Array
     struct Type *array_of;
     size_t array_size;
+
+    // Struct
+    Vector *members;
+    int offset;
 } Type;
 
 Type *ary_of(Type *base, size_t size);
 Type *ptr_to(Type *base);
 int size_of(Type* ty);
+
+Type *struct_of(Vector *members);
 
 typedef struct {
     Type *ty;
@@ -68,6 +80,9 @@ typedef struct Node {
     char *data;
     int len;
 
+    // Struct
+    Vector *members;
+
     int stacksize;
     int offset;
 } Node;
@@ -91,6 +106,7 @@ enum {
     TK_LOGOR, // ||
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof
+    TK_STRUCT, // struct
 };
 
 enum {
@@ -116,6 +132,7 @@ enum {
     ND_LOGOR, // || 274
     ND_LOGAND, // && 275
     ND_SIZEOF, // 276
+    ND_STRUCT,
 };
 
 // parse.c
@@ -142,7 +159,7 @@ void *map_get(Map *map, char *key);
 bool map_exists(Map *map, char *key);
 char *format(char *fmt, ...);
 char *read_file(char *path);
-
+int roundup(int x, int align);
 
 void runtest();
 

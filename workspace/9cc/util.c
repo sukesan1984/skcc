@@ -65,6 +65,8 @@ bool map_exists(Map *map, char *key) {
 Type *ary_of(Type *base, size_t size) {
     Type *ty = calloc(1, sizeof(Type));
     ty->ty = ARRAY;
+    ty->size = base->size * size;
+    ty->align = base->align;
     ty->array_size = size;
     ty->array_of = base;
     return ty;
@@ -74,18 +76,33 @@ Type *ptr_to(Type *base) {
     Type *ty = calloc(1, sizeof(Type));
     ty->ty = PTR;
     ty->ptr_to = base;
+    ty->size = 8;
+    ty->align = 8;
     return ty;
 }
 
-int size_of(Type *ty) {
-    if (ty->ty == CHAR)
-        return 1;
-    if (ty->ty == INT)
-        return 4;
-    if (ty->ty == ARRAY)
-        return size_of(ty->array_of) * ty->array_size;
-    assert(ty->ty == PTR);
-    return 8;
+int roundup(int x, int align) { return (x + align - 1) & ~(align - 1); }
+
+Type *struct_of(Vector *members) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->ty = STRUCT;
+    ty->members = new_vector();
+
+    int off = 0;
+    for (int i = 0; i < members->len; i++) {
+        Node *node = members->data[i];
+        assert(node->op == ND_VARDEF);
+
+        Type *t = node->ty;
+        off = roundup(off, t->align);
+        t->offset = off;
+        off += t->size;
+
+        if (ty->align < node->ty->align)
+            ty->align = node->ty->align;
+    }
+    ty->size = roundup(off, ty->align);
+    return ty;
 }
 
 // 指定されたファイルの内容を返す

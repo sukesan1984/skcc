@@ -209,5 +209,8 @@ try 98 'int main() { char *p = "abc"; return p[1]; }'
 try 99 'int main() { char *p = "abc"; return p[2]; }'
 try 0 'int main() { char *p = "abc"; return p[3]; }'
 try 0 'int main() { char *p = "hello world"; show(p); return 0; }'
+try 4 "struct{ int a; } x; int main() { return sizeof(x);}"
+try 8 "struct{ char a; int b; } x; int main() { return sizeof(x); }"
+try 12 "struct{ char a; char b; int c; char d; } x; int main() { return sizeof(x); }"
 
 echo OK
