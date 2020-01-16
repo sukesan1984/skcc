@@ -86,7 +86,7 @@ int roundup(int x, int align) { return (x + align - 1) & ~(align - 1); }
 Type *struct_of(Vector *members) {
     Type *ty = calloc(1, sizeof(Type));
     ty->ty = STRUCT;
-    ty->members = new_vector();
+    ty->members = members;
 
     int off = 0;
     for (int i = 0; i < members->len; i++) {

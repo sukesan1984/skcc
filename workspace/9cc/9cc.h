@@ -44,6 +44,7 @@ typedef struct Type {
 
     // Struct
     Vector *members;
+
     int offset;
 } Type;
 
@@ -83,7 +84,11 @@ typedef struct Node {
     // Struct
     Vector *members;
 
+    // Struct access
+    char *member;
+
     int stacksize;
+    //Offset from BP or begining of a struct
     int offset;
 } Node;
 
@@ -107,6 +112,7 @@ enum {
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof
     TK_STRUCT, // struct
+    TK_DOT, // .
 };
 
 enum {
@@ -132,7 +138,8 @@ enum {
     ND_LOGOR, // || 274
     ND_LOGAND, // && 275
     ND_SIZEOF, // 276
-    ND_STRUCT,
+    ND_STRUCT, // 277
+    ND_DOT, // . 278
 };
 
 // parse.c

@@ -131,6 +131,7 @@ void gen_expr(Node *node){
             return;
         }
 
+
         case ND_ADDR: {
             // 左辺値としてコンパイルすると変数のアドレスが取得できる
             gen_lval(node->lhs);
@@ -262,8 +263,19 @@ void gen_lval(Node *node) {
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
 
+
+    if (node->op == ND_DOT) {
+        gen_lval(node->lhs);
+        printf("  pop rax\n"); // structのbaseアドレスがのってる
+        printf("  sub rax, %d\n", node->offset); // メンバーのオフセット引く
+        printf("  push rax\n");
+        return;
+    }
+
     if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
+
+
 
     if (node->op == ND_LVAR || node->op == ND_VARDEF){
         printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー

@@ -72,6 +72,10 @@ void show(char* p) {
 EOF
 
 try_file 45 test/comment.c
+
+try 3 "struct { int a; } x; int main() { x.a = 3; return x.a; }"
+try 8 "struct { char a; int b; } x; int main() { x.a = 3; x.b = 5 ; return x.a + x.b; }"
+
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
 try 21 "int main() { 5+20-4; }"

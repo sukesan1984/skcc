@@ -19,6 +19,13 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
+static void check_lval(Node *node) {
+    int op = node->op;
+    if (op == ND_LVAR || op == ND_GVAR || op == ND_DEREF || op == ND_DOT)
+        return;
+    error("not an lvalue: %d (%s)", op, node->name);
+}
+
 static Var *new_global(Type* ty, char *data, int len) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
@@ -95,9 +102,24 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case '=':
         node->lhs = walk(node->lhs, false);
+        check_lval(node->lhs);
         node->rhs = walk(node->rhs, true);
         node->ty = node->lhs->ty;
         return node;
+    case ND_DOT:
+        node->lhs = walk(node->lhs, true);
+        if (node->lhs->ty->ty != STRUCT)
+            error("struct expected before '.'");
+        Type *ty = node->lhs->ty;
+        for (int i = 0; i < ty->members->len; i++){
+            Node *m = ty->members->data[i];
+            if (strcmp(m->name, node->member))
+                continue;
+            node->ty = m->ty;
+            node->offset = m->ty->offset;
+            return node;
+        }
+        error("member missing: %s", node->member);
     case '+':
     case '-':
     case '*':
@@ -124,6 +146,7 @@ static Node* walk(Node *node, bool decay) {
         return maybe_decay(node, decay);
     case ND_ADDR:
         node->lhs = walk(node->lhs, true);
+        check_lval(node->lhs);
         node->ty = ptr_to(node->lhs->ty);
         return node;
     case ND_RETURN:
