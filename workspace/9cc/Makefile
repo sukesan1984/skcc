@@ -10,6 +10,10 @@ $(OBJS): 9cc.h
 test: 9cc
 	./9cc -test
 	./test.sh
+
+dump: 9cc
+	./dump.sh
+
 break: 9cc
 	gdb 9cc
 clean:
