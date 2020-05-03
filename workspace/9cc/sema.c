@@ -52,6 +52,7 @@ static Node* walk(Node *node, bool decay) {
             ret->op = ND_LVAR;
             ret->ty = var->ty;
             ret->offset = var->offset;
+            ret->name = var->name;
             return maybe_decay(ret, decay);
         }
 
@@ -75,6 +76,7 @@ static Node* walk(Node *node, bool decay) {
         var->ty = node->ty;
         var->offset = stacksize;
         var->is_local = true;
+        var->name = node->name;
         map_put(vars, node->name, var);
         if (node->init)
             node->init = walk(node->init, true);
