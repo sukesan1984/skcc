@@ -71,6 +71,14 @@ void show(char* p) {
 
 EOF
 
+try 4 "int main() { struct { int a; } x; return sizeof(x); }"
+try 8 "int main() { struct { int a; int b; } x; return sizeof(x); }"
+try 12 "int main() { struct { char a; char b; int c; char d;} x; return sizeof(x); }"
+try 2 "int main() { struct { char a; char b; } x; return sizeof(x); }"
+try 8 "int main() { struct { char a; char b; int c; } x; return sizeof(x); }"
+try 4 "int main() { struct { char a; char b; struct { char a; char b; } c; } x; return sizeof(x); }"
+try 12 "int main() { struct { char a; char b; struct { char a; int b; } c; } x; return sizeof(x); }"
+
 try_file 45 test/comment.c
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"

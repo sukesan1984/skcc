@@ -1,8 +1,6 @@
 #include "9cc.h"
 
 int pos = 0;
-static Type int_ty = {INT, NULL};
-static Type char_ty = {CHAR, NULL};
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -21,6 +19,22 @@ int expect(int ty ) {
     return 1;
 }
 
+static Type *new_prim_ty(int ty, int size) {
+    Type *ret = calloc(1, sizeof(Type));
+    ret->ty = ty;
+    ret->size = size;
+    ret->align = size;
+    return ret;
+}
+
+static Type *char_ty() { return new_prim_ty(CHAR, 1); }
+static Type *int_ty() { return new_prim_ty(INT, 4); }
+
+static bool is_typename() {
+    Token *t = tokens->data[pos];
+    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_STRUCT;
+}
+
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->op = ty;
@@ -31,7 +45,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = &int_ty;
+    node->ty = int_ty();
     node->op = ND_NUM;
     node->val = val;
     return node;
@@ -39,7 +53,7 @@ Node *new_node_num(int val) {
 
 Node *new_node_str(char *str) {
     Node *node = malloc(sizeof(Node));
-    node->ty = &char_ty;
+    node->ty = char_ty();
     node->op = ND_STR;
     node->data = str;
     node->len = strlen(str) + 1;
@@ -53,7 +67,7 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
-Node *new_node_func(int ty, char *name, Vector *args) {
+Node *new_node_func(char *name, Vector *args) {
     Node *node = malloc(sizeof(Node));
     node->op = ND_CALL;
     node->name = name;
@@ -71,12 +85,9 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     return node;
 }
 
-
 Node *add();
 Node *assign();
 Node *unary();
-static Type *type();
-
 Node *primary();
 
 static Type* read_array(Type *ty) {
@@ -115,7 +126,7 @@ Node *primary() {
                 Node *node = add();
                 vec_push(args, (void *) node);
             }
-            return new_node_func(ND_CALL, t->name, args);
+            return new_node_func(t->name, args);
         }
 
         return new_node_ident(t->name);
@@ -257,28 +268,14 @@ Node *assign() {
     return node;
 }
 
-static Type *type() {
-    Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR)
-        error("typename expected, but got %s", t->input);
-
-    Type *ty;
-    if (t->ty == TK_INT)
-        ty = &int_ty;
-    if (t->ty == TK_CHAR)
-        ty = &char_ty;
-
-    pos++;
-
-    while(consume('*'))
-        ty = ptr_to(ty);
-    return ty;
-}
+static Type *read_type();
 
 Node *decl() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
-    node->ty = type();
+    node->ty = read_type();
+    while (consume('*'))
+        node->ty = ptr_to(node->ty);
     Token *t = (Token *) tokens->data[pos++];
     if (t->ty != TK_IDENT)
         error("variable name expected, but got %s", t->input);
@@ -287,13 +284,14 @@ Node *decl() {
     if(consume('=')) {
         node->init = assign();
     }
+    expect(';');
     return node;
 }
 
 Node *param() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
-    node->ty = type();
+    node->ty = read_type();
 
     Token *t = tokens->data[pos];
     if (t->ty != TK_IDENT)
@@ -305,11 +303,9 @@ Node *param() {
 
 Node *stmt() {
     Node *node;
-    Token *t = tokens->data[pos];
 
-    if (t->ty == TK_INT || t->ty == TK_CHAR)  {
+    if (is_typename())  {
         node = decl();
-        expect(';');
         return node;
     }
     if (consume('{')) {
@@ -390,7 +386,7 @@ Node* compound_stmt() {
 }
 
 Node *toplevel() {
-    Type *ty = type();
+    Type *ty = read_type();
     if (!ty) {
         Token *t = tokens->data[pos];
         error("typename expected, but got %s", t->input);
@@ -424,11 +420,41 @@ Node *toplevel() {
     node->name = name;
     node->op = ND_VARDEF;
     node->ty = read_array(ty);
-    node->data = calloc(1, size_of(node->ty));
-    node->len = size_of(node->ty);
+    node->data = calloc(1, node->ty->size);
+    node->len = node->ty->size;
     expect(';');
 
     return node;
+}
+
+static Type *read_type() {
+    Token *t = tokens->data[pos];
+    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT)
+        error("typename expected, but got %s", t->input);
+
+    if (t->ty == TK_INT)
+    {
+        pos++;
+        return int_ty();
+    }
+    if (t->ty == TK_CHAR)
+    {
+        pos++;
+        return char_ty();
+    }
+    if (t->ty == TK_STRUCT)
+    {
+        pos++;
+        expect('{');
+        Vector *members = new_vector();
+        while (!consume('}'))
+        {
+            t = tokens->data[pos];
+            vec_push(members, decl());
+        }
+        return struct_of(members);
+    }
+    return NULL;
 }
 
 Vector *parse() {

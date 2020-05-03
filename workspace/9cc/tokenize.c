@@ -73,6 +73,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "struct", 6) == 0 && !is_alnum(p[6])) {
+            add_token(tokens, TK_STRUCT, p);
+            p += 6;
+            continue;
+        }
+
         if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
             add_token(tokens, TK_WHILE, p);
             p += 5;
