@@ -7,3 +7,5 @@ jobs:
     steps:
       - checkout
       - run: make build && make test
+    environment:
+      TZ: "Asia/Tokyo"
