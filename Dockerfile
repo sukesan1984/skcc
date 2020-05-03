@@ -3,7 +3,8 @@ FROM ubuntu:latest
 LABEL maintainer "Sukesan1984"
 
 
-RUN apt-get update
+RUN apt-get update && apt-get install -y tzdata
+ENV TZ=Asia/Tokyo
 RUN apt-get -y install sudo && \
     sudo apt-get -y install build-essential && \
     sudo apt-get -y install git && \
