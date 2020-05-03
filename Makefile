@@ -7,3 +7,5 @@ test:
 
 in:
 	docker run --rm -it sukesan1984/make_compiler bash
+
+.PHONY: in test build
