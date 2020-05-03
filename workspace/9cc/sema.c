@@ -1,7 +1,6 @@
 #include "9cc.h"
 
-static Type int_ty = {INT, NULL};
-
+static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0};
 
 static int str_label;
 static Map *vars;
@@ -68,7 +67,8 @@ static Node* walk(Node *node, bool decay) {
             return maybe_decay(node, decay);
         return node;
     case ND_VARDEF:
-        stacksize += size_of(node->ty);
+        roundup(stacksize, node->ty->align);
+        stacksize += node->ty->size;
 
         node->offset = stacksize;
 
@@ -151,7 +151,7 @@ static Node* walk(Node *node, bool decay) {
     case ND_SIZEOF:
         node->lhs = walk(node->lhs, false);
         node->op = ND_NUM;
-        node->val = size_of(node->lhs->ty);
+        node->val = node->lhs->ty->size;
         return node;
     default:
         assert(0 && "unknown node type");
