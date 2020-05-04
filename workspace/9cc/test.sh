@@ -75,8 +75,6 @@ void show_num(int i) {
 
 EOF
 
-try 8 "int main() { struct tag { char a; int b; } x; struct tag *p = &x; x.a = 3; x.b = 5; return p->a + p->b; }"
-try 8 "int main() { struct { char a; int b; } x; struct { char a; int b; } *p = &x; x.a=3; x.b=5; return p->a+p->b; }"
 try_file 45 test/comment.c
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
@@ -230,5 +228,10 @@ try 8 "int main() { struct { char a; int b; } x; x.a = 3; x.b = 5; return (x.a +
 try 8 "int main() { struct { char a; char b; } x; x.a = 3; x.b = 5; return (x.a + x.b); }"
 try 18 "int main() { struct { char a; char b; int c; } x; x.a = 3; x.b = 5; x.c = 10; return (x.a + x.b + x.c); }"
 try 18 "int main() { struct { char a; char b; int c; struct { char d; char e; } f;}  x; x.a = 3; x.b = 5; x.c = 10; return (x.a + x.b + x.c); }"
+try 8 "int main() { struct tag { char a; int b; } x; struct tag *p = &x; x.a = 3; x.b = 5; return p->a + p->b; }"
+try 8 "int main() { struct { char a; int b; } x; struct { char a; int b; } *p = &x; x.a=3; x.b=5; return p->a+p->b; }"
+try 48 "int main() { struct { struct { int b; int c[5]; } a[2]; } x; return sizeof(x); }"
+try 8 "int main() { struct { struct { int b; int c[5]; } a[2]; } x; x.a[0].b = 3; x.a[0].c[1] = 5; return x.a[0].b + x.a[0].c[1]; }"
+
 
 echo OK
