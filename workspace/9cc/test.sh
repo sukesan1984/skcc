@@ -69,15 +69,11 @@ void show(char* p) {
     printf("%s\n", p);
 }
 
-EOF
+void show_num(int i) {
+    printf("%d\n", i);
+}
 
-try 4 "int main() { struct { int a; } x; return sizeof(x); }"
-try 8 "int main() { struct { int a; int b; } x; return sizeof(x); }"
-try 12 "int main() { struct { char a; char b; int c; char d;} x; return sizeof(x); }"
-try 2 "int main() { struct { char a; char b; } x; return sizeof(x); }"
-try 8 "int main() { struct { char a; char b; int c; } x; return sizeof(x); }"
-try 4 "int main() { struct { char a; char b; struct { char a; char b; } c; } x; return sizeof(x); }"
-try 12 "int main() { struct { char a; char b; struct { char a; int b; } c; } x; return sizeof(x); }"
+EOF
 
 try_file 45 test/comment.c
 try 0 "int main() { 0; }"
@@ -217,5 +213,20 @@ try 98 'int main() { char *p = "abc"; return p[1]; }'
 try 99 'int main() { char *p = "abc"; return p[2]; }'
 try 0 'int main() { char *p = "abc"; return p[3]; }'
 try 0 'int main() { char *p = "hello world"; show(p); return 0; }'
+
+# struct
+try 4 "int main() { struct { int a; } x; return sizeof(x); }"
+try 8 "int main() { struct { int a; int b; } x; return sizeof(x); }"
+try 12 "int main() { struct { char a; char b; int c; char d;} x; return sizeof(x); }"
+try 2 "int main() { struct { char a; char b; } x; return sizeof(x); }"
+try 8 "int main() { struct { char a; char b; int c; } x; return sizeof(x); }"
+try 4 "int main() { struct { char a; char b; struct { char a; char b; } c; } x; return sizeof(x); }"
+try 12 "int main() { struct { char a; char b; struct { char a; int b; } c; } x; return sizeof(x); }"
+try 3 "int main() { struct { int a; } x; x.a = 3; return x.a; }"
+try 8 "int main() { struct { int a; int b; } x; x.a = 3; x.b = 5; return (x.a + x.b); }"
+try 8 "int main() { struct { char a; int b; } x; x.a = 3; x.b = 5; return (x.a + x.b); }"
+try 8 "int main() { struct { char a; char b; } x; x.a = 3; x.b = 5; return (x.a + x.b); }"
+try 18 "int main() { struct { char a; char b; int c; } x; x.a = 3; x.b = 5; x.c = 10; return (x.a + x.b + x.c); }"
+try 18 "int main() { struct { char a; char b; int c; struct { char d; char e; } f;}  x; x.a = 3; x.b = 5; x.c = 10; return (x.a + x.b + x.c); }"
 
 echo OK

@@ -11,4 +11,4 @@ try_file() {
     cat tmp.s
 }
 
-try "char a[3]; int main(){    a[1] = 3; return a[1];}"
+try "int main() { struct { char a; char b; int c; } x; x.a = 3; x.b = 5; x.c = 10; return (x.a + x.b + x.c); }"
