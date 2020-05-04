@@ -73,7 +73,7 @@ static Node* walk(Node *node, bool decay) {
                 continue;
             node->ty = m->ty;
             node->offset = m->ty->offset;
-            return node;
+            return maybe_decay(node, decay);
         }
         error("member missing: %s", node->name);
     case ND_GVAR:
