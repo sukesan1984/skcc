@@ -75,6 +75,7 @@ void show_num(int i) {
 
 EOF
 
+try 8 "int main() { struct tag { char a; int b; } x; struct tag *p = &x; x.a = 3; x.b = 5; return p->a + p->b; }"
 try 8 "int main() { struct { char a; int b; } x; struct { char a; int b; } *p = &x; x.a=3; x.b=5; return p->a+p->b; }"
 try_file 45 test/comment.c
 try 0 "int main() { 0; }"
