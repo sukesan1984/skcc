@@ -85,6 +85,13 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     return node;
 }
 
+static char *ident() {
+    Token *t = tokens->data[pos++];
+    if (t->ty != TK_IDENT)
+        error("identifier expected, but got %s", t->input);
+    return t->name;
+}
+
 Node *add();
 Node *assign();
 Node *unary();
@@ -148,6 +155,15 @@ Node *primary() {
 
 static Node *postfix() {
     Node *lhs = primary();
+
+    if (consume('.')) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DOT;
+        node->lhs = lhs;
+        node->member = ident();
+        return node;
+    }
+
     while(consume('[')) {
         Node *node = calloc(1, sizeof(Node));
         node->op = ND_DEREF;
@@ -276,10 +292,7 @@ Node *decl() {
     node->ty = read_type();
     while (consume('*'))
         node->ty = ptr_to(node->ty);
-    Token *t = (Token *) tokens->data[pos++];
-    if (t->ty != TK_IDENT)
-        error("variable name expected, but got %s", t->input);
-    node->name = t->name;
+    node->name = ident();
     node->ty = read_array(node->ty);
     if(consume('=')) {
         node->init = assign();
@@ -292,12 +305,7 @@ Node *param() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
     node->ty = read_type();
-
-    Token *t = tokens->data[pos];
-    if (t->ty != TK_IDENT)
-        error("parameter name expected, but got %s", t->input);
-    node->name = t->name;
-    pos++;
+    node->name = ident();
     return node;
 }
 
@@ -385,6 +393,7 @@ Node* compound_stmt() {
     return node;
 }
 
+
 Node *toplevel() {
     Type *ty = read_type();
     if (!ty) {
@@ -392,11 +401,7 @@ Node *toplevel() {
         error("typename expected, but got %s", t->input);
     }
 
-    Token *t = (Token *) tokens->data[pos];
-    if (!consume(TK_IDENT))
-        error("variable / function name expected, but got %s", t->input);
-
-    char *name = t->name;
+    char *name = ident();
 
     // Fuction
     if (consume('(')) {

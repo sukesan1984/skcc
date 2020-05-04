@@ -114,7 +114,7 @@ int roundup(int x, int align) {
 Type *struct_of(Vector *members) {
     Type *ty = calloc(1, sizeof(Type));
     ty->ty = STRUCT;
-    ty->members = new_vector();
+    ty->members = members;
     int offset = 0;
     for (int i = 0; i < members->len; i++) {
         Node *node = members->data[i];

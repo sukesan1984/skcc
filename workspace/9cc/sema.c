@@ -62,6 +62,20 @@ static Node* walk(Node *node, bool decay) {
         return maybe_decay(ret, decay);
     }
 
+    case ND_DOT:
+        node->lhs = walk(node->lhs, true);
+        if (node->lhs->ty->ty != STRUCT)
+            error("struct expected before '.'");
+        Type *ty = node->lhs->ty;
+        for (int i = 0; i < ty->members->len; i++) {
+            Node *m = ty->members->data[i];
+            if (strcmp(m->name, node->member))
+                continue;
+            node->ty = m->ty;
+            node->offset = m->ty->offset;
+            return node;
+        }
+        error("member missing: %s", node->member);
     case ND_GVAR:
         if (decay && node->ty->ty == ARRAY)
             return maybe_decay(node, decay);

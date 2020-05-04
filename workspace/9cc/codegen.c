@@ -112,8 +112,9 @@ void gen_expr(Node *node){
             return;
         }
 
+        case ND_DOT:
         case ND_DEREF: {
-            printf("#gen_expr ND_DEREFが右辺にきたときの処理開始\n");
+            printf("#gen_expr ND_DEREF/ND_DOTが右辺にきたときの処理開始\n");
             gen_lval(node);
             printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
             printf("  pop rax        \n");          // スタックからpopしてraxに格納
@@ -261,6 +262,17 @@ void gen_lval(Node *node) {
     printf("#gen_lvalの評価開始\n");
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
+
+
+    if (node->op == ND_DOT) {
+        printf("#gen_lvalとしてND_DOTを処理する\n");
+        gen_lval(node->lhs);
+        printf("#structの先頭のアドレスがraxに入ってる?\n");
+        printf("  pop rax\n");
+        printf("  add rax, %d # rax %sのmemberのoffset:%d分だけ押し下げたアドレスが%sのmemberの変数のアドレス\n", node->offset, node->member, node->offset, node->member);
+        printf("  push rax\n");
+        return;
+    }
 
     if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF)
         error("代入の左辺値が変数ではありません", 0);
@@ -413,7 +425,7 @@ void gen_main(Vector* v) {
             // 使用した変数分の領域を確保する
             printf("  push rbp     # 呼び出し元のrbpをスタックにつんでおく(エピローグでpopしてrspをそこに戻す)\n");                     // ベースポインタをスタックにプッシュする
             printf("  mov rbp, rsp # rspが今の関数のベースポインタを指しているのでrbpにコピーしておく\n");                 // rspをrbpにコピーする
-            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", node->stacksize, node->stacksize);   // rspを使用した変数分動かす
+            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", node->stacksize, node->args->len);   // rspを使用した変数分動かす
             printf("#関数の引数の処理\n");
             gen_args(node->args);
             printf("#関数本体の処理\n");
