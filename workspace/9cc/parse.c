@@ -1,6 +1,20 @@
 #include "9cc.h"
 
+typedef struct Env {
+    Map *tags;
+    struct Env *next;
+} Env;
+
 int pos = 0;
+struct Env *env;
+
+static Env *new_env(Env *next) {
+    Env *env = calloc(1, sizeof(Env));
+    env->tags = new_map();
+    env->next = next;
+    return env;
+}
+
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -333,9 +347,11 @@ Node *stmt() {
     }
     if (consume('{')) {
         Vector* block_items = new_vector();
+        env = new_env(env);
         while (!consume('}')) {
             vec_push(block_items, (void *) stmt());
         }
+        env = env->next;
         node = malloc(sizeof(Node));
         node->op = ND_COMP_STMT;
         node->stmts  = block_items;
@@ -465,13 +481,33 @@ static Type *read_type() {
     if (t->ty == TK_STRUCT)
     {
         pos++;
-        expect('{');
-        Vector *members = new_vector();
-        while (!consume('}'))
-        {
-            t = tokens->data[pos];
-            vec_push(members, decl());
+
+        char *tag = NULL;
+        Token *t = tokens->data[pos];
+
+        if (t->ty == TK_IDENT) {
+            pos++;
+            tag = t->name;
         }
+        Vector *members = NULL;
+        if (consume('{')) {
+            members = new_vector();
+            while (!consume('}'))
+                vec_push(members, decl());
+        }
+
+        if (!tag && !members)
+            error("bad struct definition");
+
+        if (tag && members) {
+            map_put(env->tags, tag, members);
+        } else if (tag && !members) {
+            members = map_get(env->tags, tag);
+            t = tokens->data[pos];
+            if (!members)
+                error("incomplete type: %s input: %s", tag, t->input);
+        }
+
         return struct_of(members);
     }
     return NULL;
@@ -480,6 +516,7 @@ static Type *read_type() {
 Vector *parse() {
     pos = 0;
     Vector *v = new_vector();
+    env = new_env(env);
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
         vec_push(v, toplevel());
     return v;
