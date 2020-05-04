@@ -108,13 +108,18 @@ void tokenize(char *p) {
             p += 6;
             continue;
         }
+
+        if (strncmp(p, "->", 2) == 0) {
+            add_token(tokens, TK_ARROW, p);
+            p += 2;
+            continue;
+        }
+
         if (strchr("+-*/()=;{},<>&[].", *p)) {
             add_token(tokens, *p, p);
             p++;
             continue;
         }
-
-
 
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);

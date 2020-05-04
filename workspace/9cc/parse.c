@@ -43,6 +43,13 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
     return node;
 }
 
+Node *new_expr(int ty, Node *expr) {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ty;
+    node->lhs = expr;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
     node->ty = int_ty();
@@ -160,7 +167,15 @@ static Node *postfix() {
         Node *node = calloc(1, sizeof(Node));
         node->op = ND_DOT;
         node->lhs = lhs;
-        node->member = ident();
+        node->name = ident();
+        return node;
+    }
+
+    if (consume(TK_ARROW)) {
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DOT;
+        node->lhs = new_expr(ND_DEREF, lhs);
+        node->name = ident();
         return node;
     }
 
