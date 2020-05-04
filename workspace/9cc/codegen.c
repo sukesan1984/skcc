@@ -269,7 +269,7 @@ void gen_lval(Node *node) {
         gen_lval(node->lhs);
         printf("#structの先頭のアドレスがraxに入ってる?\n");
         printf("  pop rax\n");
-        printf("  add rax, %d # rax %sのmemberのoffset:%d分だけ押し下げたアドレスが%sのmemberの変数のアドレス\n", node->offset, node->member, node->offset, node->member);
+        printf("  add rax, %d # rax %sのmemberのoffset:%d分だけ押し下げたアドレスが%sのmemberの変数のアドレス\n", node->offset, node->name, node->offset, node->name);
         printf("  push rax\n");
         return;
     }

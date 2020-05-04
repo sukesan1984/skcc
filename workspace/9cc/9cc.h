@@ -78,9 +78,6 @@ typedef struct Node {
     char *data;
     int len;
 
-    // Struct access;
-    char *member;
-
     int stacksize;
 
     // Offset from BP or begining of a struct
@@ -107,6 +104,7 @@ enum {
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof
     TK_STRUCT, // struct
+    TK_ARROW, // ->
 };
 
 enum {
