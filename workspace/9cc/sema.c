@@ -167,6 +167,8 @@ static Node* walk(Node *node, bool decay) {
         node->op = ND_NUM;
         node->val = node->lhs->ty->size;
         return node;
+    case ND_NULL:
+        return node;
     default:
         assert(0 && "unknown node type");
     }

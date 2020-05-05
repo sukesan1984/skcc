@@ -105,6 +105,7 @@ enum {
     TK_SIZEOF, //sizeof
     TK_STRUCT, // struct
     TK_ARROW, // ->
+    TK_TYPEDEF, // typedef
 };
 
 enum {
@@ -132,6 +133,7 @@ enum {
     ND_SIZEOF, // 276
     ND_STRUCT, // struct 277
     ND_DOT, // . Struct member access 278
+    ND_NULL, // null node
 };
 
 // parse.c

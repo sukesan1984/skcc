@@ -115,6 +115,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "typedef", 7) == 0) {
+            add_token(tokens, TK_TYPEDEF, p);
+            p += 7;
+            continue;
+        }
+
         if (strchr("+-*/()=;{},<>&[].", *p)) {
             add_token(tokens, *p, p);
             p++;
