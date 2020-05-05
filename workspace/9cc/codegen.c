@@ -252,6 +252,15 @@ void gen_expr(Node *node){
             printf("  pop rax\n");
             printf("  mov rdx, 0\n");
             printf("  div rdi\n");
+            break;
+        case '!':
+            printf("#gen_expr !の評価開始\n");
+            gen_expr(node->lhs);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
+            printf("  push rax\n");
+            break;
     }
     printf("  push rax   #gen_exprの結果をスタックに積む\n");
     return;

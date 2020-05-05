@@ -146,6 +146,10 @@ static Node* walk(Node *node, bool decay) {
         node->lhs = walk(node->lhs, true);
         node->ty = ptr_to(node->lhs->ty);
         return node;
+    case '!':
+        node->lhs = walk(node->lhs, true);
+        node->ty  = node->lhs->ty;
+        return node;
     case ND_RETURN:
         node->lhs = walk(node->lhs, true);
         return node;
