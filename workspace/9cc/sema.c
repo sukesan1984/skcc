@@ -136,6 +136,10 @@ static Node* walk(Node *node, bool decay) {
 
         if(node->lhs->ty->ty != PTR)
             error("operand must be a pointer");
+
+        if(node->lhs->ty->ptr_to->ty == VOID)
+            error("cannot dereference void pointer");
+
         node->ty = node->lhs->ty->ptr_to; // *p の場合 tyはptr_of
         return maybe_decay(node, decay);
     case ND_ADDR:

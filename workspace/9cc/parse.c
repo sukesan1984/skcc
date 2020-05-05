@@ -44,6 +44,7 @@ static Type *new_prim_ty(int ty, int size) {
     return ret;
 }
 
+static Type *void_ty() { return new_prim_ty(VOID, 0); }
 static Type *char_ty() { return new_prim_ty(CHAR, 1); }
 static Type *int_ty() { return new_prim_ty(INT, 4); }
 
@@ -51,7 +52,7 @@ static bool is_typename() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_IDENT)
         return map_exists(env->typedefs, t->name);
-    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_STRUCT;
+    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_VOID || t->ty == TK_STRUCT;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -327,6 +328,8 @@ Node *decl() {
         node->ty = ptr_to(node->ty);
     node->name = ident();
     node->ty = read_array(node->ty);
+    if (node->ty->ty == VOID)
+        error("void variable: %s", node->name);
     if(consume('=')) {
         node->init = assign();
     }
@@ -475,7 +478,7 @@ Node *toplevel() {
 
 static Type *read_type() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT)
+    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -493,6 +496,12 @@ static Type *read_type() {
     {
         pos++;
         return char_ty();
+    }
+
+    if (t->ty == TK_VOID)
+    {
+        pos++;
+        return void_ty();
     }
     if (t->ty == TK_STRUCT)
     {

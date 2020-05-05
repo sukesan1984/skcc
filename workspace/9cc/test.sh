@@ -75,7 +75,6 @@ void show_num(int i) {
 
 EOF
 
-
 try_file 45 test/comment.c
 try 0 "int main() { 0; }"
 try 42 "int main() { 42; }"
@@ -237,5 +236,8 @@ try 8 "int main() { struct { struct { int b; int c[5]; } a[2]; } x; x.a[0].b = 3
 # typedef
 try 3 "int main() { typedef int foo; foo x; x = 3; return x; }"
 try 3 "int main() { typedef struct { int a; int b; } foo; foo x; x.a = 3; return x.a; }"
+
+# void
+try 1 "void test() { show_num(1); } int main() { test(); return 1; }"
 
 echo OK

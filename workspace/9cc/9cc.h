@@ -31,7 +31,7 @@ typedef struct {
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY, CHAR, STRUCT} ty;
+    enum {INT, PTR, ARRAY, CHAR, VOID, STRUCT} ty;
     int size;
     int align;
 
@@ -100,6 +100,7 @@ enum {
     TK_EOF,
     TK_INT, // int
     TK_CHAR, // char
+    TK_VOID, // void
     TK_LOGOR, // ||
     TK_LOGAND, // &&
     TK_SIZEOF, //sizeof
