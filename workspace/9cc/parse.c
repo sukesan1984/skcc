@@ -2,15 +2,18 @@
 
 typedef struct Env {
     Map *tags;
+    Map *typedefs;
     struct Env *next;
 } Env;
 
 int pos = 0;
 struct Env *env;
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
     env->tags = new_map();
+    env->typedefs = new_map();
     env->next = next;
     return env;
 }
@@ -46,6 +49,8 @@ static Type *int_ty() { return new_prim_ty(INT, 4); }
 
 static bool is_typename() {
     Token *t = tokens->data[pos];
+    if (t->ty == TK_IDENT)
+        return map_exists(env->typedefs, t->name);
     return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_STRUCT;
 }
 
@@ -357,6 +362,12 @@ Node *stmt() {
         return node;
     }
 
+    if (consume(TK_TYPEDEF)) {
+        Node *node = decl();
+        map_put(env->typedefs, node->name, node->ty);
+        return &null_stmt;
+    }
+
     if (consume(TK_RETURN)) {
         node = malloc(sizeof(Node));
         node->op = ND_RETURN;
@@ -464,9 +475,15 @@ Node *toplevel() {
 
 static Type *read_type() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT)
+    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT)
         error("typename expected, but got %s", t->input);
 
+    if (t->ty == TK_IDENT) {
+        Type *ty = map_get(env->typedefs, t->name);
+        if (ty)
+            pos++;
+        return ty;
+    }
     if (t->ty == TK_INT)
     {
         pos++;
