@@ -434,6 +434,7 @@ void gen_main(Vector* v) {
             // 式の評価結果としてスタックに一つの値が残ってる
             // はずなので、スタックが溢れないようにポップしておく
             printf("  pop rax     # 関数の結果をraxにロード\n");
+            gen_epilog();
         } else if (node->op == ND_VARDEF) {
             continue;
         } else {
@@ -441,6 +442,4 @@ void gen_main(Vector* v) {
             exit(1);
         }
     }
-
-    gen_epilog();
 }
