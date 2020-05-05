@@ -90,7 +90,19 @@ void gen_expr(Node *node){
                 printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
                 printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
             }
+            int seq = jump_num++;
+            printf("  mov rax, rsp\n");
+            printf("  and rax, 15\n");
+            printf("  jnz .Lcall%d\n", seq);
+            printf("  mov rax, 0\n");
             printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
+            printf("  jmp .Lend%d\n", seq);
+            printf(".Lcall%d:\n", seq);
+            printf("  sub rsp, 8\n");
+            printf("  mov rax, 0\n");
+            printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
+            printf("  add rsp, 8\n");
+            printf(".Lend%d:\n", seq);
             printf("  push rax      #関数の結果をスタックに積む \n");         // スタックに結果を積む
             return;
         }
@@ -434,7 +446,7 @@ void gen_main(Vector* v) {
             // 使用した変数分の領域を確保する
             printf("  push rbp     # 呼び出し元のrbpをスタックにつんでおく(エピローグでpopしてrspをそこに戻す)\n");                     // ベースポインタをスタックにプッシュする
             printf("  mov rbp, rsp # rspが今の関数のベースポインタを指しているのでrbpにコピーしておく\n");                 // rspをrbpにコピーする
-            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけrspを動かす\n", node->stacksize, node->args->len);   // rspを使用した変数分動かす
+            printf("  sub rsp, %d  # 今の関数で使用する変数(%d個)の数だけalignしてrspを動かす\n", roundup(node->stacksize, 16), node->args->len);   // rspを使用した変数分動かす
             printf("#関数の引数の処理\n");
             gen_args(node->args);
             printf("#関数本体の処理\n");
