@@ -226,6 +226,11 @@ Node *unary() {
         return node;
     }
 
+    if (consume('!')) {
+        Node *node = new_expr('!', unary());
+        return node;
+    }
+
     if (consume(TK_SIZEOF)) {
         Node *node = calloc(1, sizeof(Node));
         node->op = ND_SIZEOF;

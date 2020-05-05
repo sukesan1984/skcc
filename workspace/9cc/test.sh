@@ -240,4 +240,10 @@ try 3 "int main() { typedef struct { int a; int b; } foo; foo x; x.a = 3; return
 # void
 try 1 "void test() { show_num(1); } int main() { test(); return 1; }"
 
+# !
+try 0 "int main() { !1; }"
+try 1 "int main() { !0; }"
+try 1 "int main() { !(3 > 4)}"
+
+
 echo OK
