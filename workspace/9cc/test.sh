@@ -245,5 +245,10 @@ try 0 "int main() { !1; }"
 try 1 "int main() { !0; }"
 try 1 "int main() { !(3 > 4)}"
 
+# function alignment
+try 0 "int main() { int e1; e1 = 0; return 0;"}
+try 0 "int main() { printf(\"OK\n\"); return 0;"}
+try 0 "int main() { int e1; e1 = 1; printf(\"OK\n\"); return 0;"}
+try 0 "int main() { int e1; e1 = 0; printf(\"OK\n\"); return 0;"}
 
 echo OK
