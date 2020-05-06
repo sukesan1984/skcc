@@ -60,6 +60,7 @@ void gen_stmt(Node *node);
 
 int jump_num = 0;                    // ifでjumpする回数を保存
 void gen_expr(Node *node){
+    int seq;
     switch(node->op) {
         case ND_NUM: {
             printf("#gen_expr ND_NUM \n");
@@ -96,7 +97,7 @@ void gen_expr(Node *node){
                 printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
                 printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
             }
-            int seq = jump_num++;
+            seq = jump_num++;
             printf("  mov rax, rsp\n");
             printf("  and rax, 15\n");
             printf("  jnz .Lcall%d\n", seq);
@@ -108,7 +109,7 @@ void gen_expr(Node *node){
             printf("  mov rax, 0\n");
             printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
             printf("  add rsp, 8\n");
-            printf(".Lend%d:\n", seq);
+            printf(".Lend%d: # RSPのスタックフレームが16の倍数 \n", seq);
             printf("  push rax      #関数の結果をスタックに積む \n");         // スタックに結果を積む
             return;
         }
@@ -185,36 +186,36 @@ void gen_expr(Node *node){
         case ND_LOGOR:
             // 左辺と右辺の内いずれかが1なら1
             gen_expr(node->lhs);
+            seq = jump_num++;
             printf("  pop rdi\n");
             printf("  cmp rdi, 1 # 1と等しければje..\n");
-            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             gen_expr(node->rhs);
             printf("  pop rdi\n");
             printf("  cmp rdi, 1 # 1と等しければ..\n");
-            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             printf("  push 0\n"); // 両方0の時
-            printf("  jmp .Lend%d\n", jump_num);
-            printf(".Ltrue%d:\n", jump_num);
+            printf("  jmp .Lend%d\n", seq);
+            printf(".Ltrue%d:\n", seq);
             printf("  push 1\n");
-            printf(".Lend%d:\n", jump_num);
-            jump_num++;
+            printf(".Lend%d:\n", seq);
             return;
         case ND_LOGAND:
             // 左辺と右辺の内いずれかが1なら1
             gen_expr(node->lhs);
             printf("  pop rdi\n");
             printf("  cmp rdi, 0 # 0と等しければje..\n");
-            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            seq = jump_num++;
+            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             gen_expr(node->rhs);
             printf("  pop rdi\n");
             printf("  cmp rdi, 0 # 0と等しければ..\n");
-            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+            printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             printf("  push 1\n"); // 両方0の時
-            printf("  jmp .Lend%d\n", jump_num);
-            printf(".Lfalse%d:\n", jump_num);
+            printf("  jmp .Lend%d\n", seq);
+            printf(".Lfalse%d:\n", seq);
             printf("  push 0\n");
-            printf(".Lend%d:\n", jump_num);
-            jump_num++;
+            printf(".Lend%d:\n", seq);
             return;
         case '+':
             printf("#gen_expr +の評価開始\n");
@@ -362,14 +363,14 @@ void gen_stmt(Node *node) {
     // if(lhs) rhsをコンパイル
     if (node->op == ND_IF) {
         printf("#gen_stmt IFの処理\n");
+        int seq = jump_num++;
         gen_expr(node->lhs);                             // lhsの結果をスタックにpush
         printf("  pop rax      # lhsの結果をraxにコピー\n");                      // lhsの結果をraxにコピー
         printf("  cmp rax, 0   # raxの結果と0を比較する(if文の中身がfalseのときは1)\n");                   // raxの結果と0を比較
-        printf("  je .Lend%d   # 0なら.Lend%dに飛ぶ\n", jump_num, jump_num);      // lhsが0のとき（false) Lendに飛ぶ
+        printf("  je .Lend%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
         gen_stmt(node->rhs);                             // rhsの結果をスタックにpush
-        printf(".Lend%d:\n", jump_num);          // 終わる
+        printf(".Lend%d:\n", seq);          // 終わる
         printf("  push %d      # if文の結果がfalseの場合は0をスタックに積む\n", 0);                   // Lendのときは0をstackに積む
-        jump_num++;
         return;
     }
 
@@ -377,34 +378,34 @@ void gen_stmt(Node *node) {
     if (node->op == ND_FOR) {
         printf("#gen_stmt FORの処理\n");
         gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
-        printf(".Lbegin%d:      # ループの開始\n", jump_num);   // ループの開始
+        int seq = jump_num++;
+        printf(".Lbegin%d:      # ループの開始\n", seq);   // ループの開始
         gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
         printf("  pop rax       # 二つ目の実行結果をraxに格納\n");              // lhs2の実行結果をraxに格納
         printf("  cmp rax, 0    # 0と等しい(二つ目がfalseになったら)終わる\n");           // lhsの実行結果が0と等しい。falseになったらおわる
-        printf("  je .Lend%d\n", jump_num);
+        printf("  je .Lend%d\n", seq);
         printf("# for文の内部を処理\n");
         gen_stmt(node->rhs);                     // rhsを実行
         printf("# forの３つ目の領域の処理実行\n");
         gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
-        printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", jump_num);// ループの開始に戻る
-        printf(".Lend%d:        # for文終わり\n", jump_num);
-        jump_num++;
+        printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", seq);// ループの開始に戻る
+        printf(".Lend%d:        # for文終わり\n", seq);
         return;
     }
 
     // while(lhs) rhsをコンパイル
     if (node->op == ND_WHILE) {
         printf("#gen_stmt WHILEの処理\n");
-        printf("  .Lbegin%d: # ループの開始\n", jump_num);      // ループの開始
+        int seq = jump_num++;
+        printf("  .Lbegin%d: # ループの開始\n", seq);      // ループの開始
         gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
         printf("  pop rax      # while評価の結果を格納(0 or 1) \n");                  // raxにstackを格納
         printf("  cmp rax, 0   # while評価が0ならば終わり\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
-        printf("  je .Lend%d\n", jump_num);
+        printf("  je .Lend%d\n", seq);
         printf("#WHILEの中身の処理\n");
         gen_stmt(node->rhs);                         // ループの中身をコンパイル
-        printf("  jmp .Lbegin%d\n", jump_num);  // ループの開始時点に戻る
-        printf(".Lend%d:\n", jump_num);
-        jump_num++;
+        printf("  jmp .Lbegin%d\n", seq);  // ループの開始時点に戻る
+        printf(".Lend%d:\n", seq);
         return;
     }
 
