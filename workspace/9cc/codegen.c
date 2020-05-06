@@ -5,12 +5,18 @@ char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char* argreg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
 static char *escape(char *s, int len) {
+    static char escaped[256] = {
+        ['\b'] = 'b', ['\f'] = 'f', ['\n'] = 'n', ['\r'] = 'r',
+        ['\t'] = 't', ['\\'] = '\\', ['\''] = '\'', ['"'] = '"',
+    };
     char *buf = malloc(len * 4);
     char *p = buf;
     for (int i = 0; i < len; i++) {
-        if(s[i] == '\\') {
+        uint8_t c = s[i];
+        char esc = escaped[c];
+        if (esc) {
             *p++ = '\\';
-            *p++ = '\\';
+            *p++ = esc;
         } else if (isgraph(s[i]) || s[i] == ' ') {
             *p++ = s[i];
         } else {
