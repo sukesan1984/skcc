@@ -74,17 +74,17 @@ void gen_expr(Node *node){
             gen_expr(node->rhs);            // 右辺値が評価されてスタックのトップに入っている
 
             printf("#gen_expr =の処理開始\n");
-            printf("  pop rdi        # 評価された右辺値をrdiにロード\n");          // 評価された右辺値がrdiにロード
+            printf("  pop r10        # 評価された右辺値をr10にロード\n");          // 評価された右辺値がr10にロード
             printf("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
 
-            char *reg = "rdi";
+            char *reg = "r10";
             if (node->lhs->ty->ty == INT)
-                reg = "edi";
+                reg = "r10d";
             else if(node->lhs->ty->ty == CHAR)
-                reg = "dil";
+                reg = "r10b";
 
-            printf("  mov [rax], %s # raxのレジスタのアドレスにrdiの値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n", reg);   // raxのレジスタのアドレスにrdiの値をストアする
-            printf("  push rdi       # 右辺値をスタックにプッシュする\n");         // rdiの値をスタックにプッシュする
+            printf("  mov [rax], %s # raxのレジスタのアドレスにr10の値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n", reg);   // raxのレジスタのアドレスにr10の値をストアする
+            printf("  push r10       # 右辺値をスタックにプッシュする\n");         // r10の値をスタックにプッシュする
             return;
         }
 
@@ -92,8 +92,9 @@ void gen_expr(Node *node){
             printf("#gen_expr ND_CALL開始:\n");
             int args_len = node->args->len;
             for (int i = 0; i < args_len; i++) {
-                gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+                printf("#先にND_NUMがここで処理されるのではない？\n");
                 printf("#gen_expr ND_CALL(引数処理): %d番目の引数\n", i);
+                gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
                 printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
                 printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
             }
@@ -167,9 +168,9 @@ void gen_expr(Node *node){
             printf("#評価の右辺をスタックに乗せる \n");
             gen_expr(node->rhs);                 // rhsの値がスタックにのる
 
-            printf("  pop rdi      # 右辺をrdiにpop\n");          // 左辺をrdiにpop
+            printf("  pop r10      # 右辺をr10にpop\n");          // 左辺をr10にpop
             printf("  pop rax      # 左辺をraxにpop\n");          // 右辺をraxにpop
-            printf("  cmp rax, rdi # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+            printf("  cmp rax, r10 # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
 
             if (node->op == ND_EQ)
                 printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
@@ -187,12 +188,12 @@ void gen_expr(Node *node){
             // 左辺と右辺の内いずれかが1なら1
             gen_expr(node->lhs);
             seq = jump_num++;
-            printf("  pop rdi\n");
-            printf("  cmp rdi, 1 # 1と等しければje..\n");
+            printf("  pop r10\n");
+            printf("  cmp r10, 1 # 1と等しければje..\n");
             printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             gen_expr(node->rhs);
-            printf("  pop rdi\n");
-            printf("  cmp rdi, 1 # 1と等しければ..\n");
+            printf("  pop r10\n");
+            printf("  cmp r10, 1 # 1と等しければ..\n");
             printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             printf("  push 0\n"); // 両方0の時
             printf("  jmp .Lend%d\n", seq);
@@ -203,13 +204,13 @@ void gen_expr(Node *node){
         case ND_LOGAND:
             // 左辺と右辺の内いずれかが1なら1
             gen_expr(node->lhs);
-            printf("  pop rdi\n");
-            printf("  cmp rdi, 0 # 0と等しければje..\n");
+            printf("  pop r10\n");
+            printf("  cmp r10, 0 # 0と等しければje..\n");
             seq = jump_num++;
             printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             gen_expr(node->rhs);
-            printf("  pop rdi\n");
-            printf("  cmp rdi, 0 # 0と等しければ..\n");
+            printf("  pop r10\n");
+            printf("  cmp r10, 0 # 0と等しければ..\n");
             printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             printf("  push 1\n"); // 両方0の時
             printf("  jmp .Lend%d\n", seq);
@@ -221,56 +222,56 @@ void gen_expr(Node *node){
             printf("#gen_expr +の評価開始\n");
             gen_expr(node->lhs);
             gen_expr(node->rhs);
-            printf("  pop rdi       # \n");
+            printf("  pop r10       # \n");
             if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", node->rhs->ty->ptr_to->size);//node->lhs->stacksize);
-                printf("  mul rsi\n");
+                printf("  mov r11, %d\n", node->rhs->ty->ptr_to->size);//node->lhs->stacksize);
+                printf("  mul r11\n");
                 printf("  push rax\n");
             }
             if (node->lhs->ty->ty == PTR) {
-                printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", node->lhs->ty->ptr_to->size);//node->lhs->stacksize);
-                printf("  mul rsi\n");
-                printf("  mov rdi, rax\n");
+                printf("  mov rax, r10\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);//node->lhs->stacksize);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
             }
             printf("  pop rax\n");
-            printf("  add rax, rdi\n");
+            printf("  add rax, r10\n");
             break;
         case '-':
             printf("#gen_expr -の評価開始\n");
             gen_expr(node->lhs);
             gen_expr(node->rhs);
-            printf("  pop rdi\n");
+            printf("  pop r10\n");
             if (node->rhs->ty->ty == PTR) {
                 printf("  pop rax #左辺の値を取り出して、stacksizeの大きさをかける\n");
-                printf("  mov rsi, %d\n", node->rhs->ty->ptr_to->size); //node->lhs->stacksize);
-                printf("  mul rsi\n");
+                printf("  mov r11, %d\n", node->rhs->ty->ptr_to->size); //node->lhs->stacksize);
+                printf("  mul r11\n");
                 printf("  push rax\n");
             }
             if (node->lhs->ty->ty == PTR) {
-                printf("  mov rax, rdi\n");
-                printf("  mov rsi, %d\n", node->lhs->ty->ptr_to->size);
-                printf("  mul rsi\n");
-                printf("  mov rdi, rax\n");
+                printf("  mov rax, r10\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
             }
             printf("  pop rax\n");
-            printf("  sub rax, rdi\n");
+            printf("  sub rax, r10\n");
             break;
         case '*':
             printf("#gen_expr *の評価開始\n");
             gen_binop(node->lhs, node->rhs);
-            printf("  pop rdi\n");
+            printf("  pop r10\n");
             printf("  pop rax\n");
-            printf("  mul rdi\n");
+            printf("  mul r10\n");
             break;
         case '/':
             printf("#gen_expr /の評価開始\n");
             gen_binop(node->lhs, node->rhs);
-            printf("  pop rdi\n");
+            printf("  pop r10\n");
             printf("  pop rax\n");
-            printf("  mov rdx, 0\n");
-            printf("  div rdi\n");
+            printf("  cqo\n");
+            printf("  idiv r10\n");
             break;
         case '!':
             printf("#gen_expr !の評価開始\n");
@@ -348,13 +349,13 @@ void gen_stmt(Node *node) {
         printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
         printf("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
         printf("  pop rax       # 代入すべきアドレスがスタックされている\n");
-        printf("  pop rdi       # 宣言時の右辺の値が入っている\n");
+        printf("  pop r10       # 宣言時の右辺の値が入っている\n");
 
-        char *reg = "rdi";
+        char *reg = "r10";
         if (node->ty->ty == INT)
-            reg = "edi";
+            reg = "r10d";
         else if(node->ty->ty == CHAR)
-            reg = "dil";
+            reg = "r10b";
         printf("  mov [rax], %s\n", reg);
 
         return;
