@@ -140,6 +140,8 @@ static Type* read_array(Type *ty) {
     return ty;
 }
 
+static Node *compound_stmt();
+
 Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
@@ -157,7 +159,7 @@ Node *primary() {
             // 引数は一旦6個まで対応する
             Vector* args = new_vector(); // 引数を格納する引数Nodeが入る
             while(consume(',') || !consume(')')) {
-                Node *node = add();
+                Node *node = assign();
                 vec_push(args, (void *) node);
             }
             return new_node_func(t->name, args);
@@ -167,12 +169,15 @@ Node *primary() {
     }
 
     if(consume('(')) {
-        Node *node = assign();
-        Token *t = tokens->data[pos];
-        if (t->ty != ')') {
-            error("閉じ括弧で閉じる必要があります: %s", t->input);
+        if (consume('{')) {
+            Node *node = calloc(1, sizeof(Node));
+            node->op = ND_EXPR_STMT;
+            node->lhs = compound_stmt();
+            expect(')');
+            return node;
         }
-        pos++;
+        Node *node = assign();
+        expect(')');
         return node;
     }
     t = tokens->data[pos];
@@ -201,7 +206,7 @@ static Node *postfix() {
             return node;
         }
         if (consume('[')) {
-            lhs = new_expr(ND_DEREF, new_node('+', lhs, primary()));
+            lhs = new_expr(ND_DEREF, new_node('+', lhs, assign()));
             expect(']');
             continue;
         }
@@ -342,6 +347,12 @@ Node *decl() {
     return node;
 }
 
+Node *expr_stmt() {
+    Node *node = new_expr(ND_EXPR_STMT, assign());
+    expect(';');
+    return node;
+}
+
 Node *param() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
@@ -350,45 +361,8 @@ Node *param() {
     return node;
 }
 
-Node *stmt() {
-    Node *node;
 
-    if (is_typename())  {
-        node = decl();
-        return node;
-    }
-    if (consume('{')) {
-        Vector* block_items = new_vector();
-        env = new_env(env);
-        while (!consume('}')) {
-            vec_push(block_items, (void *) stmt());
-        }
-        env = env->next;
-        node = malloc(sizeof(Node));
-        node->op = ND_COMP_STMT;
-        node->stmts  = block_items;
-        return node;
-    }
-
-    if (consume(TK_TYPEDEF)) {
-        Node *node = decl();
-        map_put(env->typedefs, node->name, node->ty);
-        return &null_stmt;
-    }
-
-    if (consume(TK_RETURN)) {
-        node = malloc(sizeof(Node));
-        node->op = ND_RETURN;
-        node->lhs = assign();
-    } else {
-        node = malloc(sizeof(Node));
-        node->op = ND_EXPR_STMT;
-        node->lhs = assign();
-    }
-    consume(';');
-    return node;
-}
-
+static Node* stmt();
 Node *control() {
     if (consume(TK_IF)) {
         if(consume('(')) {
@@ -429,16 +403,55 @@ Node *control() {
             return new_node_for(ND_FOR, lhs, lhs2, lhs3, control());
         }
     }
-
     return stmt();
 }
+
+Node *stmt() {
+    if (is_typename())
+        return decl();
+    Node *node = calloc(1, sizeof(Node));
+    Token *t = tokens->data[pos];
+
+    switch (t->ty) {
+        case TK_IF:
+        case TK_WHILE:
+        case TK_FOR:
+            return control();
+        case TK_RETURN:
+            pos++;
+            node->op = ND_RETURN;
+            node->lhs = assign();
+            expect(';');
+            return node;
+        case '{': {
+            pos++;
+            Vector* block_items = new_vector();
+            env = new_env(env);
+            while (!consume('}')) {
+                vec_push(block_items, (void *) stmt());
+            }
+            env = env->next;
+            node->op = ND_COMP_STMT;
+            node->stmts  = block_items;
+            return node;
+        }
+        case TK_TYPEDEF:
+            pos++;
+            node = decl();
+            map_put(env->typedefs, node->name, node->ty);
+            return &null_stmt;
+        default:
+            return expr_stmt();
+    }
+}
+
 
 Node* compound_stmt() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_COMP_STMT;
     node->stmts = new_vector();
     while(!consume('}'))
-        vec_push(node->stmts, control());
+        vec_push(node->stmts, stmt());
     return node;
 }
 
@@ -549,6 +562,7 @@ Vector *parse() {
     env = new_env(env);
     while(((Token *)tokens->data[pos])->ty != TK_EOF)
         vec_push(v, toplevel());
+    fprintf(stderr, "parse succeeded\n");
     return v;
 }
 

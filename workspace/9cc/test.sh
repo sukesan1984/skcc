@@ -243,7 +243,7 @@ try 1 "void test() { show_num(1); } int main() { test(); return 1; }"
 # !
 try 0 "int main() { !1; }"
 try 1 "int main() { !0; }"
-try 1 "int main() { !(3 > 4)}"
+try 1 "int main() { !(3 > 4); }"
 
 # function alignment
 try 0 "int main() { int e1; e1 = 0; return 0;"}
