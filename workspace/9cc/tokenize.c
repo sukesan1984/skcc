@@ -30,6 +30,31 @@ int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
     return 0;
 }
 
+static char *c_char(int *res, char *p) {
+    // Nonescaped
+    if (*p != '\\') {
+        *res = *p;
+        return p + 1;
+    }
+    p++;
+
+    static char escaped[256] = {
+          ['a'] = '\a', ['b'] = '\b',   ['f'] = '\f',
+          ['n'] = '\n', ['r'] = '\r',   ['t'] = '\t',
+          ['v'] = '\v', ['e'] = '\033', ['E'] = '\033',
+    };
+
+    // Simple (e.g. `\n` or `\a`)
+    int esc = escaped[(uint8_t) *p];
+
+    if (esc) {
+        *res = esc;
+        return p + 1;
+    }
+    *res = *p;
+    return p + 1;
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
     while (*p) {
@@ -144,16 +169,25 @@ void tokenize(char *p) {
             char* init_p = p;
             int len = 0;
             Token *t = add_token(tokens, TK_STR, p);
-            while(*p != '"') {
+            // mallocするのにlenをとっておく
+            while(*p++ != '"')
                 len++;
-                p++;
-            }
             p++;
             char *str = (char*) malloc(len + 1);
-            strncpy(str, init_p, len);
+            p = init_p;
+            int i = 0;
+            len = 0;
+            // ここで、\, nみたいに分かれているのを統一する => \n
+            while(*p != '"') {
+                int c;
+                p = c_char(&c, p);
+                str[i++] = c;
+                len++;
+            }
             str[len] = '\0';
+            p++;
             t->str = str;
-            continue; 
+            continue;
         }
 
         if (is_alnum(*p)) {

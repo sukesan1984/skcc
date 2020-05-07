@@ -11,4 +11,4 @@ try_file() {
     cat tmp.s
 }
 
-try "int main() { !0 }"
+try_file $1
