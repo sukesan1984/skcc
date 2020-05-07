@@ -1,3 +1,6 @@
+int g1;
+int g2[5];
+
 int assert(int actual, int expected) {
     if (actual == expected){
         printf("[ok] %d\n", actual);
@@ -139,10 +142,10 @@ int main() {
     assert(12, ({ int a[2][2]; a[0][0] = 12; return a[0][0]; }));
 
 // Global variables
-    assert(10, ({ int x;  { x = 10; return x; } }));
-    assert(15, ({ int x[5];  { x[0] = 5; x[4] = 10; return x[0] + x[4]; }}));
-    assert(20,  ({ int x[5]; return sizeof(x); }));
-    assert(20, ({ int x[5];  { return sizeof(x); }}));
+    assert(10, ({ g1 = 10; return g1; }));
+    assert(15, ({  g2[0] = 5; g2[4] = 10; return g2[0] + g2[4]; }));
+    assert(20,  ({ return sizeof(g2); }));
+    assert(20, ({ return sizeof(g2); }));
 
 // char type
     assert(6, ({ char x[3];  { x[0] = 2; int y = 4; return x[0] + y; }}));
