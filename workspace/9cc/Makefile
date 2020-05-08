@@ -18,6 +18,11 @@ test: 9cc $(TEST_FILE)
 dump: 9cc
 	./dump.sh $(TEST_FILE)
 
+sample: 9cc
+	./dump.sh test/sample.c
+	gcc -static -o tmp tmp.s test/external.c
+	@./tmp
+
 break: 9cc
 	gdb 9cc
 clean:
