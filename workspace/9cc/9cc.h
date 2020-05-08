@@ -67,6 +67,9 @@ typedef struct Node {
     struct Node *lhs2; //tyがTK_FORのときのforの真ん中
     struct Node *lhs3; //tyがTK_FORのときのforの右
     struct Node *rhs; // 右辺
+    struct Node *cond; // TK_IFのcondition
+    struct Node *if_body; // TK_IFのbody
+    struct Node *else_body; // TK_ELSEのbody
     struct Node *body; // function definition
     struct Node *init;
     Vector *args;      // 関数の場合の引数が格納される
@@ -90,6 +93,7 @@ enum {
     TK_STR, // String literal
     TK_IDENT,
     TK_IF, // ifのトークン
+    TK_ELSE, // else
     TK_RETURN,
     TK_WHILE, // whileのトークン
     TK_FOR, // forのトークン
@@ -111,7 +115,6 @@ enum {
 
 enum {
     ND_NUM = 256,
-    ND_STR,
     ND_IDENT, //257
     ND_LVAR, //258
     ND_GVAR, //259
@@ -135,6 +138,8 @@ enum {
     ND_STRUCT, // struct 277
     ND_DOT, // . Struct member access 278
     ND_NULL, // null node
+    ND_STR,
+    ND_STMT_EXPR,
 };
 
 // parse.c

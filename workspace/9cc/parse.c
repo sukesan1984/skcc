@@ -8,7 +8,7 @@ typedef struct Env {
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -171,7 +171,7 @@ Node *primary() {
     if(consume('(')) {
         if (consume('{')) {
             Node *node = calloc(1, sizeof(Node));
-            node->op = ND_EXPR_STMT;
+            node->op = ND_STMT_EXPR;
             node->lhs = compound_stmt();
             expect(')');
             return node;
@@ -365,15 +365,22 @@ Node *param() {
 static Node* stmt();
 Node *control() {
     if (consume(TK_IF)) {
+        Node *if_node = calloc(1, sizeof(Node));
+        if_node->op = ND_IF;
         if(consume('(')) {
-            Node *node = assign(); // if/while分のカッコ内の処理
+            Node *cond = assign(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
                 error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
             }
             pos++;
-            return new_node(ND_IF, node, control());
+            if_node->cond = cond;
+            if_node->if_body = control();
         }
+        if (consume(TK_ELSE)){
+            if_node->else_body = stmt();
+        }
+        return if_node;
     }
 
     if (consume(TK_WHILE)) {

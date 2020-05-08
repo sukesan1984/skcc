@@ -96,8 +96,10 @@ static Node* walk(Node *node, bool decay) {
             node->init = walk(node->init, true);
         return node;
     case ND_IF:
-        node->lhs = walk(node->lhs, true);
-        node->rhs = walk(node->rhs, true);
+        node->cond= walk(node->cond, true);
+        node->if_body = walk(node->if_body, true);
+        if (node->else_body)
+            node->else_body = walk(node->else_body, true);
         return node;
     case ND_FOR:
         node->lhs = walk(node->lhs, true);
@@ -168,6 +170,9 @@ static Node* walk(Node *node, bool decay) {
             node->stmts->data[i] = walk(node->stmts->data[i], true);
         return node;
     case ND_EXPR_STMT:
+        node->lhs = walk(node->lhs, true);
+        return node;
+    case ND_STMT_EXPR:
         node->lhs = walk(node->lhs, true);
         return node;
     case ND_SIZEOF:
