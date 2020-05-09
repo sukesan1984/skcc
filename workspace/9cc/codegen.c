@@ -52,8 +52,12 @@ void gen_initial() {
     printf(".data\n");
     for (int i = 0; i < globals->len; i++) {
         Var *var = globals->data[i];
-        printf("%s:\n", var->name);
-        printf("  .ascii \"%s\"\n", escape(var->data, var->len));
+        if (var->is_extern) {
+            continue;
+        } else {
+            printf("%s:\n", var->name);
+            printf("  .ascii \"%s\"\n", escape(var->data, var->len));
+        }
     }
 
     printf(".global main\n");

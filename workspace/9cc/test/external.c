@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int global_var = 5;
+
 int *alloc(int x) {
   static int arr[1];
   arr[0] = x;

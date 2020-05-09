@@ -8,7 +8,7 @@ typedef struct Env {
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -466,6 +466,9 @@ Node* compound_stmt() {
 
 
 Node *toplevel() {
+    bool is_extern = false;
+    if (consume(TK_EXTERN))
+        is_extern = true;
     Type *ty = read_type();
     if (!ty) {
         Token *t = tokens->data[pos];
@@ -496,6 +499,7 @@ Node *toplevel() {
     node->name = name;
     node->op = ND_VARDEF;
     node->ty = read_array(ty);
+    node->is_extern = is_extern;
     node->data = calloc(1, node->ty->size);
     node->len = node->ty->size;
     expect(';');

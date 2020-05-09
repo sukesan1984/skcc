@@ -58,6 +58,7 @@ typedef struct {
     char* data;
     int len;
     char *name;
+    bool is_extern;
 } Var;
 
 typedef struct Node {
@@ -85,6 +86,8 @@ typedef struct Node {
 
     // Offset from BP or begining of a struct
     int offset;
+
+    bool is_extern;
 } Node;
 
 // トークンの型を表す値
@@ -111,6 +114,7 @@ enum {
     TK_STRUCT, // struct
     TK_ARROW, // ->
     TK_TYPEDEF, // typedef
+    TK_EXTERN, // extern
 };
 
 enum {
