@@ -357,6 +357,8 @@ Node *param() {
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_VARDEF;
     node->ty = read_type();
+    while (consume('*'))
+        node->ty = ptr_to(node->ty);
     node->name = ident();
     return node;
 }
