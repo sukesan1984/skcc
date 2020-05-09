@@ -176,9 +176,10 @@ void tokenize(char *p) {
             int len = 0;
             Token *t = add_token(tokens, TK_STR, p);
             // mallocするのにlenをとっておく
-            while(*p++ != '"')
+            while(!(*p == '"' && *(p-1) != '\\')) {
                 len++;
-            p++;
+                p++;
+            }
             char *str = (char*) malloc(len + 1);
             p = init_p;
             int i = 0;
