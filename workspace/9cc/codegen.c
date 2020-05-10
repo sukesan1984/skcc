@@ -325,6 +325,12 @@ void gen_expr(Node *node){
             gen_expr(node->else_body);
             printf(".Lend%d:\n", seq);          // 終わる
             return;
+        case ',':
+            printf("# ',' gen_expr\n");
+            gen_expr(node->lhs);
+            pop("  pop rax #一つ目, の前\n");
+            gen_expr(node->rhs);
+            return;
     }
 }
 

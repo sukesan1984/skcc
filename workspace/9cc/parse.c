@@ -123,11 +123,12 @@ Node *add();
 Node *assign();
 Node *unary();
 Node *primary();
+Node *expr();
 
 static Type* read_array(Type *ty) {
     Vector *v = new_vector();
     while(consume('[')) {
-        Node *len = primary();
+        Node *len = expr();
         if (len->op != ND_NUM)
             error("number expected");
         vec_push(v, len);
@@ -176,7 +177,7 @@ Node *primary() {
             expect(')');
             return node;
         }
-        Node *node = assign();
+        Node *node = expr();
         expect(')');
         return node;
     }
@@ -322,23 +323,31 @@ Node *logor() {
 }
 
 Node *conditional() {
-    Node *node = logor();
+    Node *condition = logor();
     if (!consume('?'))
-        return node;
-    Node *conditional = calloc(1, sizeof(Node));
-    conditional->op = '?';
-    conditional->cond = node;
-    conditional->if_body = assign();
+        return condition;
+    Node *node = calloc(1, sizeof(Node));
+    node->op = '?';
+    node->cond = condition;
+    node->if_body = expr();
     expect(':');
-    conditional->else_body = assign();
-    return conditional;
+    node->else_body = conditional();
+    return node;
 }
 
 Node *assign() {
     Node *node = conditional();
     if (consume('='))
-        return new_node('=', node, logor());
+        return new_node('=', node, conditional());
     return node;
+}
+
+Node *expr() {
+    Node *lhs = assign();
+    if (!consume(','))
+        return lhs;
+
+    return new_node(',', lhs, expr());
 }
 
 static Type *read_type();
@@ -354,14 +363,14 @@ Node *decl() {
     if (node->ty->ty == VOID)
         error("void variable: %s", node->name);
     if(consume('=')) {
-        node->init = assign();
+        node->init = expr();
     }
     expect(';');
     return node;
 }
 
 Node *expr_stmt() {
-    Node *node = new_expr(ND_EXPR_STMT, assign());
+    Node *node = new_expr(ND_EXPR_STMT, expr());
     expect(';');
     return node;
 }
@@ -383,7 +392,7 @@ Node *control() {
         Node *if_node = calloc(1, sizeof(Node));
         if_node->op = ND_IF;
         if(consume('(')) {
-            Node *cond = assign(); // if/while分のカッコ内の処理
+            Node *cond = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
                 error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
@@ -400,7 +409,7 @@ Node *control() {
 
     if (consume(TK_WHILE)) {
         if(consume('(')) {
-            Node *node = assign(); // if/while分のカッコ内の処理
+            Node *node = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
                 error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
@@ -412,14 +421,14 @@ Node *control() {
 
     if (consume(TK_FOR)) {
         if(consume('(')) {
-            Node *lhs = assign();
+            Node *lhs = expr();
             if(!consume(';'))
                 error("forの中に;が一つもありません: %s", ((Token *) tokens->data[pos])->input);
-            Node *lhs2 = assign();
+            Node *lhs2 = expr();
             if(!consume(';'))
                 error("forの中には;が2つ必要です: %s", ((Token *) tokens->data[pos])->input);
 
-            Node *lhs3 = assign();
+            Node *lhs3 = expr();
             if (!consume(')'))
                 error("forは閉じ括弧で閉じる必要があります: %s", ((Token *) tokens->data[pos])->input);
             return new_node_for(ND_FOR, lhs, lhs2, lhs3, control());
@@ -442,7 +451,7 @@ Node *stmt() {
         case TK_RETURN:
             pos++;
             node->op = ND_RETURN;
-            node->lhs = assign();
+            node->lhs = expr();
             expect(';');
             return node;
         case '{': {

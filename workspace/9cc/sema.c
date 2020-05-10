@@ -190,6 +190,11 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_NULL:
         return node;
+    case ',':
+        node->lhs = walk(node->lhs, true);
+        node->rhs = walk(node->rhs, true);
+        node->ty = node->rhs->ty;
+        return node;
     default:
         assert(0 && "unknown node type");
     }
