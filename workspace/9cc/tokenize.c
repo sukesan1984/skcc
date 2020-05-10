@@ -146,6 +146,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "extern", 6) == 0 && !is_alnum(p[6])) {
+            add_token(tokens, TK_EXTERN, p);
+            p += 6;
+            continue;
+        }
+
         if (strncmp(p, "->", 2) == 0) {
             add_token(tokens, TK_ARROW, p);
             p += 2;

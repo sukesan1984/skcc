@@ -1,5 +1,6 @@
 int g1;
 int g2[5];
+extern int global_var;
 
 int assert(int actual, int expected, char *text) {
     if (actual == expected){
@@ -175,6 +176,8 @@ int main() {
     assert(0,  ({ printf("OK");  0;}), " ({ printf(\"OK\");  0;})");
     assert(0,  ({ int e1; e1 = 1; printf("OK");  0;}), " ({ int e1; e1 = 1; printf(\"OK\");  0;})");
     assert(0,  ({ int e1; e1 = 0; printf("OK");  0;}), " ({ int e1; e1 = 0; printf(\"OK\");  0;})");
+// extern
+    assert(5, ({ global_var; }), "global_var");
     printf("OK\n");
     return 0;
 }
