@@ -321,8 +321,21 @@ Node *logor() {
     }
 }
 
-Node *assign() {
+Node *conditional() {
     Node *node = logor();
+    if (!consume('?'))
+        return node;
+    Node *conditional = calloc(1, sizeof(Node));
+    conditional->op = '?';
+    conditional->cond = node;
+    conditional->if_body = assign();
+    expect(':');
+    conditional->else_body = assign();
+    return conditional;
+}
+
+Node *assign() {
+    Node *node = conditional();
     if (consume('='))
         return new_node('=', node, logor());
     return node;

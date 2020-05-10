@@ -313,6 +313,18 @@ void gen_expr(Node *node){
             gen_stmt(node->lhs);
             push("  sub rsp, 8#stmtをコンパイルして最後に値が入ってるはず\n");
             return;
+        case '?':
+            seq = jump_num++;
+            gen_expr(node->cond);
+            pop("  pop rax      # condの結果をraxにコピー\n");                      // lhsの結果をraxにコピー
+            printf("  cmp rax, 0   # cond結果と0を比較する(cond式の中身がfalseのときは1)\n");                   // raxの結果と0を比較
+            printf("  je .Lelse%d   # 0なら.Lelse%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
+            gen_expr(node->if_body);                             // rhsの結果をスタックにpush
+            printf("jmp .Lend%d\n", seq);        // endにとぶ
+            printf(".Lelse%d:\n", seq);          // else条件
+            gen_expr(node->else_body);
+            printf(".Lend%d:\n", seq);          // 終わる
+            return;
     }
 }
 
