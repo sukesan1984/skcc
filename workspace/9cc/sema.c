@@ -103,6 +103,12 @@ static Node* walk(Node *node, bool decay) {
         if (node->else_body)
             node->else_body = walk(node->else_body, true);
         return node;
+    case '?':
+        node->cond = walk(node->cond, true);
+        node->if_body = walk(node->if_body, true);
+        node->else_body = walk(node->else_body, true);
+        node->ty = node->if_body->ty;
+        return node;
     case ND_FOR:
         node->lhs = walk(node->lhs, true);
         node->lhs2 = walk(node->lhs2, true);

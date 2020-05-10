@@ -178,6 +178,10 @@ int main() {
     assert(0,  ({ int e1; e1 = 0; printf("OK");  0;}), " ({ int e1; e1 = 0; printf(\"OK\");  0;})");
 // extern
     assert(5, ({ global_var; }), "global_var");
+// ?:
+    assert(42, ({ 5 == 1 ? 3 : 42; }), "({ 5 == 1 ? 3 : 42; })");
+    assert(1, ({ 1 == 1 ? 1 : 42; }), "({ 1 == 1 ? 1 : 42; })");
+    assert(1, ({ 1 == 1 ? 4 == 2 ? 32 : 1 : 42; }),"({ 1 == 1 ? 4 == 2 ? 32 : 1 : 42; })");
     printf("OK\n");
     return 0;
 }
