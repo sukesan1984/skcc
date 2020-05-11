@@ -301,6 +301,14 @@ void gen_expr(Node *node){
             printf("  idiv r10\n");
             push("  push rax   #/の値をstackにつむ\n");
             return;
+        case '%':
+            gen_binop(node->lhs, node->rhs);
+            pop("  pop r10\n");
+            pop("  pop rax\n");
+            printf("  cqo\n");
+            printf("  idiv r10\n");
+            push("  push rdx # %の値をstackにつむ\n");
+            return;
         case '!':
             printf("#gen_expr !の評価開始\n");
             gen_expr(node->lhs);
