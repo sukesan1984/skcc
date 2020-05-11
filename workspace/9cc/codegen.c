@@ -249,6 +249,13 @@ void gen_expr(Node *node){
             printf("  and rax, r10 # & を計算 raxに結果が格納されている\n");
             push("  push rax \n");
             return;
+        case '^':
+            gen_binop(node->lhs, node->rhs);
+            pop("  pop r10 \n");
+            pop("  pop rax \n");
+            printf("  xor rax, r10 # ^ を計算 raxに結果が格納されている\n");
+            push("  push rax \n");
+            return;
         case '|':
             gen_binop(node->lhs, node->rhs);
             pop("  pop r10 \n");

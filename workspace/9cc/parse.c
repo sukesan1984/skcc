@@ -312,8 +312,18 @@ Node* bit_and() {
     }
 }
 
-Node* inclusive_or() {
+Node *exclusive_or() {
     Node *lhs = bit_and();
+    for(;;) {
+        if (consume('^'))
+            lhs = new_node('^', lhs, exclusive_or());
+        else
+            return lhs;
+    }
+}
+
+Node* inclusive_or() {
+    Node *lhs = exclusive_or();
     for(;;) {
         if (consume('|'))
             lhs = new_node('|', lhs, inclusive_or());
