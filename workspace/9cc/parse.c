@@ -264,16 +264,14 @@ Node *mul() {
 
 Node *add() {
     Node *lhs = mul();
-
-    if(consume('+'))
-        return new_node('+', lhs, add());
-
-    if(consume('-'))
-        return new_node('-', lhs, add());
-
-    if (lhs->op == ND_NUM)
-        return lhs;
-    return lhs;
+    for(;;) {
+        if(consume('+'))
+            lhs =  new_node('+', lhs, mul());
+        else if(consume('-'))
+            lhs = new_node('-', lhs, mul());
+        else
+            return lhs;
+    }
 }
 
 Node *relational() {
