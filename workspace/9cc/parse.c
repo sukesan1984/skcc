@@ -278,6 +278,7 @@ Node *add() {
     }
 }
 
+
 Node *relational() {
     Node *lhs = add();
     if(consume(TK_LE))
@@ -301,8 +302,38 @@ Node *equality() {
     return lhs;
 }
 
+Node* bit_and() {
+    Node *lhs = equality();
+    for(;;) {
+        if (consume('&'))
+            return new_node('&', lhs, bit_and());
+        else
+            return lhs;
+    }
+}
+
+Node *exclusive_or() {
+    Node *lhs = bit_and();
+    for(;;) {
+        if (consume('^'))
+            lhs = new_node('^', lhs, exclusive_or());
+        else
+            return lhs;
+    }
+}
+
+Node* inclusive_or() {
+    Node *lhs = exclusive_or();
+    for(;;) {
+        if (consume('|'))
+            lhs = new_node('|', lhs, inclusive_or());
+        else
+            return lhs;
+    }
+}
+
 Node *logand() {
-    Node *node = equality();
+    Node *node = inclusive_or();
     for (;;) {
         Token *t = tokens->data[pos];
         if (t->ty != TK_LOGAND)
