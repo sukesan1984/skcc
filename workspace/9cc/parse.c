@@ -304,9 +304,12 @@ Node *equality() {
 
 Node* inclusive_or() {
     Node *lhs = equality();
-    if (consume('|'))
-        return new_node('|', lhs, inclusive_or());
-    return lhs;
+    for(;;) {
+        if (consume('|'))
+            lhs = new_node('|', lhs, inclusive_or());
+        else
+            return lhs;
+    }
 }
 
 Node *logand() {
