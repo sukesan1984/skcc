@@ -128,6 +128,7 @@ static Node* walk(Node *node, bool decay) {
     case '-':
     case '*':
     case '/':
+    case '%':
     case '<':
     case '>':
     case ND_LOGAND:

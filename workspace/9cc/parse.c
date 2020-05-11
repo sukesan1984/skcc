@@ -258,6 +258,9 @@ Node *mul() {
     if(consume('/'))
         return new_node('/', lhs, mul());
 
+    if(consume('%'))
+        return new_node('%', lhs, mul());
+
     if (lhs->op == ND_NUM)
         return lhs;
     return lhs;
