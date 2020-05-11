@@ -4,3 +4,6 @@
 [submodule "workspace/course2020"]
 	path = workspace/course2020
 	url = git@github.com:rui314/course2020.git
+[submodule "workspace/9cc/test/atcoder"]
+	path = workspace/9cc/test/atcoder
+	url = git@github.com:sukesan1984/atcoder.git
