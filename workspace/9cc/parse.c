@@ -278,6 +278,7 @@ Node *add() {
     }
 }
 
+
 Node *relational() {
     Node *lhs = add();
     if(consume(TK_LE))
@@ -301,8 +302,15 @@ Node *equality() {
     return lhs;
 }
 
+Node* inclusive_or() {
+    Node *lhs = equality();
+    if (consume('|'))
+        return new_node('|', lhs, inclusive_or());
+    return lhs;
+}
+
 Node *logand() {
-    Node *node = equality();
+    Node *node = inclusive_or();
     for (;;) {
         Token *t = tokens->data[pos];
         if (t->ty != TK_LOGAND)

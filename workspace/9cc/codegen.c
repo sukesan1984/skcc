@@ -242,6 +242,13 @@ void gen_expr(Node *node){
             push("  push 0\n");
             printf(".Lend%d:\n", seq);
             return;
+        case '|':
+            gen_binop(node->lhs, node->rhs);
+            pop("  pop r10 \n");
+            pop("  pop rax \n");
+            printf("  or rax, r10 # | を計算 raxに結果が格納されている\n");
+            push("  push rax \n");
+            return;
         case '+':
             printf("#gen_expr +の評価開始\n");
             gen_expr(node->lhs);
