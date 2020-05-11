@@ -302,8 +302,18 @@ Node *equality() {
     return lhs;
 }
 
-Node* inclusive_or() {
+Node* bit_and() {
     Node *lhs = equality();
+    for(;;) {
+        if (consume('&'))
+            return new_node('&', lhs, bit_and());
+        else
+            return lhs;
+    }
+}
+
+Node* inclusive_or() {
+    Node *lhs = bit_and();
     for(;;) {
         if (consume('|'))
             lhs = new_node('|', lhs, inclusive_or());
