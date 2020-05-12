@@ -283,6 +283,8 @@ Node *shift() {
     for(;;) {
         if(consume(TK_LSHIFT))
             lhs = new_node(ND_LSHIFT, lhs, add());
+        else if (consume(TK_RSHIFT))
+            lhs = new_node(ND_RSHIFT, lhs, add());
         else
             return lhs;
     }
