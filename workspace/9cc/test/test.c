@@ -27,6 +27,7 @@ int plus(int x, int y) { return x + y; }
 int main() {
     assert(0, 0, "0");
     assert(42, 42, "42");
+    assert(0-42, -42, "-42");
     assert(42, (13 + 34 - 5), "(13 + 34 - 5)");
     assert(0, 1 - (4 - 1 - 2), "(4 - 1 - 2)");
     assert(21, 5+20-4, "5+20-4");
