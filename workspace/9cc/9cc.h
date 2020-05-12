@@ -148,6 +148,7 @@ enum {
     ND_STMT_EXPR,
     ND_LSHIFT, // <<
     ND_RSHIFT, // >>
+    ND_NEG, // - for unary
 };
 
 // parse.c
