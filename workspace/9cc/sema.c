@@ -136,6 +136,7 @@ static Node* walk(Node *node, bool decay) {
     case '|':
     case '^':
     case '&':
+    case ND_LSHIFT:
     case ND_EQ:
     case ND_NE:
     case ND_LE:

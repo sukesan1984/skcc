@@ -115,6 +115,7 @@ enum {
     TK_ARROW, // ->
     TK_TYPEDEF, // typedef
     TK_EXTERN, // extern
+    TK_LSHIFT,
 };
 
 enum {
@@ -144,6 +145,7 @@ enum {
     ND_NULL, // null node
     ND_STR,
     ND_STMT_EXPR,
+    ND_LSHIFT,
 };
 
 // parse.c

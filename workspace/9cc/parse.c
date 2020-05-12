@@ -278,9 +278,19 @@ Node *add() {
     }
 }
 
+Node *shift() {
+    Node *lhs = add();
+    for(;;) {
+        if(consume(TK_LSHIFT))
+            lhs = new_node(ND_LSHIFT, lhs, add());
+        else
+            return lhs;
+    }
+}
+
 
 Node *relational() {
-    Node *lhs = add();
+    Node *lhs = shift();
     if(consume(TK_LE))
         return new_node(ND_LE, lhs, relational());
     if(consume('<'))

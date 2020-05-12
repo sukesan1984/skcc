@@ -118,6 +118,8 @@ int main() {
     assert(2,  ({  18 & 6 & 3; }), " ({  18 & 6 & 3; })");
     assert(12, (5 ^ 9), "5 ^ 9");
     assert(10, (5 ^ 6 ^ 9), "5 ^ 6 ^ 9");
+    assert(12, (3<<2), "3<<2");
+    assert(8, (1<<3), "1<<3");
     assert(4,  ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 2;   *p; }), " ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 2;   *p; })");
     assert(8,  ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 3;   *p; }), " ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 3;   *p; })");
     assert(2,  ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 3; p = p -2;   *p; }), " ({ int *p; p = alloc4(1, 2, 4, 8); p = p + 3; p = p -2;   *p; })");
