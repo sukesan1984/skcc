@@ -2,7 +2,7 @@ int g1;
 int g2[5];
 extern int global_var;
 
-int assert(int actual, int expected, char *text) {
+int assert(int expected, int actual, char *text) {
     if (actual == expected){
         printf("[ok] actual:%d expected: %d %s\n", actual, expected, text);
     } else {
@@ -153,6 +153,13 @@ int main() {
 // char type
     assert(6, ({ char x[3];  { x[0] = 2; int y = 4;  x[0] + y; }}), "({ char x[3];  { x[0] = 2; int y = 4;  x[0] + y; }})");
     assert(6,  ({ char x[3]; x[0] = 2; int y = 4;  x[0] + y; }), " ({ char x[3]; x[0] = 2; int y = 4;  x[0] + y; })");
+
+// char literal
+    assert(97, 'a', "\'a\'");
+    assert(59, ';', "\';\'");
+    assert(10, '\n', "\'n\'");
+    assert(92, '\\', "\'\\'");
+    assert(0, '\0', "\'0\'");
 
 // string literal
     assert(97,  ({ char *p = "abc";  p[0]; }), "({ char *p = \"abc\";  p[0]; })");

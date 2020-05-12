@@ -44,6 +44,10 @@ static char *c_char(int *res, char *p) {
           ['v'] = '\v', ['e'] = '\033', ['E'] = '\033',
     };
 
+    if (*p == '0') {
+        *res = '\0';
+        return p + 1;
+    }
     // Simple (e.g. `\n` or `\a`)
     int esc = escaped[(uint8_t) *p];
 
@@ -187,6 +191,15 @@ void tokenize(char *p) {
             t->val = strtol(p, &p, 10);
             continue;
         }
+
+        // 文字型
+        if (*p == '\'') {
+            Token *t = add_token(tokens, TK_NUM, p++);
+            p = c_char(&t->val, p);
+            p++;
+            continue;
+        }
+
 
         if (*p == '"') {
             p++;
