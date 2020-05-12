@@ -164,6 +164,18 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "<<", 2) == 0) {
+            add_token(tokens, TK_LSHIFT, p);
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, ">>", 2) == 0) {
+            add_token(tokens, TK_RSHIFT, p);
+            p += 2;
+            continue;
+        }
+
         if (strchr("+-*/%()=;{},<>&[].!?:|&^", *p)) {
             add_token(tokens, *p, p);
             p++;

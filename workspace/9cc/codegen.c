@@ -263,6 +263,20 @@ void gen_expr(Node *node){
             printf("  or rax, r10 # | を計算 raxに結果が格納されている\n");
             push("  push rax \n");
             return;
+        case ND_LSHIFT:
+            gen_binop(node->lhs, node->rhs);
+            pop("  pop rcx \n");
+            pop("  pop rax \n");
+            printf("  shl rax, cl\n");
+            push("  push rax\n");
+            return;
+        case ND_RSHIFT:
+            gen_binop(node->lhs, node->rhs);
+            pop("  pop rcx \n");
+            pop("  pop rax \n");
+            printf("  shr rax, cl\n");
+            push("  push rax\n");
+            return;
         case '+':
             printf("#gen_expr +の評価開始\n");
             gen_expr(node->lhs);
