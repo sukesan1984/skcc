@@ -212,6 +212,9 @@ int main() {
 // pre inc
     assert(4, ({int i = 3; ++i;}), "({int i = 3; ++i;})");
     assert(4, ({int i = 3; int *j; j = &i; ++*j;}), "({int i = 3; int *j; j = &i; ++*j;})");
+// pre dec
+    assert(2, ({int i = 3; --i;}), "({int i = 3; --i;})");
+    assert(2, ({int i = 3; int *j; j = &i; --*j;}), "({int i = 3; int *j; j = &i; --*j;})");
     printf("OK\n");
     return 0;
 }

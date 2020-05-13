@@ -163,6 +163,7 @@ static Node* walk(Node *node, bool decay) {
         node->ty = ptr_to(node->lhs->ty);
         return node;
     case ND_PREINC:
+    case ND_PREDEC:
     case ND_NEG:
     case '!':
         node->lhs = walk(node->lhs, true);

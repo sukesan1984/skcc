@@ -243,6 +243,11 @@ Node *unary() {
         return node;
     }
 
+    if (consume(TK_DEC)) {
+        Node *node = new_expr(ND_PREDEC, unary());
+        return node;
+    }
+
     if (consume('-')) {
         Node *node = new_expr(ND_NEG, unary());
         return node;

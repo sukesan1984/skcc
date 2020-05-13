@@ -118,6 +118,7 @@ enum {
     TK_LSHIFT, // <<
     TK_RSHIFT, // >>
     TK_INC, // ++
+    TK_DEC, // --
 };
 
 enum {
@@ -151,6 +152,7 @@ enum {
     ND_RSHIFT, // >>
     ND_NEG, // - for unary
     ND_PREINC, // ++
+    ND_PREDEC, // --
 };
 
 // parse.c
