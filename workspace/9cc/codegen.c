@@ -556,8 +556,7 @@ void gen_stmt(Node *node) {
     // for(lhs, lhs2, lhs3) rhsをコンパイル
     if (node->op == ND_FOR) {
         printf("#gen_stmt FORの処理\n");
-        gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
-        pop("  pop rax # forの第一文の条件式はこのあと使わないので捨てる\n");
+        gen_stmt(node->lhs);                     // lhsをまず実行してスタックに積む
         int seq = jump_num++;
         int original = break_label;
         break_label = jump_num++;

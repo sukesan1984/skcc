@@ -490,22 +490,29 @@ Node *control() {
 
     if (consume(TK_FOR)) {
         if(consume('(')) {
-            Node *lhs;
+            Node *node = calloc(1, sizeof(Node));
+            node->op  = ND_FOR;
             if (is_typename()) {
-                lhs = decl();
+                node->lhs = decl();
+            } else if (consume(';')){
+                node->lhs = &null_stmt;
             } else {
-                lhs = expr();
-                if(!consume(';'))
-                    error("forの中に;が一つもありません: %s", ((Token *) tokens->data[pos])->input);
+                node->lhs = expr_stmt();
             }
-            Node *lhs2 = expr();
-            if(!consume(';'))
-                error("forの中には;が2つ必要です: %s", ((Token *) tokens->data[pos])->input);
+            if(consume(';')) {
+                node->lhs = &null_stmt;
+            } else {
+                node->lhs2 = expr();
+                expect(';');
+            }
 
-            Node *lhs3 = expr();
-            if (!consume(')'))
-                error("forは閉じ括弧で閉じる必要があります: %s", ((Token *) tokens->data[pos])->input);
-            return new_node_for(ND_FOR, lhs, lhs2, lhs3, control());
+            if (!consume(')')) {
+                node->lhs3 = expr();
+                expect(')');
+            }
+
+            node->rhs = stmt();
+            return node;
         }
     }
     return stmt();
