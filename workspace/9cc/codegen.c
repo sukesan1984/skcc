@@ -319,6 +319,74 @@ void gen_expr(Node *node){
             printf("  sub rax, r10\n");
             push("  push rax   #-の値をstackにつむ\n");
             return;
+        case ND_PREINC:
+            printf("#gen_expr 前置++ の評価開始\n");
+            gen_lval(node->lhs);
+            if (node->lhs->ty->ty == PTR) {
+                printf("  mov rax, 1\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
+            } else {
+                printf("  mov r10, 1\n");
+            }
+            pop("  pop rax\n");
+            printf("  mov r11, [rax]\n");
+            printf("  add r11, r10\n");
+            printf("  mov [rax], r11\n");
+            push("  push r11\n");
+            return;
+        case ND_POSTINC:
+            printf("# gen_expr 後置++の評価開始\n");
+            gen_lval(node->lhs);
+            if (node->lhs->ty->ty == PTR) {
+                printf("  mov rax, 1\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
+            } else {
+                printf("  mov r10, 1\n");
+            }
+            pop("  pop rax\n");
+            printf("  mov r11, [rax]\n");
+            push("  push r11\n");
+            printf("  add r11, r10\n");
+            printf("  mov [rax], r11\n");
+            return;
+        case ND_PREDEC:
+            printf("#gen_expr 前置-- の評価開始\n");
+            gen_lval(node->lhs);
+            if (node->lhs->ty->ty == PTR) {
+                printf("  mov rax, 1\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
+            } else {
+                printf("  mov r10, 1\n");
+            }
+            pop("  pop rax\n");
+            printf("  mov r11, [rax]\n");
+            printf("  sub r11, r10\n");
+            printf("  mov [rax], r11\n");
+            push("  push r11\n");
+            return;
+        case ND_POSTDEC:
+            printf("#gen_expr 前置-- の評価開始\n");
+            gen_lval(node->lhs);
+            if (node->lhs->ty->ty == PTR) {
+                printf("  mov rax, 1\n");
+                printf("  mov r11, %d\n", node->lhs->ty->ptr_to->size);
+                printf("  mul r11\n");
+                printf("  mov r10, rax\n");
+            } else {
+                printf("  mov r10, 1\n");
+            }
+            pop("  pop rax\n");
+            printf("  mov r11, [rax]\n");
+            push("  push r11\n");
+            printf("  sub r11, r10\n");
+            printf("  mov [rax], r11\n");
+            return;
         case ND_NEG:
             printf("#gen_expr - の評価開始\n");
             gen_expr(node->lhs);

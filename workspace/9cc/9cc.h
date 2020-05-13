@@ -117,6 +117,8 @@ enum {
     TK_EXTERN, // extern
     TK_LSHIFT, // <<
     TK_RSHIFT, // >>
+    TK_INC, // ++
+    TK_DEC, // --
 };
 
 enum {
@@ -149,6 +151,10 @@ enum {
     ND_LSHIFT, // <<
     ND_RSHIFT, // >>
     ND_NEG, // - for unary
+    ND_PREINC, // ++i
+    ND_PREDEC, // --i
+    ND_POSTINC, // i++
+    ND_POSTDEC, // i++
 };
 
 // parse.c

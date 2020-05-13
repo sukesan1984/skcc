@@ -11,7 +11,7 @@ dump: build
 sample: build
 	docker run --rm sukesan1984/make_compiler bash -c 'cd 9cc; make clean && make sample'
 
-in:
+in: build
 	docker run --rm -it sukesan1984/make_compiler bash
 
 .PHONY: in test build
