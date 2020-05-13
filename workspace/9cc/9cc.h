@@ -99,6 +99,7 @@ enum {
     TK_ELSE, // else
     TK_RETURN,
     TK_WHILE, // whileのトークン
+    TK_BREAK, // break
     TK_FOR, // forのトークン
     TK_EQ, // ==
     TK_NE, // !=
@@ -155,6 +156,7 @@ enum {
     ND_PREDEC, // --i
     ND_POSTINC, // i++
     ND_POSTDEC, // i++
+    ND_BREAK, //
 };
 
 // parse.c

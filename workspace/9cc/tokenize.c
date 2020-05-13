@@ -120,6 +120,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "break", 5) == 0 && !is_alnum(p[5])) {
+            add_token(tokens, TK_BREAK, p);
+            p += 5;
+            continue;
+        }
+
         if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
             add_token(tokens, TK_FOR, p);
             p += 3;

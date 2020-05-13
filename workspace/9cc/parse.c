@@ -523,6 +523,11 @@ Node *stmt() {
             node->lhs = expr();
             expect(';');
             return node;
+        case TK_BREAK:
+            pos++;
+            node->op = ND_BREAK;
+            expect(';');
+            return node;
         case '{': {
             pos++;
             Vector* block_items = new_vector();
