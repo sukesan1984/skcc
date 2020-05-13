@@ -17,4 +17,5 @@ RUN apt-get -y install sudo && \
 
 RUN mkdir /workspace
 ADD ./workspace /workspace
+ADD ./.gdbinit /root
 WORKDIR /workspace

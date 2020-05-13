@@ -12,6 +12,6 @@ sample: build
 	docker run --rm sukesan1984/make_compiler bash -c 'cd 9cc; make clean && make sample'
 
 in: build
-	docker run --rm -it sukesan1984/make_compiler bash
+	docker run --rm -i -t --cap-add=SYS_PTRACE --security-opt="seccomp=unconfined" sukesan1984/make_compiler bash
 
 .PHONY: in test build
