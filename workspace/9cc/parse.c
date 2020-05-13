@@ -490,9 +490,14 @@ Node *control() {
 
     if (consume(TK_FOR)) {
         if(consume('(')) {
-            Node *lhs = expr();
-            if(!consume(';'))
-                error("forの中に;が一つもありません: %s", ((Token *) tokens->data[pos])->input);
+            Node *lhs;
+            if (is_typename()) {
+                lhs = decl();
+            } else {
+                lhs = expr();
+                if(!consume(';'))
+                    error("forの中に;が一つもありません: %s", ((Token *) tokens->data[pos])->input);
+            }
             Node *lhs2 = expr();
             if(!consume(';'))
                 error("forの中には;が2つ必要です: %s", ((Token *) tokens->data[pos])->input);
