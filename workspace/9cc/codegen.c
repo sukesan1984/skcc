@@ -556,21 +556,24 @@ void gen_stmt(Node *node) {
     // for(lhs, lhs2, lhs3) rhsをコンパイル
     if (node->op == ND_FOR) {
         printf("#gen_stmt FORの処理\n");
-        gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
-        pop("  pop rax # forの第一文の条件式はこのあと使わないので捨てる\n");
+        gen_stmt(node->lhs);                     // lhsをまず実行してスタックに積む
         int seq = jump_num++;
         int original = break_label;
         break_label = jump_num++;
         printf(".Lbegin%d:      # ループの開始\n", seq);   // ループの開始
-        gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
-        pop("  pop rax       # 二つ目の実行結果をraxに格納\n");              // lhs2の実行結果をraxに格納
-        printf("  cmp rax, 0    # 0と等しい(二つ目がfalseになったら)終わる\n");           // lhsの実行結果が0と等しい。falseになったらおわる
-        printf("  je .Lend%d\n", seq);
+        if (node->lhs2) {
+            gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
+            pop("  pop rax\n");
+            printf("  cmp rax, 0    # 0と等しい(二つ目がfalseになったら)終わる\n");           // lhsの実行結果が0と等しい。falseになったらおわる
+            printf("  je .Lend%d\n", seq);
+        }
         printf("# for文の内部を処理\n");
         gen_stmt(node->rhs);                     // rhsを実行
-        printf("# forの３つ目の領域の処理実行\n");
-        gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
-        pop("  pop rax # forの三つ目の結果は捨てる\n");
+        if (node->lhs3) {
+            printf("# forの３つ目の領域の処理実行\n");
+            gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
+            pop("  pop rax # forの三つ目の結果は捨てる\n");
+        }
         printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", seq);// ループの開始に戻る
 
         printf(".Lend%d:        # for文終わり\n", seq);
