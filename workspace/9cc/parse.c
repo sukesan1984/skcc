@@ -194,6 +194,10 @@ static Node *postfix() {
             lhs = new_expr(ND_POSTINC, lhs);
             continue;
         }
+        if (consume(TK_DEC)) {
+            lhs = new_expr(ND_POSTDEC, lhs);
+            continue;
+        }
         if(consume('.')) {
             Node *node = calloc(1, sizeof(Node));
             node->op = ND_DOT;

@@ -218,6 +218,9 @@ int main() {
 // post inc i++
     assert(3, ({int i = 3; i++;}), "({int i = 3; i++;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
+// post inc i--
+    assert(3, ({int i = 3; i--;}), "({int i = 3; i--;})");
+    assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
     printf("OK\n");
     return 0;
 }

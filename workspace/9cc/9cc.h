@@ -154,6 +154,7 @@ enum {
     ND_PREINC, // ++i
     ND_PREDEC, // --i
     ND_POSTINC, // i++
+    ND_POSTDEC, // i++
 };
 
 // parse.c
