@@ -190,6 +190,10 @@ static Node *postfix() {
     Node *lhs = primary();
 
     for (;;) {
+        if (consume(TK_INC)) {
+            lhs = new_expr(ND_POSTINC, lhs);
+            continue;
+        }
         if(consume('.')) {
             Node *node = calloc(1, sizeof(Node));
             node->op = ND_DOT;
@@ -204,7 +208,8 @@ static Node *postfix() {
             node->op = ND_DOT;
             node->lhs = new_expr(ND_DEREF, lhs);
             node->name = ident();
-            return node;
+            lhs = node;
+            continue;
         }
         if (consume('[')) {
             lhs = new_expr(ND_DEREF, new_node('+', lhs, assign()));

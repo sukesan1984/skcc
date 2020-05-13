@@ -151,8 +151,9 @@ enum {
     ND_LSHIFT, // <<
     ND_RSHIFT, // >>
     ND_NEG, // - for unary
-    ND_PREINC, // ++
-    ND_PREDEC, // --
+    ND_PREINC, // ++i
+    ND_PREDEC, // --i
+    ND_POSTINC, // i++
 };
 
 // parse.c

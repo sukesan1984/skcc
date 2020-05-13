@@ -164,6 +164,7 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_PREINC:
     case ND_PREDEC:
+    case ND_POSTINC:
     case ND_NEG:
     case '!':
         node->lhs = walk(node->lhs, true);
