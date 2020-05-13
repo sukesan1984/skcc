@@ -499,9 +499,7 @@ Node *control() {
             } else {
                 node->lhs = expr_stmt();
             }
-            if(consume(';')) {
-                node->lhs = &null_stmt;
-            } else {
+            if(!consume(';')) {
                 node->lhs2 = expr();
                 expect(';');
             }

@@ -111,9 +111,11 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_FOR:
         node->lhs = walk(node->lhs, true);
-        node->lhs2 = walk(node->lhs2, true);
+        if (node->lhs2)
+            node->lhs2 = walk(node->lhs2, true);
         node->rhs = walk(node->rhs, true);
-        node->lhs3 = walk(node->lhs3, true);
+        if (node->lhs3)
+            node->lhs3 = walk(node->lhs3, true);
         return node;
     case ND_WHILE:
         node->lhs = walk(node->lhs, true);
@@ -233,4 +235,5 @@ void sema(Vector *nodes) {
         node = walk(node, true);
         node->stacksize = stacksize;
     }
+    fprintf(stderr, "sema done\n");
 }

@@ -81,6 +81,7 @@ int main() {
     assert(55, ({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; }), "({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; })");
     printf("for...\n");
     assert(55, ({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; }), "({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; })");
+    assert(6, ({ int i = 0; for (;;){ if (i > 5) { break; } i++; } i; }), "({ int i = 0; for (;;){ if (i > 5) { break; } i++} i; })");
     assert(4, ({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; }), "({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; })");
     assert(3, ({int x=0; if (1 == 0) { x=1; } else { x=3; } x; }), "({int x=0; if (1 == 0) { x=1; } else { x=3; } x; })");
     printf("function call...\n");
