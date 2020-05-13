@@ -180,6 +180,12 @@ void tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "++", 2) == 0) {
+            add_token(tokens, TK_INC, p);
+            p += 2;
+            continue;
+        }
+
         if (strchr("+-*/%()=;{},<>&[].!?:|&^", *p)) {
             add_token(tokens, *p, p);
             p++;

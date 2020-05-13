@@ -237,6 +237,12 @@ Node *unary() {
         return node;
     }
 
+    // ++ ident
+    if (consume(TK_INC)) {
+        Node *node = new_expr(ND_PREINC, unary());
+        return node;
+    }
+
     if (consume('-')) {
         Node *node = new_expr(ND_NEG, unary());
         return node;

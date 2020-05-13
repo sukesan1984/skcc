@@ -209,6 +209,9 @@ int main() {
     assert(1, ({ 1 == 1 ? 4 == 2 ? 32 : 1 : 42; }),"({ 1 == 1 ? 4 == 2 ? 32 : 1 : 42; })");
 // ,operator
     assert(3, (1, 2, 3), "(1, 2, 3)");
+// pre inc
+    assert(4, ({int i = 3; ++i;}), "({int i = 3; ++i;})");
+    assert(4, ({int i = 3; int *j; j = &i; ++*j;}), "({int i = 3; int *j; j = &i; ++*j;})");
     printf("OK\n");
     return 0;
 }
