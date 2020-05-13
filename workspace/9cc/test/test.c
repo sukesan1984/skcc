@@ -221,6 +221,9 @@ int main() {
 // post inc i--
     assert(3, ({int i = 3; i--;}), "({int i = 3; i--;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
+// break
+    assert(5, ({int i = 0; while(i < 10) { if (i >= 5) { break; } i++; } i;}), "({int i = 0; while(i < 10) { if (i >= 5) { break; } i++; } i;})");
+    assert(5, ({int i; for (i = 0; i < 10; i++) { if (i >= 5) { break; }} i;}), "({ for(int i = 0; i < 10; i++) { if (i >= 5) { break; }} i;})");
     printf("OK\n");
     return 0;
 }

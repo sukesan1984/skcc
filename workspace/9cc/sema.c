@@ -174,6 +174,8 @@ static Node* walk(Node *node, bool decay) {
     case ND_RETURN:
         node->lhs = walk(node->lhs, true);
         return node;
+    case ND_BREAK:
+        return node;
     case ND_CALL:
         for (int i = 0; i < node->args->len; i++)
             node->args->data[i] = walk(node->args->data[i], true);

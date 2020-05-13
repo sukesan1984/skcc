@@ -81,6 +81,7 @@ void gen_lval(Node *node);
 void gen_stmt(Node *node);
 
 int jump_num = 0;                    // ifでjumpする回数を保存
+int break_label = 0;
 void gen_expr(Node *node){
     int seq;
     switch(node->op) {
@@ -558,6 +559,8 @@ void gen_stmt(Node *node) {
         gen_expr(node->lhs);                     // lhsをまず実行してスタックに積む
         pop("  pop rax # forの第一文の条件式はこのあと使わないので捨てる\n");
         int seq = jump_num++;
+        int original = break_label;
+        break_label = jump_num++;
         printf(".Lbegin%d:      # ループの開始\n", seq);   // ループの開始
         gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
         pop("  pop rax       # 二つ目の実行結果をraxに格納\n");              // lhs2の実行結果をraxに格納
@@ -569,7 +572,10 @@ void gen_stmt(Node *node) {
         gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
         pop("  pop rax # forの三つ目の結果は捨てる\n");
         printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", seq);// ループの開始に戻る
+
         printf(".Lend%d:        # for文終わり\n", seq);
+        printf(".Lend%d:        # break \n", break_label);
+        break_label = original;
         return;
     }
 
@@ -577,6 +583,8 @@ void gen_stmt(Node *node) {
     if (node->op == ND_WHILE) {
         printf("#gen_stmt WHILEの処理\n");
         int seq = jump_num++;
+        int original = break_label;
+        break_label = jump_num++;
         printf("  .Lbegin%d: # ループの開始\n", seq);      // ループの開始
         gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
         pop("  pop rax      # while評価の結果を格納(0 or 1) \n");                  // raxにstackを格納
@@ -586,6 +594,8 @@ void gen_stmt(Node *node) {
         gen_stmt(node->rhs);                         // ループの中身をコンパイル
         printf("  jmp .Lbegin%d\n", seq);  // ループの開始時点に戻る
         printf(".Lend%d:\n", seq);
+        printf(".Lend%d:\n", break_label);
+        break_label = original;
         return;
     }
 
@@ -599,6 +609,12 @@ void gen_stmt(Node *node) {
         printf("  mov rsp, rbp # ベースポインタをrspに格納\n");     // ベースポインタをrspにコピーして
         pop("  pop rbp      # スタックには呼び出し元のrbpが入ってるはずなのでrbpにロードする\n");          // スタックの値をrbpに持ってくる
         printf("  ret          # returnする\n");
+        return;
+    }
+
+    if (node->op == ND_BREAK) {
+        printf("#gen_stmt ND_BREAKの処理\n");
+        printf("  jmp .Lend%d # breakしたので、ループを抜ける\n", break_label);
         return;
     }
 
