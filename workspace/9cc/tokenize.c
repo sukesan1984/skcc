@@ -78,6 +78,14 @@ static char *hexdecimal(char *p) {
     }
 }
 
+static char *octal(char *p) {
+    Token *t = add_token(tokens, TK_NUM, p++);
+    t->val = 0;
+    while ('0' <= *p && *p <= '7')
+        t->val = t->val * 8 + *p++ - '0';
+    return p;
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
     while (*p) {
@@ -235,6 +243,11 @@ void tokenize(char *p) {
 
         if (!strncasecmp(p, "0x", 2)) {
             p = hexdecimal(p);
+            continue;
+        }
+
+        if (*p == '0') {
+            p = octal(p);
             continue;
         }
 
