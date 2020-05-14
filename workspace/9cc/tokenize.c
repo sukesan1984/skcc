@@ -59,6 +59,25 @@ static char *c_char(int *res, char *p) {
     return p + 1;
 }
 
+static char *hexdecimal(char *p) {
+    Token *t = add_token(tokens, TK_NUM, p);
+    t->val = 0;
+    p += 2;
+
+    if (!isxdigit(*p))
+        fprintf(stderr, "bad hexdecimal number");
+    for (;;) {
+        if ('0' <= *p && *p <= '9')
+            t->val = (t->val * 16) + (*p++ - '0');
+        else if ('a' <= *p && *p <= 'f')
+            t->val = (t->val * 16) + (*p++ - 'a' + 10);
+        else if ('A' <= *p && *p <= 'F')
+            t->val = (t->val * 16) + (*p++ - 'A' + 10);
+        else
+            return p;
+    }
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 void tokenize(char *p) {
     while (*p) {
@@ -211,6 +230,11 @@ void tokenize(char *p) {
         if (strchr("+-*/%()=;{},<>&[].!?:|&^~", *p)) {
             add_token(tokens, *p, p);
             p++;
+            continue;
+        }
+
+        if (!strncasecmp(p, "0x", 2)) {
+            p = hexdecimal(p);
             continue;
         }
 
