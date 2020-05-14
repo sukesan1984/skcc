@@ -240,6 +240,10 @@ int main() {
     assert(1, ({int a = 5; a &= 3; a; }), "({int a = 5; a &= 3; a; })");
     assert(6, ({int a = 5; a ^= 3; a; }), "({int a = 5; a ^= 3; a; })");
     assert(7, ({int a = 5; a |= 3; a; }), "({int a = 5; a |= 3; a; })");
+
+    assert(3, ({ int x; int y; x=y=3; x; }), "({ int x; int y; x=y=3; x; })");
+    assert(3, ({ int x; int y; x=y=3; y; }), "({ int x; int y; x=y=3; y; })");
+ 
     printf("OK\n");
     return 0;
 }

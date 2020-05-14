@@ -432,10 +432,13 @@ static int assignment_operator() {
 
 Node *assign() {
     Node *node = conditional();
-    int op = assignment_operator();
-    if (op)
-        return new_node(op, node, conditional());
-    return node;
+    for(;;) {
+        int op = assignment_operator();
+        if (op)
+            node = new_node(op, node, assign());
+        else
+            return node;
+    }
 }
 
 Node *expr() {
