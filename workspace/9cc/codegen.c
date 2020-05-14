@@ -392,8 +392,14 @@ void gen_expr(Node *node){
             printf("#gen_expr - の評価開始\n");
             gen_expr(node->lhs);
             pop("  pop rax\n");
-            printf("  mov r10, -1\n");
-            push("  mul r10\n");
+            printf("  neg rax\n");
+            push("  push rax\n");
+            return;
+        case '~':
+            printf("#gen_expr ~ の評価開始\n");
+            gen_expr(node->lhs);
+            pop("  pop rax\n");
+            printf("  not rax\n");
             push("  push rax\n");
             return;
         case '*':

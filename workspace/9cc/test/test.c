@@ -198,6 +198,9 @@ int main() {
     assert(0,  ({ !1; }), " ({ !1; })");
     assert(1,  ({ !0; }), " ({ !0; })");
     assert(1,  ({ !(3 > 4); }), " ({ !(3 > 4); })");
+// ~
+    assert(-1, ~0, "~0");
+    assert(-4, ~3, "~3");
 
 // function alignment
     assert(0,  ({ int e1; e1 = 0;  0;}), " ({ int e1; e1 = 0;  0;})");
