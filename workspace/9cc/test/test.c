@@ -138,6 +138,7 @@ int main() {
     assert(8,  ({ int *x; sizeof(x); }), " ({ int *x; sizeof(x); })");
     assert(4,  ({ int *x; sizeof(*x); }), " ({ int *x; sizeof(*x); })");
     assert(4,  ({ sizeof 1; }), " ({ sizeof 1; })");
+    assert(4,  ({ sizeof("abc"); }), " ({ sizeof(\"abc\"); })");
 
 // array
     assert(5,  ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); }), " ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); })");
