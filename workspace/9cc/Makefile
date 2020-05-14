@@ -14,6 +14,9 @@ test: 9cc $(TEST_FILE)
 	@./9cc test/tmp.c > tmp-test.s
 	@gcc -static -o tmp-test tmp-test.s test/external.c
 	@./tmp-test
+	@./9cc test/comment.c > tmp-test2.s
+	@gcc -static -o tmp-test2 tmp-test2.s
+	@./tmp-test2
 
 dump: 9cc
 	./dump.sh $(TEST_FILE)

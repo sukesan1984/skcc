@@ -28,6 +28,10 @@ typedef struct {
     char *str;   // tyがTK_STRの場合はそのリテラル
     char *name;  // tyがTK_IDENTの場合、その名前
     char *input; // トークン文字列(エラーメッセージ用)
+    // For error reporting
+    char *buf;
+    char *filename;
+    char *start;
 } Token;
 
 typedef struct Type {
@@ -181,10 +185,11 @@ enum {
 
 // parse.c
 noreturn void error(char *fmt, ...);
-Vector *parse();
+Vector *parse(Vector *tokens);
 
 // tokenize.c
-void tokenize(char *p);
+Vector *tokenize(char *path, bool add_eof);
+void bad_token(Token *t, char *msg);
 
 // sema.c
 void sema(Vector *nodes);
@@ -208,14 +213,14 @@ char *read_file(char *path);
 int roundup(int x, int align);
 Type *struct_of(Vector *members);
 
-void runtest();
-
 // Global変数
 extern Node *code[100];
 // トークナイズした結果のトークン列はvecに格納する
-extern Vector* tokens;
 
 //変数名とRBPからのオフセットを管理する
 extern int variables;
 extern Map* variable_map;
 extern Vector *globals;
+
+// preprocess.c
+Vector *preprocess(Vector* tokens);
