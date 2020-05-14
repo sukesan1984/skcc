@@ -120,6 +120,16 @@ enum {
     TK_RSHIFT, // >>
     TK_INC, // ++
     TK_DEC, // --
+    TK_MUL_EQ, // *=
+    TK_DIV_EQ, // /=
+    TK_MOD_EQ, // %=
+    TK_ADD_EQ, // +=
+    TK_SUB_EQ, // -=
+    TK_SHL_EQ, // <<=
+    TK_SHR_EQ, // >>=
+    TK_BITAND_EQ, //&=
+    TK_XOR_EQ, // ^=
+    TK_BITOR_EQ, // |=
 };
 
 enum {
@@ -157,6 +167,16 @@ enum {
     ND_POSTINC, // i++
     ND_POSTDEC, // i++
     ND_BREAK, //
+    ND_MUL_EQ, // *=
+    ND_DIV_EQ, // /=
+    ND_MOD_EQ, // %=
+    ND_ADD_EQ, // +=
+    ND_SUB_EQ, // -=
+    ND_SHL_EQ, // <<=
+    ND_SHR_EQ, // >>=
+    ND_BITAND_EQ, //&=
+    ND_XOR_EQ, // ^=
+    ND_BITOR_EQ, // |=
 };
 
 // parse.c

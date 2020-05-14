@@ -93,6 +93,16 @@ void tokenize(char *p) {
         if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_MUL_EQ, p, "*=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_DIV_EQ, p, "/=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_MOD_EQ, p, "%=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_ADD_EQ, p, "+=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_SUB_EQ, p, "-=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_SHL_EQ, p, "<<=")) { p += 3; continue; };
+        if (tokenize_comparable(tokens, TK_SHR_EQ, p, ">>=")) { p += 3; continue; };
+        if (tokenize_comparable(tokens, TK_BITAND_EQ, p, "&=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_XOR_EQ, p, "^=")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_BITOR_EQ, p, "|=")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LOGOR, p, "||")) { p += 2; continue; };
         if (tokenize_comparable(tokens, TK_LOGAND, p, "&&")) { p += 2; continue; };
 

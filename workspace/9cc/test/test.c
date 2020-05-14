@@ -229,6 +229,17 @@ int main() {
 // break
     assert(5, ({int i = 0; while(i < 10) { if (i >= 5) { break; } i++; } i;}), "({int i = 0; while(i < 10) { if (i >= 5) { break; } i++; } i;})");
     assert(5, ({int i; for (i = 0; i < 10; i++) { if (i >= 5) { break; }} i;}), "({ for(int i = 0; i < 10; i++) { if (i >= 5) { break; }} i;})");
+// assignment operator
+    assert(20, ({int a = 4; a *= 5; a; }), "({int a = 4; a *= 5; a; })");
+    assert(4, ({int a = 20; a /= 5; a; }), "({int a = 20; a /= 5; a; })");
+    assert(2, ({int a = 5; a %= 3; a; }), "({int a = 5; a %= 3; a; })");
+    assert(8, ({int a = 5; a += 3; a; }), "({int a = 5; a += 3; a; })");
+    assert(2, ({int a = 5; a -= 3; a; }), "({int a = 5; a -= 3; a; })");
+    assert(40, ({int a = 5; a <<= 3; a; }), "({int a = 5; a <<= 3; a; })");
+    assert(5, ({int a = 40; a >>= 3; a; }), "({int a = 40; a >>= 3; a; })");
+    assert(1, ({int a = 5; a &= 3; a; }), "({int a = 5; a &= 3; a; })");
+    assert(6, ({int a = 5; a ^= 3; a; }), "({int a = 5; a ^= 3; a; })");
+    assert(7, ({int a = 5; a |= 3; a; }), "({int a = 5; a |= 3; a; })");
     printf("OK\n");
     return 0;
 }

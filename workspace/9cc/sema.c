@@ -18,6 +18,22 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
+Node *create_new_node(int ty, Node *lhs, Node *rhs) {
+    Node *node = malloc(sizeof(Node));
+    node->op = ty;
+    node->ty = lhs->ty;
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+static Node* walk(Node *node, bool decay);
+
+Node *recreate_assgin_op(int ty, Node *lhs, Node *rhs) {
+    Node* new_rhs = create_new_node(ty, lhs, rhs);
+    return walk(create_new_node('=', lhs, new_rhs), true);
+}
+
 static Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
@@ -121,6 +137,26 @@ static Node* walk(Node *node, bool decay) {
         node->lhs = walk(node->lhs, true);
         node->rhs = walk(node->rhs, true);
         return node;
+    case ND_MUL_EQ:
+        return recreate_assgin_op('*', node->lhs, node->rhs);
+    case ND_DIV_EQ:
+        return recreate_assgin_op('/', node->lhs, node->rhs);
+    case ND_MOD_EQ:
+        return recreate_assgin_op('%', node->lhs, node->rhs);
+    case ND_ADD_EQ:
+        return recreate_assgin_op('+', node->lhs, node->rhs);
+    case ND_SUB_EQ:
+        return recreate_assgin_op('-', node->lhs, node->rhs);
+    case ND_SHL_EQ:
+        return recreate_assgin_op(ND_LSHIFT, node->lhs, node->rhs);
+    case ND_SHR_EQ:
+        return recreate_assgin_op(ND_RSHIFT, node->lhs, node->rhs);
+    case ND_BITAND_EQ:
+        return recreate_assgin_op('&', node->lhs, node->rhs);
+    case ND_XOR_EQ:
+        return recreate_assgin_op('^', node->lhs, node->rhs);
+    case ND_BITOR_EQ:
+        return recreate_assgin_op('|', node->lhs, node->rhs);
     case '=':
         node->lhs = walk(node->lhs, false);
         node->rhs = walk(node->rhs, true);
