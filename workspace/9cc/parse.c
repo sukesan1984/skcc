@@ -80,10 +80,10 @@ Node *new_node_num(int val) {
 
 Node *new_node_str(char *str) {
     Node *node = malloc(sizeof(Node));
-    node->ty = char_ty();
     node->op = ND_STR;
     node->data = str;
     node->len = strlen(str) + 1;
+    node->ty = ary_of(char_ty(), node->len);
     return node;
 }
 

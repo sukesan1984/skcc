@@ -138,6 +138,7 @@ int main() {
     assert(8,  ({ int *x; sizeof(x); }), " ({ int *x; sizeof(x); })");
     assert(4,  ({ int *x; sizeof(*x); }), " ({ int *x; sizeof(*x); })");
     assert(4,  ({ sizeof 1; }), " ({ sizeof 1; })");
+    assert(4,  ({ sizeof("abc"); }), " ({ sizeof(\"abc\"); })");
 
 // array
     assert(5,  ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); }), " ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); })");
@@ -220,6 +221,8 @@ int main() {
 // post inc i++
     assert(3, ({int i = 3; i++;}), "({int i = 3; i++;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
+    assert(1, ({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; *p++;}), "({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; return *p++;})");
+    assert(2, ({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; *++p;}), "({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; return *++p;})");
 // post inc i--
     assert(3, ({int i = 3; i--;}), "({int i = 3; i--;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
