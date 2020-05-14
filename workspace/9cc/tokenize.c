@@ -1,5 +1,9 @@
 #include "9cc.h"
 
+static char *buf;
+static char *filename;
+static Vector *tokens;
+
 void error_token(int i){
     Token *t = tokens->data[i];
     error("予期せぬトークンです:", t->input);
@@ -86,9 +90,14 @@ static char *octal(char *p) {
     return p;
 }
 
-// pが指している文字列をトークンに分割してtokensに保存する
-void tokenize(char *p) {
+static void scan() {
+    char *p = buf;
     while (*p) {
+        if (*p == '\n') {
+            add_token(tokens, *p, p);
+            p++;
+            continue;
+        }
         // 空白文字列をスキップ
         if (isspace(*p)) {
             p++;
@@ -235,7 +244,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (strchr("+-*/%()=;{},<>&[].!?:|&^~", *p)) {
+        if (strchr("+-*/%()=;{},<>&[].!?:|&^~#", *p)) {
             add_token(tokens, *p, p);
             p++;
             continue;
@@ -312,6 +321,71 @@ void tokenize(char *p) {
         fprintf(stderr, "トークナイズできません: %s\n", p);
         exit(1);
     }
-    add_token(tokens, TK_EOF, p);
+}
+
+static void strip_newlines() {
+    Vector *v = new_vector();
+    for (int i = 0; i < tokens->len; i++) {
+        Token *t = tokens->data[i];
+        if (t->ty != '\n')
+            vec_push(v, t);
+    }
+    tokens = v;
+}
+
+// pが指している文字列をトークンに分割してtokensに保存する
+Vector *tokenize(char *path, bool add_eof) {
+    Vector *tokens_ = tokens;
+    char *filename_ = filename;
+    char *buf_ = buf;
+
+    tokens = new_vector();
+    filename = path;
+    buf = read_file(path);
+    scan();
+
+    if (add_eof)
+        add_token(tokens, TK_EOF, buf);
+    tokens = preprocess(tokens);
+    strip_newlines();
+    Vector *ret = tokens;
+    buf = buf_;
+    tokens = tokens_;
+    filename = filename_;
+    return ret;
+}
+
+static void print_line(char *start, char *path, char *pos) {
+    int line = 0;
+    int col = 0;
+
+    for (char *p = start; p; p++) {
+        if (*p == '\n') {
+            start = p + 1;
+            line++;
+            col = 0;
+            continue;
+        }
+
+        if (p != pos) {
+            col++;
+            continue;
+        }
+
+        fprintf(stderr, "error at %s:%d:%d\n\n", path, line + 1,col + 1);
+
+        int linelen = strchr(p, '\n') - start;
+        fprintf(stderr, "%.*s\n", linelen, start);
+
+        for (int i = 0; i < col; i++)
+            fprintf(stderr, " ");
+        fprintf(stderr, "^\n\n");
+        return;
+    }
+}
+
+noreturn void bad_token(Token *t, char *msg) {
+    print_line(t->buf, t->filename, t->start);
+    error(msg);
 }
 

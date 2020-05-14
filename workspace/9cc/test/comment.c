@@ -1,7 +1,2 @@
-int main() {
-    /*
-     * これはコメントです。
-     * この行は無視されます
-     */
-    return 45; // コメント
-}
+#include "test/test1.inc"
+

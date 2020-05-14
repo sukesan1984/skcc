@@ -6,6 +6,8 @@ typedef struct Env {
     struct Env *next;
 } Env;
 
+static Vector *tokens;
+
 int pos = 0;
 struct Env *env;
 static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0, false};
@@ -710,7 +712,8 @@ static Type *read_type() {
     return NULL;
 }
 
-Vector *parse() {
+Vector *parse(Vector *tokens_) {
+    tokens = tokens_;
     pos = 0;
     Vector *v = new_vector();
     env = new_env(env);
