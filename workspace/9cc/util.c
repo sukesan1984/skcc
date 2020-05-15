@@ -48,11 +48,59 @@ void map_put(Map *map, char *key, void *val) {
     vec_push(map->vals, val);
 }
 
+void map_puti(Map *map, char *key, int i) {
+    vec_push(map->keys, key);
+    vec_push(map->vals, (void*)(intptr_t)i);
+}
+
 void *map_get(Map *map, char *key) {
     for (int i = map->keys->len -1; i >= 0; i--)
         if (strcmp(map->keys->data[i], key) == 0)
             return map->vals->data[i];
     return NULL;
+}
+
+int map_geti(Map *map, char *key, int undef) {
+    for (int i = map->keys->len -1; i >= 0; i--)
+        if (!strcmp(map->keys->data[i], key))
+            return (intptr_t)map->vals->data[i];
+    return undef;
+}
+
+StringBuilder *new_sb(void) {
+    StringBuilder *sb = malloc(sizeof(StringBuilder));
+    sb->data = malloc(8);
+    sb->capacity = 8;
+    sb->len = 0;
+    return sb;
+}
+
+static void sb_grow(StringBuilder *sb, int len) {
+    if (sb->len + len <= sb->capacity)
+        return;
+    while (sb->len + len > sb->capacity)
+        sb->capacity *= 2;
+    sb->data = realloc(sb->data, sb->capacity);
+}
+
+void sb_add(StringBuilder *sb, char c) {
+    sb_grow(sb, 1);
+    sb->data[sb->len++] = c;
+}
+
+void sb_append(StringBuilder *sb, char *s) {
+    sb_append_n(sb, s, strlen(s));
+}
+
+void sb_append_n(StringBuilder *sb, char *s, int len) {
+    sb_grow(sb, len);
+    memcpy(sb->data + sb->len, s, len);
+    sb->len += len;
+}
+
+char *sb_get(StringBuilder *sb) {
+    sb_add(sb, '\0');
+    return sb->data;
 }
 
 bool map_exists(Map *map, char *key) {

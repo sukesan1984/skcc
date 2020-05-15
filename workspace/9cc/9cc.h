@@ -26,8 +26,13 @@ typedef struct {
     int ty;      // トークンの型
     int val;     // tyがTK_NUMの場合,その数値
     char *str;   // tyがTK_STRの場合はそのリテラル
+    char len;
     char *name;  // tyがTK_IDENTの場合、その名前
     char *input; // トークン文字列(エラーメッセージ用)
+
+    // For preprocessor
+    bool stringize;
+
     // For error reporting
     char *buf;
     char *filename;
@@ -135,6 +140,7 @@ enum {
     TK_BITAND_EQ, //&=
     TK_XOR_EQ, // ^=
     TK_BITOR_EQ, // |=
+    TK_PARAM,
 };
 
 enum {
@@ -206,8 +212,23 @@ void vec_push(Vector *vec, void *elem);
 // Mapを操作する関数群
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
+void map_puti(Map *map, char *key, int val);
 void *map_get(Map *map, char *key);
+int map_geti(Map *map, char *key, int undef);
 bool map_exists(Map *map, char *key);
+
+typedef struct {
+    char *data;
+    int capacity;
+    int len;
+} StringBuilder;
+
+StringBuilder *new_sb(void);
+void sb_add(StringBuilder *sb, char c);
+void sb_append(StringBuilder *sb, char *s);
+void sb_append_n(StringBuilder *sb, char *s, int len);
+char *sb_get(StringBuilder *sb);
+
 char *format(char *fmt, ...);
 char *read_file(char *path);
 
