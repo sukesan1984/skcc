@@ -9,6 +9,11 @@ void error_token(int i){
     error("予期せぬトークンです:", t->input);
 }
 
+char *tokstr(Token *t) {
+    assert(t->start && t->end);
+    return strndup(t->start, t->end - t->start);
+}
+
 Token *add_token(Vector *v, int ty, char *input) {
     Token * token = malloc(sizeof(Token));
     token->ty = ty;
@@ -31,7 +36,8 @@ int is_alnum(char c) {
 int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
     int len = strlen(token);
     if (strncmp(p, token, len) == 0) {
-        add_token(tokens, ty, p);
+        Token * t = add_token(tokens, ty, p);
+        t->end = (p + len);
         return 1;
     }
     return 0;
@@ -74,14 +80,16 @@ static char *hexdecimal(char *p) {
     if (!isxdigit(*p))
         fprintf(stderr, "bad hexdecimal number");
     for (;;) {
-        if ('0' <= *p && *p <= '9')
+        if ('0' <= *p && *p <= '9') {
             t->val = (t->val * 16) + (*p++ - '0');
-        else if ('a' <= *p && *p <= 'f')
+        } else if ('a' <= *p && *p <= 'f') {
             t->val = (t->val * 16) + (*p++ - 'a' + 10);
-        else if ('A' <= *p && *p <= 'F')
+        } else if ('A' <= *p && *p <= 'F') {
             t->val = (t->val * 16) + (*p++ - 'A' + 10);
-        else
+        } else {
+            t->end = p;
             return p;
+        }
     }
 }
 
@@ -90,6 +98,7 @@ static char *octal(char *p) {
     t->val = 0;
     while ('0' <= *p && *p <= '7')
         t->val = t->val * 8 + *p++ - '0';
+    t->end = p;
     return p;
 }
 
@@ -97,8 +106,9 @@ static void scan() {
     char *p = buf;
     while (*p) {
         if (*p == '\n') {
-            add_token(tokens, *p, p);
+            Token *t = add_token(tokens, *p, p);
             p++;
+            t->end = p;
             continue;
         }
         // 空白文字列をスキップ
@@ -123,8 +133,9 @@ static void scan() {
         }
 
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
-            add_token(tokens, TK_RETURN, p);
+            Token *t = add_token(tokens, TK_RETURN, p);
             p += 6;
+            t->end = p;
             continue;
         }
 
@@ -146,110 +157,128 @@ static void scan() {
         if (tokenize_comparable(tokens, TK_LOGAND, p, "&&")) { p += 2; continue; };
 
         if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
-            add_token(tokens, TK_IF, p);
+            Token *t = add_token(tokens, TK_IF, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
-            add_token(tokens, TK_ELSE, p);
+            Token *t = add_token(tokens, TK_ELSE, p);
             p += 4;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "struct", 6) == 0 && !is_alnum(p[6])) {
-            add_token(tokens, TK_STRUCT, p);
+            Token *t = add_token(tokens, TK_STRUCT, p);
             p += 6;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
-            add_token(tokens, TK_WHILE, p);
+            Token *t = add_token(tokens, TK_WHILE, p);
             p += 5;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "break", 5) == 0 && !is_alnum(p[5])) {
-            add_token(tokens, TK_BREAK, p);
+            Token *t = add_token(tokens, TK_BREAK, p);
             p += 5;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
-            add_token(tokens, TK_FOR, p);
+            Token *t = add_token(tokens, TK_FOR, p);
             p += 3;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
-            add_token(tokens, TK_INT, p);
+            Token *t = add_token(tokens, TK_INT, p);
             p += 3;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
-            add_token(tokens, TK_CHAR, p);
+            Token *t = add_token(tokens, TK_CHAR, p);
             p += 4;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "void", 4) == 0 && !is_alnum(p[4])) {
-            add_token(tokens, TK_VOID, p);
+            Token *t = add_token(tokens, TK_VOID, p);
             p += 4;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
-            add_token(tokens, TK_SIZEOF, p);
+            Token *t = add_token(tokens, TK_SIZEOF, p);
             p += 6;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "extern", 6) == 0 && !is_alnum(p[6])) {
-            add_token(tokens, TK_EXTERN, p);
+            Token *t = add_token(tokens, TK_EXTERN, p);
             p += 6;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "->", 2) == 0) {
-            add_token(tokens, TK_ARROW, p);
+            Token *t = add_token(tokens, TK_ARROW, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "typedef", 7) == 0) {
-            add_token(tokens, TK_TYPEDEF, p);
+            Token *t = add_token(tokens, TK_TYPEDEF, p);
             p += 7;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "<<", 2) == 0) {
-            add_token(tokens, TK_LSHIFT, p);
+            Token *t = add_token(tokens, TK_LSHIFT, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, ">>", 2) == 0) {
-            add_token(tokens, TK_RSHIFT, p);
+            Token *t = add_token(tokens, TK_RSHIFT, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "++", 2) == 0) {
-            add_token(tokens, TK_INC, p);
+            Token *t = add_token(tokens, TK_INC, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strncmp(p, "--", 2) == 0) {
-            add_token(tokens, TK_DEC, p);
+            Token *t = add_token(tokens, TK_DEC, p);
             p += 2;
+            t->end = p;
             continue;
         }
 
         if (strchr("+-*/%()=;{},<>&[].!?:|&^~#", *p)) {
-            add_token(tokens, *p, p);
+            Token *t = add_token(tokens, *p, p);
             p++;
+            t->end =p;
             continue;
         }
 
@@ -266,6 +295,7 @@ static void scan() {
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
             t->val = strtol(p, &p, 10);
+            t->end = p;
             continue;
         }
 
@@ -274,6 +304,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_NUM, p++);
             p = c_char(&t->val, p);
             p++;
+            t->end = p;
             continue;
         }
 
@@ -302,6 +333,7 @@ static void scan() {
             str[len] = '\0';
             p++;
             t->str = str;
+            t->end = p;
             continue;
         }
 
@@ -318,6 +350,7 @@ static void scan() {
             strncpy(name, init_p, len);
             name[len] = '\0';
             t->name = name;
+            t->end = p;
             continue;
         }
 

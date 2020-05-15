@@ -32,6 +32,7 @@ typedef struct {
     char *buf;
     char *filename;
     char *start;
+    char *end;
 } Token;
 
 typedef struct Type {
@@ -190,6 +191,7 @@ Vector *parse(Vector *tokens);
 // tokenize.c
 Vector *tokenize(char *path, bool add_eof);
 void bad_token(Token *t, char *msg);
+char *tokstr(Token *t);
 
 // sema.c
 void sema(Vector *nodes);
