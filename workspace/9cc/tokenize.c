@@ -12,6 +12,9 @@ void error_token(int i){
 Token *add_token(Vector *v, int ty, char *input) {
     Token * token = malloc(sizeof(Token));
     token->ty = ty;
+    token->buf = buf;
+    token->start = input;
+    token->filename = filename;
     token->input = input;
     vec_push(v, (void *)token);
     return token;
