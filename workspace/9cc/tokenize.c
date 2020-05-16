@@ -330,10 +330,10 @@ static void scan() {
                 str[i++] = c;
                 len++;
             }
+            t->end = p;
             str[len] = '\0';
             p++;
             t->str = str;
-            t->end = p;
             continue;
         }
 
