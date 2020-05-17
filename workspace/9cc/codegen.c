@@ -670,6 +670,8 @@ void gen_main(Vector* v) {
             gen_epilog();
         } else if (node->op == ND_VARDEF) {
             continue;
+        } else if (node->op == ND_DECL) {
+            continue;
         } else {
             fprintf(stderr, "node->op must be ND_FUNC but got: %d", node->op);
             exit(1);

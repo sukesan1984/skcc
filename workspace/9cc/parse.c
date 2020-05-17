@@ -618,20 +618,32 @@ Node *toplevel() {
         error("typename expected, but got %s", t->input);
     }
 
+    while (consume('*'))
+        ty = ptr_to(ty);
+
     char *name = ident();
 
     // Fuction
     if (consume('(')) {
         Node *node = calloc(1, sizeof(Node));
         node->name = name;
-        node->op = ND_FUNC;
         node->args = new_vector();
+        node->ty = calloc(1, sizeof(Type));
+        node->ty->ty = FUNC;
+        node->ty->returning = ty;
         if (!consume(')')) {
             vec_push(node->args, param());
             while(consume(','))
                 vec_push(node->args, param());
             expect(')');
         }
+
+        if (consume(';')) {
+            node->op = ND_DECL;
+            return node;
+        }
+
+        node->op = ND_FUNC;
         expect('{');
         node->body = compound_stmt();
         return node;
