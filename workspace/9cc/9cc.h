@@ -198,6 +198,7 @@ Vector *parse(Vector *tokens);
 Vector *tokenize(char *path, bool add_eof);
 void bad_token(Token *t, char *msg);
 char *tokstr(Token *t);
+int line(Token *t);
 
 // sema.c
 void sema(Vector *nodes);
