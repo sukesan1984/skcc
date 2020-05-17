@@ -14,6 +14,14 @@ char *tokstr(Token *t) {
     return strndup(t->start, t->end - t->start);
 }
 
+int line(Token *t) {
+    int n = 0;
+    for (char *p = t->buf; p < t->end; p++)
+        if (*p == '\n')
+            n++;
+    return n;
+}
+
 Token *add_token(Vector *v, int ty, char *input) {
     Token * token = malloc(sizeof(Token));
     token->ty = ty;

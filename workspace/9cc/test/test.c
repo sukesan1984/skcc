@@ -6,7 +6,7 @@ int assert(int expected, int actual, char *text) {
     if (actual == expected){
         printf("[ok] actual:%d expected: %d %s\n", actual, expected, text);
     } else {
-        printf("[ng] expected: %d => but got: %d %s\n", expected, actual, text);
+        printf("[ng](expected: %d => but got: %d %s\n", expected, actual, text);
         exit(1);
     }
     return 0;
@@ -25,7 +25,7 @@ int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + 
 int plus(int x, int y) { return x + y; }
 
 int main() {
-#include "test3.h"
+#include "test/test3.h"
     assert(0, 0, "0");
     assert(42, 42, "42");
     assert(48879, 0xBEEF, "0xBEEF");

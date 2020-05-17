@@ -10,8 +10,7 @@ $(OBJS): 9cc.h
 
 test: 9cc $(TEST_FILE)
 	./9cc -test
-	@gcc -E -P $(TEST_FILE) > test/tmp.c
-	@./9cc test/tmp.c > tmp-test.s
+	@./9cc $(TEST_FILE) > tmp-test.s
 	@gcc -static -o tmp-test tmp-test.s test/external.c
 	@./tmp-test
 	@./9cc test/comment.c > tmp-test2.s
