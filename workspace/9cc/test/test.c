@@ -2,6 +2,16 @@ int g1;
 int g2[5];
 extern int global_var;
 
+int printf();
+int fprintf();
+int exit();
+int *alloc(int x);
+int **alloc2(int x);
+int* alloc4(int a, int b, int c, int d);
+int*** alloc5(int** pp, int** pq);
+void show(char* p);
+void show_num(int i);
+
 int assert(int expected, int actual, char *text) {
     if (actual == expected){
         printf("[ok] actual:%d expected: %d %s\n", actual, expected, text);
@@ -23,6 +33,7 @@ int add4(int a, int b, int c, int d) { return a + b + c + d; }
 int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }
 int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f; }
 int plus(int x, int y) { return x + y; }
+void nop() {}
 
 int main() {
 #include "test/test3.h"
@@ -251,7 +262,7 @@ int main() {
 
     assert(3, ({ int x; int y; x=y=3; x; }), "({ int x; int y; x=y=3; x; })");
     assert(3, ({ int x; int y; x=y=3; y; }), "({ int x; int y; x=y=3; y; })");
- 
+
     printf("OK\n");
     return 0;
 }

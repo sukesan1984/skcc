@@ -1,6 +1,6 @@
 #include "9cc.h"
 
-static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0};
+static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0, NULL};
 
 static int str_label;
 static Map *vars;
@@ -215,11 +215,18 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_BREAK:
         return node;
-    case ND_CALL:
+    case ND_CALL: {
+        Var *var = map_get(vars, node->name);
+        if (var && var->ty->ty == FUNC) {
+            node->ty = var->ty->returning;
+        } else {
+            fprintf(stderr, "bad function: %s\n", node->name);
+            node->ty = &int_ty;
+        }
         for (int i = 0; i < node->args->len; i++)
             node->args->data[i] = walk(node->args->data[i], true);
-        node->ty = &int_ty;
         return node;
+    }
     case ND_FUNC:
         for (int i = 0; i < node->args->len; i++)
             node->args->data[i] = walk(node->args->data[i], true);
@@ -267,7 +274,12 @@ void sema(Vector *nodes) {
             continue;
         }
 
-        assert(node->op == ND_FUNC);
+        assert(node->op == ND_DECL || node->op == ND_FUNC);
+        Var *var = new_global(node->ty, node->name, "", 0, node->is_extern);
+        map_put(vars, node->name, var);
+        if (node->op == ND_DECL)
+            continue;
+
         stacksize = 0;
         node = walk(node, true);
         node->stacksize = stacksize;

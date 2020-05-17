@@ -41,7 +41,7 @@ typedef struct {
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY, CHAR, VOID, STRUCT} ty;
+    enum {INT, PTR, ARRAY, CHAR, VOID, STRUCT, FUNC} ty;
     int size;
     int align;
 
@@ -56,6 +56,8 @@ typedef struct Type {
     Vector *members;
 
     int offset;
+    // Function
+    struct Type *returning;
 } Type;
 
 Type *ary_of(Type *base, size_t size);
@@ -188,6 +190,7 @@ enum {
     ND_BITAND_EQ, //&=
     ND_XOR_EQ, // ^=
     ND_BITOR_EQ, // |=
+    ND_DECL,     // declaration
 };
 
 // parse.c
