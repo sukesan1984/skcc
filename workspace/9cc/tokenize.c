@@ -46,6 +46,7 @@ int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
     if (strncmp(p, token, len) == 0) {
         Token * t = add_token(tokens, ty, p);
         t->end = (p + len);
+        t->len = len;
         return 1;
     }
     return 0;
@@ -117,6 +118,7 @@ static void scan() {
             Token *t = add_token(tokens, *p, p);
             p++;
             t->end = p;
+            t->len = 1;
             continue;
         }
         // 空白文字列をスキップ
@@ -144,6 +146,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_RETURN, p);
             p += 6;
             t->end = p;
+            t->len = 6;
             continue;
         }
 
@@ -168,6 +171,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_IF, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -175,6 +179,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_ELSE, p);
             p += 4;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -182,6 +187,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_STRUCT, p);
             p += 6;
             t->end = p;
+            t->len = 6;
             continue;
         }
 
@@ -189,12 +195,14 @@ static void scan() {
             Token *t = add_token(tokens, TK_WHILE, p);
             p += 5;
             t->end = p;
+            t->len = 5;
             continue;
         }
 
         if (strncmp(p, "break", 5) == 0 && !is_alnum(p[5])) {
             Token *t = add_token(tokens, TK_BREAK, p);
             p += 5;
+            t->len = 5;
             t->end = p;
             continue;
         }
@@ -202,6 +210,7 @@ static void scan() {
         if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
             Token *t = add_token(tokens, TK_FOR, p);
             p += 3;
+            t->len = 3;
             t->end = p;
             continue;
         }
@@ -210,6 +219,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_INT, p);
             p += 3;
             t->end = p;
+            t->len = 3;
             continue;
         }
 
@@ -217,12 +227,14 @@ static void scan() {
             Token *t = add_token(tokens, TK_CHAR, p);
             p += 4;
             t->end = p;
+            t->len = 4;
             continue;
         }
 
         if (strncmp(p, "void", 4) == 0 && !is_alnum(p[4])) {
             Token *t = add_token(tokens, TK_VOID, p);
             p += 4;
+            t->len = 4;
             t->end = p;
             continue;
         }
@@ -231,6 +243,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_SIZEOF, p);
             p += 6;
             t->end = p;
+            t->len = 6;
             continue;
         }
 
@@ -238,6 +251,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_EXTERN, p);
             p += 6;
             t->end = p;
+            t->len = 6;
             continue;
         }
 
@@ -245,6 +259,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_ARROW, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -252,6 +267,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_TYPEDEF, p);
             p += 7;
             t->end = p;
+            t->len = 7;
             continue;
         }
 
@@ -259,6 +275,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_LSHIFT, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -266,6 +283,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_RSHIFT, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -273,6 +291,7 @@ static void scan() {
             Token *t = add_token(tokens, TK_INC, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
@@ -280,13 +299,15 @@ static void scan() {
             Token *t = add_token(tokens, TK_DEC, p);
             p += 2;
             t->end = p;
+            t->len = 2;
             continue;
         }
 
         if (strchr("+-*/%()=;{},<>&[].!?:|&^~#", *p)) {
             Token *t = add_token(tokens, *p, p);
             p++;
-            t->end =p;
+            t->end = p;
+            t->len = 1;
             continue;
         }
 
@@ -340,6 +361,7 @@ static void scan() {
             }
             t->end = p;
             str[len] = '\0';
+            t->len = len;
             p++;
             t->str = str;
             continue;
@@ -357,6 +379,7 @@ static void scan() {
             char *name = (char *) malloc(len + 1);
             strncpy(name, init_p, len);
             name[len] = '\0';
+            t->len = len;
             t->name = name;
             t->end = p;
             continue;
