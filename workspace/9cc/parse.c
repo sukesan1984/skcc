@@ -34,7 +34,7 @@ int consume(int ty) {
     return 1;
 }
 
-int expect(int ty ) {
+int expect(int ty) {
     Token *t = tokens->data[pos];
     if (!consume(ty)) {
         fprintf(stderr, "%d is expected but got %s", ty, t->input);
@@ -55,8 +55,7 @@ static Type *void_ty() { return new_prim_ty(VOID, 0); }
 static Type *char_ty() { return new_prim_ty(CHAR, 1); }
 static Type *int_ty() { return new_prim_ty(INT, 4); }
 
-static bool is_typename() {
-    Token *t = tokens->data[pos];
+static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return map_exists(env->typedefs, t->name);
     return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_VOID || t->ty == TK_STRUCT;
@@ -165,7 +164,7 @@ static Type* read_array(Type *ty) {
 }
 
 static Node *compound_stmt();
-
+static Type *read_type();
 Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
@@ -204,6 +203,24 @@ Node *primary() {
         expect(')');
         return node;
     }
+
+    if (consume(TK_SIZEOF)) {
+        Token *t1 = tokens->data[pos];
+        Token *t2 = tokens->data[pos + 1];
+        if (t1->ty == '(' && is_typename(t2)) {
+            expect('(');
+            Type* ty = read_type();
+            expect(')');
+            if (ty-ty == VOID)
+                error("voidはだめ\n");
+            return new_node_num(ty->size);
+        }
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_SIZEOF;
+        node->lhs = unary();
+        return node;
+    }
+
     t = tokens->data[pos];
     error("数字でも開き括弧でもないトークンです: %s", t->input);
     exit(1);
@@ -290,12 +307,6 @@ Node *unary() {
         return node;
     }
 
-    if (consume(TK_SIZEOF)) {
-        Node *node = calloc(1, sizeof(Node));
-        node->op = ND_SIZEOF;
-        node->lhs = unary();
-        return node;
-    }
     return postfix();
 }
 
@@ -477,7 +488,6 @@ Node *expr() {
     return new_node(',', lhs, expr());
 }
 
-static Type *read_type();
 
 Node *decl() {
     Node *node = calloc(1, sizeof(Node));
@@ -587,7 +597,7 @@ Node *control() {
             Node *node = new_loop(ND_FOR);
             vec_push(breaks, node);
             vec_push(continues, node);
-            if (is_typename()) {
+            if (is_typename(tokens->data[pos])) {
                 node->lhs = decl();
             } else if (consume(';')){
                 node->lhs = &null_stmt;
@@ -614,7 +624,7 @@ Node *control() {
 }
 
 Node *stmt() {
-    if (is_typename())
+    if (is_typename(tokens->data[pos]))
         return decl();
     Node *node = calloc(1, sizeof(Node));
     Token *t = tokens->data[pos];
