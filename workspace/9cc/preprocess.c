@@ -185,6 +185,29 @@ static Vector *read_args() {
     return v;
 }
 
+static Token *get_token(int pos) {
+    assert(pos < ctx->input->len);
+    return ctx->input->data[pos];
+}
+
+static char *join_tokens(int start, int end) {
+    int len = 1;
+    for (int i = start; i <= end; i++) {
+        Token *t = get_token(i);
+        len += t->len;
+    }
+
+    char *buf = malloc(len);
+    int pos = 0;
+    for (int i = start; i <= end; i++) {
+        Token *t = get_token(i);
+        strncpy(buf + pos, t->input, t->len);
+        pos += t->len;
+    }
+    buf[pos] = '\0';
+    return buf;
+}
+
 static Token *stringize(Vector *tokens) {
     StringBuilder *sb = new_sb();
 
@@ -258,10 +281,26 @@ static void define() {
 }
 
 static void include() {
-    Token *t = get(TK_STR, "string expected");
-    char *path = t->str;
-    get('\n', "newline expected");
-    append(tokenize(path, false));
+    Token *t = next();//get(TK_STR, "string expected");
+    if (t->ty == TK_STR) {
+        char *path = t->str;
+        get('\n', "newline expected");
+        append(tokenize(path, false));
+    }
+
+    if (t->ty == '<') {
+        int start = ctx->pos;
+        int end = ctx->pos;
+        t = next();
+        for (; t->ty != '>'; t = next()) {
+            if (t->ty == TK_EOF)
+                fprintf(stderr, "expected '>'");
+            end += 1;
+        }
+        char *path = join_tokens(start, end - 1);
+        fprintf(stderr, "path: %s\n", path);
+        append(tokenize(path, false));
+    }
 }
 
 Vector *preprocess(Vector *tokens) {
