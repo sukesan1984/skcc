@@ -80,8 +80,6 @@ void gen_binop(Node *lhs, Node *rhs){
 void gen_lval(Node *node);
 void gen_stmt(Node *node);
 
-int jump_num = 0;                    // ifでjumpする回数を保存
-int break_label = 0;
 void gen_expr(Node *node){
     int seq;
     switch(node->op) {
@@ -123,7 +121,7 @@ void gen_expr(Node *node){
                 pop("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
                 printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
             }
-            seq = jump_num++;
+            seq = nlabel++;
             printf("  mov rax, rsp\n");
             printf("  and rax, 15\n");
             printf("  jnz .Lcall%d\n", seq);
@@ -212,7 +210,7 @@ void gen_expr(Node *node){
         case ND_LOGOR:
             // 左辺と右辺の内いずれかが1なら1
             gen_expr(node->lhs);
-            seq = jump_num++;
+            seq = nlabel++;
             pop("  pop r10\n");
             printf("  cmp r10, 1 # 1と等しければje..\n");
             printf("  je .Ltrue%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
@@ -231,7 +229,7 @@ void gen_expr(Node *node){
             gen_expr(node->lhs);
             pop("  pop r10\n");
             printf("  cmp r10, 0 # 0と等しければje..\n");
-            seq = jump_num++;
+            seq = nlabel++;
             printf("  je .Lfalse%d   # 0なら.Lend%dに飛ぶ\n", seq, seq);      // lhsが0のとき（false) Lendに飛ぶ
             gen_expr(node->rhs);
             pop("  pop r10\n");
@@ -440,7 +438,7 @@ void gen_expr(Node *node){
             push("  sub rsp, 8#stmtをコンパイルして最後に値が入ってるはず\n");
             return;
         case '?':
-            seq = jump_num++;
+            seq = nlabel++;
             gen_expr(node->cond);
             pop("  pop rax      # condの結果をraxにコピー\n");                      // lhsの結果をraxにコピー
             printf("  cmp rax, 0   # cond結果と0を比較する(cond式の中身がfalseのときは1)\n");                   // raxの結果と0を比較
@@ -537,7 +535,7 @@ void gen_stmt(Node *node) {
     // if(lhs) rhsをコンパイル
     if (node->op == ND_IF) {
         printf("#gen_stmt IFの処理\n");
-        int seq = jump_num++;
+        int seq = nlabel++;
         gen_expr(node->cond);                             // lhsの結果をスタックにpush
         // if_node->else_bodyがあるとき
         if (node->else_body) {
@@ -563,9 +561,7 @@ void gen_stmt(Node *node) {
     if (node->op == ND_FOR) {
         printf("#gen_stmt FORの処理\n");
         gen_stmt(node->lhs);                     // lhsをまず実行してスタックに積む
-        int seq = jump_num++;
-        int original = break_label;
-        break_label = jump_num++;
+        int seq = nlabel++;
         printf(".Lbegin%d:      # ループの開始\n", seq);   // ループの開始
         if (node->lhs2) {
             gen_expr(node->lhs2);                    // lhs2の実行結果をスタックに積む
@@ -583,17 +579,14 @@ void gen_stmt(Node *node) {
         printf("  jmp .Lbegin%d # ループの開始に飛ぶ\n", seq);// ループの開始に戻る
 
         printf(".Lend%d:        # for文終わり\n", seq);
-        printf(".Lend%d:        # break \n", break_label);
-        break_label = original;
+        printf(".Lend%d:        # break \n", node->break_label);
         return;
     }
 
     // while(lhs) rhsをコンパイル
     if (node->op == ND_WHILE) {
         printf("#gen_stmt WHILEの処理\n");
-        int seq = jump_num++;
-        int original = break_label;
-        break_label = jump_num++;
+        int seq = nlabel++;
         printf("  .Lbegin%d: # ループの開始\n", seq);      // ループの開始
         gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
         pop("  pop rax      # while評価の結果を格納(0 or 1) \n");                  // raxにstackを格納
@@ -603,15 +596,12 @@ void gen_stmt(Node *node) {
         gen_stmt(node->rhs);                         // ループの中身をコンパイル
         printf("  jmp .Lbegin%d\n", seq);  // ループの開始時点に戻る
         printf(".Lend%d:\n", seq);
-        printf(".Lend%d:\n", break_label);
-        break_label = original;
+        printf(".Lend%d:\n", node->break_label);
         return;
     }
 
     if (node->op == ND_SWITCH) {
         printf("#gen_stmt switchの処理\n");
-        int original = break_label;
-        break_label = jump_num++;
         gen_expr(node->cond);
         pop("  pop rax # switchのconditionの内容をraxにロード\n");
         for (int i = 0; i < node->cases->len; i++) {
@@ -620,10 +610,9 @@ void gen_stmt(Node *node) {
             printf("  cmp rax, r10\n");
             printf("  je .Lcase%d\n", case_->case_label);
         }
-        printf("  jmp .Lend%d\n",break_label);
+        printf("  jmp .Lend%d\n",node->break_label);
         gen_stmt(node->body);
-        printf(".Lend%d:\n", break_label);
-        break_label = original;
+        printf(".Lend%d:\n", node->break_label);
         return;
     }
 
@@ -648,7 +637,7 @@ void gen_stmt(Node *node) {
 
     if (node->op == ND_BREAK) {
         printf("#gen_stmt ND_BREAKの処理\n");
-        printf("  jmp .Lend%d # breakしたので、ループを抜ける\n", break_label);
+        printf("  jmp .Lend%d # breakしたので、ループを抜ける\n", node->target->break_label);
         return;
     }
 
