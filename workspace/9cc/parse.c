@@ -80,11 +80,11 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_node_str(char *str) {
+Node *new_node_str(Token *t) {
     Node *node = malloc(sizeof(Node));
     node->op = ND_STR;
-    node->data = str;
-    node->len = strlen(str) + 1;
+    node->data = t->str;
+    node->len = t->len;
     node->ty = ary_of(char_ty(), node->len);
     return node;
 }
@@ -152,7 +152,7 @@ Node *primary() {
     }
 
     if (t->ty == TK_STR) {
-        return new_node_str(((Token *) tokens->data[pos++])->str);
+        return new_node_str((Token *) tokens->data[pos++]);
     }
 
     if (consume(TK_IDENT)) {
