@@ -571,6 +571,7 @@ void gen_stmt(Node *node) {
         }
         printf("# for文の内部を処理\n");
         gen_stmt(node->rhs);                     // rhsを実行
+        printf(".Lend%d: # continue\n", node->continue_label);
         if (node->lhs3) {
             printf("# forの３つ目の領域の処理実行\n");
             gen_expr(node->lhs3);                    // lhs3の実行結果をスタックに積む
@@ -587,7 +588,8 @@ void gen_stmt(Node *node) {
     if (node->op == ND_WHILE) {
         printf("#gen_stmt WHILEの処理\n");
         int seq = nlabel++;
-        printf("  .Lbegin%d: # ループの開始\n", seq);      // ループの開始
+        printf(".Lbegin%d: # ループの開始\n", seq);      // ループの開始
+        printf(".Lend%d: # continueの開始\n", node->continue_label);
         gen_expr(node->lhs);                         // lhsをコンパイルしてスタックにpush
         pop("  pop rax      # while評価の結果を格納(0 or 1) \n");                  // raxにstackを格納
         printf("  cmp rax, 0   # while評価が0ならば終わり\n");               // rhsの結果が0のとき(falseになったら) Lendに飛ぶ
@@ -638,6 +640,12 @@ void gen_stmt(Node *node) {
     if (node->op == ND_BREAK) {
         printf("#gen_stmt ND_BREAKの処理\n");
         printf("  jmp .Lend%d # breakしたので、ループを抜ける\n", node->target->break_label);
+        return;
+    }
+
+    if (node->op == ND_CONTINUE) {
+        printf("#gen_stmt ND_CONTINUEの処理\n");
+        printf("  jmp .Lend%d # contiueしたので、ループの開始に戻る\n", node->target->continue_label);
         return;
     }
 

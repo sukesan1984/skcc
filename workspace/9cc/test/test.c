@@ -94,6 +94,8 @@ int main() {
     assert(3, ({ 1; {2;} 3; }), "({ 1; {2;} 3; })");
     assert(10, ({ int i=0; i=0; while(i<10) i=i+1; i; }), "({ int i=0; i=0; while(i<10) i=i+1; i; })");
     assert(55, ({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; }), "({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; })");
+    assert(1, ({ int x=0; while(1) { x++; break; } x; }), "({ int x=0; while(1) { x++; break; } x; })");
+    assert(3, ({ int x=0; while(x < 3) { if (x <= 3) { x++; continue; } break; } x; }), "({ int x=0; while(x > 3) { if (x <= 3) { x++; continue; } break; } x; })");
     printf("for...\n");
 
 // switch
@@ -104,6 +106,9 @@ int main() {
     assert(55, ({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; }), "({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; })");
     assert(6, ({ int i = 0; for (;;){ if (i > 5) { break; } i++; } i; }), "({ int i = 0; for (;;){ if (i > 5) { break; } i++} i; })");
     assert(4, ({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; }), "({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; })");
+    assert(5, ({ int i=0; for (; i < 10; i++) { if (i==5) break; } i; }), "({ int i=0; for (; i < 10; i++) { if (i==5) break; } i; })");
+
+    assert(7, ({ int i=0; for (int j=0; j < 10; j++) { if (j < 3) continue; i++; } i;}), "({ int i=0; for (int j=0; j < 10; j++) { if (j < 3) continue; i++; } i;})");
     assert(3, ({int x=0; if (1 == 0) { x=1; } else { x=3; } x; }), "({int x=0; if (1 == 0) { x=1; } else { x=3; } x; })");
     printf("function call...\n");
     assert(20,  ({ hoge(); }), " ({ hoge(); })");

@@ -10,11 +10,12 @@ typedef struct Env {
 
 static Vector *switches;
 static Vector *breaks;
+static Vector *continues;
 static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, 0, 0, 0, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, 0, 0, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -73,6 +74,7 @@ static Node *new_loop(int op) {
     Node *node = calloc(1, sizeof(Node));
     node->op = op;
     node->break_label = nlabel++;
+    node->continue_label = nlabel++;
     return node;
 }
 
@@ -565,6 +567,7 @@ Node *control() {
         if(consume('(')) {
             Node *while_node = new_loop(ND_WHILE);
             vec_push(breaks, while_node);
+            vec_push(continues, while_node);
             Node *node = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
@@ -574,6 +577,7 @@ Node *control() {
             while_node->lhs = node;
             while_node->rhs = control();
             vec_pop(breaks);
+            vec_pop(continues);
             return while_node;
         }
     }
@@ -582,6 +586,7 @@ Node *control() {
         if(consume('(')) {
             Node *node = new_loop(ND_FOR);
             vec_push(breaks, node);
+            vec_push(continues, node);
             if (is_typename()) {
                 node->lhs = decl();
             } else if (consume(';')){
@@ -601,6 +606,7 @@ Node *control() {
 
             node->rhs = stmt();
             vec_pop(breaks);
+            vec_pop(continues);
             return node;
         }
     }
@@ -632,6 +638,14 @@ Node *stmt() {
             pos++;
             node->op = ND_BREAK;
             node->target = breaks->data[breaks->len - 1];
+            expect(';');
+            return node;
+        case TK_CONTINUE:
+            if (continues->len == 0)
+                bad_token(t, "stray continue");
+            pos++;
+            node->op = ND_CONTINUE;
+            node->target = continues->data[continues->len - 1];
             expect(';');
             return node;
         case '{': {
@@ -687,6 +701,7 @@ Node *toplevel() {
         Node *node = calloc(1, sizeof(Node));
         switches = new_vector();
         breaks = new_vector();
+        continues = new_vector();
         node->name = name;
         node->args = new_vector();
         node->ty = calloc(1, sizeof(Type));

@@ -1,9 +1,10 @@
 int main() {
-    int x = 0;
-    switch (3) {
-        case 2:
-            x = 1;
+    int i = 0;
+    for (int j =0; j < 10; j++) {
+        if (j < 3)
+            continue;
+        i++;
     }
-    printf("%d\n", x);
-    return x;
+    printf("%d\n", i);
+    return 0;
 }

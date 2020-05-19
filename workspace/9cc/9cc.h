@@ -91,11 +91,13 @@ typedef struct Node {
     char* name;
 
     int break_label;
+    int continue_label;
 
     // For switch and case
     Vector *cases;
     int case_label;
 
+    // For break and continue
     struct Node *target;
 
     // Global variable
@@ -122,6 +124,7 @@ enum {
     TK_SWITCH, // switch
     TK_CASE,
     TK_BREAK, // break
+    TK_CONTINUE, // continue
     TK_FOR, // forのトークン
     TK_EQ, // ==
     TK_NE, // !=
@@ -203,6 +206,7 @@ enum {
     ND_DECL,     // declaration
     ND_SWITCH,   // swtich
     ND_CASE,     // case
+    ND_CONTINUE, // continue
 };
 
 // parse.c
