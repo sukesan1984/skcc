@@ -199,6 +199,22 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "case", 4) == 0 && !is_alnum(p[4])) {
+            Token *t = add_token(tokens, TK_CASE, p);
+            p += 4;
+            t->end = p;
+            t->len = 4;
+            continue;
+        }
+
+        if (strncmp(p, "switch", 6) == 0 && !is_alnum(p[6])) {
+            Token *t = add_token(tokens, TK_SWITCH, p);
+            p += 6;
+            t->end = p;
+            t->len = 6;
+            continue;
+        }
+
         if (strncmp(p, "break", 5) == 0 && !is_alnum(p[5])) {
             Token *t = add_token(tokens, TK_BREAK, p);
             p += 5;

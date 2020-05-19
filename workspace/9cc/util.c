@@ -36,6 +36,10 @@ void vec_push(Vector *vec, void *elem) {
     vec->data[vec->len++] = elem;
 }
 
+void* vec_pop(Vector *v) {
+    return v->data[--v->len];
+}
+
 Map *new_map() {
     Map *map = malloc(sizeof(Map));
     map->keys = new_vector();
