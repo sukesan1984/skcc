@@ -400,6 +400,17 @@ static void strip_newlines() {
     tokens = v;
 }
 
+static void remove_backslash_newline() {
+    char *p = buf;
+    for (char *q = p; *q;) {
+        if (q[0] == '\\' && q[1] == '\n')
+            q += 2;
+        else
+            *p++ = *q++;
+    }
+    *p = '\0';
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 Vector *tokenize(char *path, bool add_eof) {
     Vector *tokens_ = tokens;
@@ -409,6 +420,7 @@ Vector *tokenize(char *path, bool add_eof) {
     tokens = new_vector();
     filename = path;
     buf = read_file(path);
+    remove_backslash_newline();
     scan();
 
     if (add_eof)
