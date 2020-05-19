@@ -361,7 +361,7 @@ static void scan() {
             }
             t->end = p;
             str[len] = '\0';
-            t->len = len;
+            t->len = len + 1;
             p++;
             t->str = str;
             continue;
@@ -411,6 +411,32 @@ static void remove_backslash_newline() {
     *p = '\0';
 }
 
+static void append(Token *x, Token *y) {
+    StringBuilder *sb = new_sb();
+    fprintf(stderr, "x->len: %d, y->len: %d\n", x->len, y->len);
+    sb_append_n(sb, x->str, x->len - 1);
+    sb_append_n(sb, y->str, y->len - 1);
+    x->str = sb_get(sb);
+    fprintf(stderr, "append: %s\n", x->str);
+    x->len = sb->len;
+}
+
+static void join_string_literals() {
+    Vector *v = new_vector();
+    Token *last = NULL;
+    for (int i = 0; i < tokens->len; i++) {
+        Token *t = tokens->data[i];
+        if (last && last->ty == TK_STR && t->ty == TK_STR) {
+            fprintf(stderr, "last: %s t: %s\n", last->str, t->str);
+            append(last, t);
+            continue;
+        }
+        last = t;
+        vec_push(v, t);
+    }
+    tokens = v;
+}
+
 // pが指している文字列をトークンに分割してtokensに保存する
 Vector *tokenize(char *path, bool add_eof) {
     Vector *tokens_ = tokens;
@@ -422,6 +448,7 @@ Vector *tokenize(char *path, bool add_eof) {
     buf = read_file(path);
     remove_backslash_newline();
     scan();
+    join_string_literals();
 
     if (add_eof)
         add_token(tokens, TK_EOF, buf);
