@@ -90,6 +90,10 @@ typedef struct Node {
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
 
+    // For switch and case
+    Vector *cases;
+    int case_label;
+
     // Global variable
     char *data;
     int len;
@@ -111,6 +115,8 @@ enum {
     TK_ELSE, // else
     TK_RETURN,
     TK_WHILE, // whileのトークン
+    TK_SWITCH, // switch
+    TK_CASE,
     TK_BREAK, // break
     TK_FOR, // forのトークン
     TK_EQ, // ==
@@ -191,6 +197,8 @@ enum {
     ND_XOR_EQ, // ^=
     ND_BITOR_EQ, // |=
     ND_DECL,     // declaration
+    ND_SWITCH,   // swtich
+    ND_CASE,     // case
 };
 
 // parse.c
@@ -212,6 +220,7 @@ void gen_main(Vector* v);
 // Vectorを操作する関数群
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
+void *vec_pop(Vector *vec);
 
 // Mapを操作する関数群
 Map *new_map();

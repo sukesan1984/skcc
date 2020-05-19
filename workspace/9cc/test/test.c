@@ -95,6 +95,12 @@ int main() {
     assert(10, ({ int i=0; i=0; while(i<10) i=i+1; i; }), "({ int i=0; i=0; while(i<10) i=i+1; i; })");
     assert(55, ({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; }), "({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; })");
     printf("for...\n");
+
+// switch
+    assert(6, ({ int x=0; switch(3) { case 2: x = 5; break; case 3: x=6; break; case 4: x=7; break;} x;}), "({ int x=0; switch(3) { case 2: x = 5; break; case 3: x=6; break; case 4: x=7; break;} x;})");
+    assert(7, ({ int x=0; switch(3) { case 2: x = 5; case 3: x=6; case 4: x=7; } x;}), "({ int x=0; switch(3) { case 2: x = 5; case 3: x=6; case 4: x=7;} x;})");
+    assert(0, ({ int x=0; switch(3) { case 1: x = 5; } x;}), "({ int x=0; switch(3) { case 1: x = 5; } x;})");
+
     assert(55, ({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; }), "({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; })");
     assert(6, ({ int i = 0; for (;;){ if (i > 5) { break; } i++; } i; }), "({ int i = 0; for (;;){ if (i > 5) { break; } i++} i; })");
     assert(4, ({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; }), "({int j = 0; for (int i = 0; i < 5; i++) { j = i; } j; })");

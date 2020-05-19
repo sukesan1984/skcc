@@ -608,8 +608,33 @@ void gen_stmt(Node *node) {
         return;
     }
 
+    if (node->op == ND_SWITCH) {
+        printf("#gen_stmt switchの処理\n");
+        int original = break_label;
+        break_label = jump_num++;
+        gen_expr(node->cond);
+        pop("  pop rax # switchのconditionの内容をraxにロード\n");
+        for (int i = 0; i < node->cases->len; i++) {
+            Node *case_ = node->cases->data[i];
+            printf("  mov r10, %d # case[%d]のconst値をr10にロード\n", case_->val, i);
+            printf("  cmp rax, r10\n");
+            printf("  je .Lcase%d\n", case_->case_label);
+        }
+        printf("  jmp .Lend%d\n",break_label);
+        gen_stmt(node->body);
+        printf(".Lend%d:\n", break_label);
+        break_label = original;
+        return;
+    }
+
+    if (node->op == ND_CASE) {
+        printf(".Lcase%d:\n", node->case_label);
+        gen_stmt(node->body);
+        return;
+    }
+
     if (node->op == ND_RETURN) {
-        printf("#gen_stmt ND_RETURNの処理\n");
+        printf("#en_stmt ND_RETURNの処理\n");
         gen_expr(node->lhs);
         pop("  pop rax #returnしたい結果がスタックに入っているのでをraxにロード\n");          // genで生成された値をraxにpopして格納
 

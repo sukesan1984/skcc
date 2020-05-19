@@ -1,16 +1,19 @@
 #include "9cc.h"
 
+int nlabel = 1;
+
 typedef struct Env {
     Map *tags;
     Map *typedefs;
     struct Env *next;
 } Env;
 
+static Vector *switches;
 static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, 0, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, 0, 0, 0, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -126,6 +129,14 @@ Node *assign();
 Node *unary();
 Node *primary();
 Node *expr();
+
+static int const_expr() {
+    Token *t = tokens->data[pos];
+    Node *node = expr();
+    if (node->op != ND_NUM)
+        bad_token(t, "constant expression expected");
+    return node->val;
+}
 
 static Type* read_array(Type *ty) {
     Vector *v = new_vector();
@@ -513,6 +524,34 @@ Node *control() {
         return if_node;
     }
 
+    if (consume(TK_SWITCH)) {
+        Node *node = calloc(1, sizeof(Node));
+        node->cases = new_vector();
+        node->op = ND_SWITCH;
+        expect('(');
+        node->cond = expr();
+        expect(')');
+        vec_push(switches, node);
+        node->body = stmt();
+        vec_pop(switches);
+        return node;
+    }
+
+    if (consume(TK_CASE)) {
+        Token *t = tokens->data[pos];
+        if (switches->len == 0)
+            bad_token(t, "stray case");
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_CASE;
+        node->case_label = nlabel++;
+        node->val = const_expr();
+        expect(':');
+        node->body = stmt();
+        Node *n = switches->data[switches->len - 1];
+        vec_push(n->cases, node);
+        return node;
+    }
+
     if (consume(TK_WHILE)) {
         if(consume('(')) {
             Node *node = expr(); // if/while分のカッコ内の処理
@@ -562,6 +601,8 @@ Node *stmt() {
     switch (t->ty) {
         case TK_IF:
         case TK_WHILE:
+        case TK_SWITCH:
+        case TK_CASE:
         case TK_FOR:
             return control();
         case TK_RETURN:
@@ -626,6 +667,7 @@ Node *toplevel() {
     // Fuction
     if (consume('(')) {
         Node *node = calloc(1, sizeof(Node));
+        switches = new_vector();
         node->name = name;
         node->args = new_vector();
         node->ty = calloc(1, sizeof(Type));
