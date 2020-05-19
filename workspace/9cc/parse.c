@@ -9,11 +9,12 @@ typedef struct Env {
 } Env;
 
 static Vector *switches;
+static Vector *breaks;
 static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, 0, 0, 0, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, 0, 0, 0, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -65,6 +66,13 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
     node->op = ty;
     node->lhs = lhs;
     node->rhs = rhs;
+    return node;
+}
+
+static Node *new_loop(int op) {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = op;
+    node->break_label = nlabel++;
     return node;
 }
 
@@ -525,15 +533,16 @@ Node *control() {
     }
 
     if (consume(TK_SWITCH)) {
-        Node *node = calloc(1, sizeof(Node));
+        Node *node = new_loop(ND_SWITCH);
         node->cases = new_vector();
-        node->op = ND_SWITCH;
         expect('(');
         node->cond = expr();
         expect(')');
+        vec_push(breaks, node);
         vec_push(switches, node);
         node->body = stmt();
         vec_pop(switches);
+        vec_pop(breaks);
         return node;
     }
 
@@ -554,20 +563,25 @@ Node *control() {
 
     if (consume(TK_WHILE)) {
         if(consume('(')) {
+            Node *while_node = new_loop(ND_WHILE);
+            vec_push(breaks, while_node);
             Node *node = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
                 error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
             }
             pos++;
-            return new_node(ND_WHILE, node, control());
+            while_node->lhs = node;
+            while_node->rhs = control();
+            vec_pop(breaks);
+            return while_node;
         }
     }
 
     if (consume(TK_FOR)) {
         if(consume('(')) {
-            Node *node = calloc(1, sizeof(Node));
-            node->op  = ND_FOR;
+            Node *node = new_loop(ND_FOR);
+            vec_push(breaks, node);
             if (is_typename()) {
                 node->lhs = decl();
             } else if (consume(';')){
@@ -586,6 +600,7 @@ Node *control() {
             }
 
             node->rhs = stmt();
+            vec_pop(breaks);
             return node;
         }
     }
@@ -612,8 +627,11 @@ Node *stmt() {
             expect(';');
             return node;
         case TK_BREAK:
+            if (breaks->len == 0)
+                bad_token(t, "stray break");
             pos++;
             node->op = ND_BREAK;
+            node->target = breaks->data[breaks->len - 1];
             expect(';');
             return node;
         case '{': {
@@ -668,6 +686,7 @@ Node *toplevel() {
     if (consume('(')) {
         Node *node = calloc(1, sizeof(Node));
         switches = new_vector();
+        breaks = new_vector();
         node->name = name;
         node->args = new_vector();
         node->ty = calloc(1, sizeof(Type));

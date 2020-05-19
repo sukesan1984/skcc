@@ -90,9 +90,13 @@ typedef struct Node {
     int val; // ty がTK_NUMの場合のみ使う
     char* name;
 
+    int break_label;
+
     // For switch and case
     Vector *cases;
     int case_label;
+
+    struct Node *target;
 
     // Global variable
     char *data;
@@ -204,6 +208,8 @@ enum {
 // parse.c
 noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);
+
+extern int nlabel;
 
 // tokenize.c
 Vector *tokenize(char *path, bool add_eof);
