@@ -223,6 +223,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "continue", 8) == 0 && !is_alnum(p[8])) {
+            Token *t = add_token(tokens, TK_CONTINUE, p);
+            p += 8;
+            t->len = 8;
+            t->end = p;
+            continue;
+        }
+
         if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
             Token *t = add_token(tokens, TK_FOR, p);
             p += 3;

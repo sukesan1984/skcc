@@ -221,6 +221,7 @@ static Node* walk(Node *node, bool decay) {
         node->lhs = walk(node->lhs, true);
         return node;
     case ND_BREAK:
+    case ND_CONTINUE:
         return node;
     case ND_CALL: {
         Var *var = map_get(vars, node->name);
