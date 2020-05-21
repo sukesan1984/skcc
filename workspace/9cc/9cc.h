@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -270,3 +271,8 @@ extern Vector *globals;
 
 // preprocess.c
 Vector *preprocess(Vector* tokens);
+
+//
+// main.c
+//
+extern char **include_paths;

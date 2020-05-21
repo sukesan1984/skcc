@@ -9,11 +9,12 @@ TEST_FILE=test/test.c
 $(OBJS): 9cc.h
 
 test: 9cc $(TEST_FILE)
-	./9cc -test
-	@./9cc $(TEST_FILE) > tmp-test.s
+	@./9cc -Iinclude  -I/usr/local/include -I/usr/include \
+		-I/usr/include/linux -I/usr/include/x86_64-linux-gnu \
+		-I.  $(TEST_FILE) > tmp-test.s
 	@gcc -static -o tmp-test tmp-test.s test/external.c
 	@./tmp-test
-	@./9cc test/comment.c > tmp-test2.s
+	@./9cc -I. test/comment.c > tmp-test2.s
 	@gcc -static -o tmp-test2 tmp-test2.s
 	@./tmp-test2
 
