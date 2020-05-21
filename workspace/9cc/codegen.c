@@ -56,7 +56,16 @@ void gen_initial() {
             continue;
         } else {
             printf("%s:\n", var->name);
-            printf("  .ascii \"%s\"\n", escape(var->data, var->len));
+            if (var->ty->ty != INT)
+                printf("  .ascii \"%s\"\n", escape(var->data, var->len));
+            else
+                // Only int is supported
+                if (var->has_initial_value) {
+                    printf("  .byte %d\n", var->val % 256);
+                    printf("  .byte %d\n", (var->val / 256) % 256);
+                    printf("  .byte %d\n", (var->val / 256 / 256) % 256);
+                    printf("  .byte %d\n", (var->val / 256 / 256 / 256) % 256);
+                }
         }
     }
 

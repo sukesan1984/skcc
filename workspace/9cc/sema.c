@@ -284,6 +284,11 @@ void sema(Vector *nodes) {
         // Global Variables
         if (node->op == ND_VARDEF) {
             Var *var = new_global(node->ty, node->name, node->data, node->len, node->is_extern);
+            if (node->has_initial_value) {
+                var->has_initial_value = true;
+                var->val = node->val;
+            }
+
             vec_push(globals, var);
             map_put(vars, node->name, var);
             continue;

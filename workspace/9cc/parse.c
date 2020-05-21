@@ -15,7 +15,7 @@ static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, 0, 0, false, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, false, 0, 0, false, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -770,9 +770,9 @@ Node *toplevel() {
     }
 
     ty = read_array(ty);
-    expect(';');
 
     if (is_typedef) {
+        expect(';');
         map_put(env->typedefs, name, ty);
         return NULL;
     }
@@ -785,6 +785,13 @@ Node *toplevel() {
     node->is_extern = is_extern;
     node->data = calloc(1, node->ty->size);
     node->len = node->ty->size;
+    node->has_initial_value = false;
+    if (consume('=')) {
+        // Only int is supported.
+        node->has_initial_value = true;
+        node->val = const_expr();
+    }
+    expect(';');
 
     return node;
 }
