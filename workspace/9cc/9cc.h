@@ -111,6 +111,7 @@ typedef struct Node {
     int offset;
 
     bool is_extern;
+    bool is_static;
 } Node;
 
 // トークンの型を表す値
@@ -157,6 +158,7 @@ enum {
     TK_XOR_EQ, // ^=
     TK_BITOR_EQ, // |=
     TK_PARAM,
+    TK_STATIC, // static
 };
 
 enum {

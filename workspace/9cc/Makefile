@@ -12,7 +12,9 @@ test: 9cc $(TEST_FILE)
 	@./9cc -Iinclude  -I/usr/local/include -I/usr/include \
 		-I/usr/include/linux -I/usr/include/x86_64-linux-gnu \
 		-I.  $(TEST_FILE) > tmp-test.s
-	@gcc -static -o tmp-test tmp-test.s test/external.c
+	echo 'int static_fn() { return 5; }' | \
+		gcc -xc -c -o tmp2.o -
+	@gcc -static -o tmp-test tmp-test.s test/external.c tmp2.o
 	@./tmp-test
 	@./9cc -I. test/comment.c > tmp-test2.s
 	@gcc -static -o tmp-test2 tmp-test2.s

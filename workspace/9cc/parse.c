@@ -15,7 +15,7 @@ static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, 0, 0, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, 0, 0, false, false};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -129,7 +129,7 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
 static char *ident() {
     Token *t = tokens->data[pos++];
     if (t->ty != TK_IDENT)
-        error("identifier expected, but got %s", t->input);
+        error("identifier expected, but got %s ty: %d", t->input, t->ty);
     return t->name;
 }
 
@@ -731,6 +731,7 @@ Node* compound_stmt() {
 Node *toplevel() {
     bool is_typedef = consume(TK_TYPEDEF);
     bool is_extern = consume(TK_EXTERN);
+    bool is_static = consume(TK_STATIC);
     Type *ty = decl_specifiers();
 
     while (consume('*'))
@@ -762,6 +763,7 @@ Node *toplevel() {
         }
 
         node->op = ND_FUNC;
+        node->is_static = is_static;
         expect('{');
         node->body = compound_stmt();
         return node;
