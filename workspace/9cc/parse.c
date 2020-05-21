@@ -164,7 +164,7 @@ static Type* read_array(Type *ty) {
 }
 
 static Node *compound_stmt();
-static Type *read_type();
+static Type *decl_specifiers();
 Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
@@ -209,7 +209,7 @@ Node *primary() {
         Token *t2 = tokens->data[pos + 1];
         if (t1->ty == '(' && is_typename(t2)) {
             expect('(');
-            Type* ty = read_type();
+            Type* ty = decl_specifiers();
             expect(')');
             if (ty-ty == VOID)
                 error("voidはだめ\n");
@@ -488,22 +488,49 @@ Node *expr() {
     return new_node(',', lhs, expr());
 }
 
+static Node *declarator(Type *ty);
+static Node *direct_decl(Type *ty) {
+    Token *t = tokens->data[pos];
+    Node *node;
+    Type *placeholder = calloc(1, sizeof(Type));
+    if (t->ty == TK_IDENT) {
+        node = calloc(1, sizeof(Node));
+        node->op = ND_VARDEF;
+        node->ty = placeholder;
+        node->name = ident();
+    } else if (consume('(')) {
+        node = declarator(placeholder);
+        expect(')');
+    } else {
+        bad_token(t, "bad direct-declarator");
+    }
 
-Node *decl() {
-    Node *node = calloc(1, sizeof(Node));
-    node->op = ND_VARDEF;
-    node->ty = read_type();
-    while (consume('*'))
-        node->ty = ptr_to(node->ty);
-    node->name = ident();
-    node->ty = read_array(node->ty);
     if (node->ty->ty == VOID)
         error("void variable: %s", node->name);
+    *placeholder = *read_array(ty);
+
     if(consume('=')) {
         node->init = expr();
     }
+    return node;
+}
+
+static Node *declarator(Type *ty) {
+    while (consume('*'))
+        ty = ptr_to(ty);
+    return direct_decl(ty);
+}
+
+static Node *declaration() {
+    Type *ty = decl_specifiers();
+    Node *node = declarator(ty);
     expect(';');
     return node;
+}
+
+static Node *param_declaration() {
+    Type *ty = decl_specifiers();
+    return declarator(ty);
 }
 
 Node *expr_stmt() {
@@ -511,17 +538,6 @@ Node *expr_stmt() {
     expect(';');
     return node;
 }
-
-Node *param() {
-    Node *node = calloc(1, sizeof(Node));
-    node->op = ND_VARDEF;
-    node->ty = read_type();
-    while (consume('*'))
-        node->ty = ptr_to(node->ty);
-    node->name = ident();
-    return node;
-}
-
 
 static Node* stmt();
 Node *control() {
@@ -598,7 +614,7 @@ Node *control() {
             vec_push(breaks, node);
             vec_push(continues, node);
             if (is_typename(tokens->data[pos])) {
-                node->lhs = decl();
+                node->lhs = declaration();
             } else if (consume(';')){
                 node->lhs = &null_stmt;
             } else {
@@ -625,7 +641,7 @@ Node *control() {
 
 Node *stmt() {
     if (is_typename(tokens->data[pos]))
-        return decl();
+        return declaration();
     Node *node = calloc(1, sizeof(Node));
     Token *t = tokens->data[pos];
 
@@ -672,7 +688,7 @@ Node *stmt() {
         }
         case TK_TYPEDEF:
             pos++;
-            node = decl();
+            node = declaration();
             map_put(env->typedefs, node->name, node->ty);
             return &null_stmt;
         default:
@@ -695,7 +711,7 @@ Node *toplevel() {
     bool is_extern = false;
     if (consume(TK_EXTERN))
         is_extern = true;
-    Type *ty = read_type();
+    Type *ty = decl_specifiers();
     if (!ty) {
         Token *t = tokens->data[pos];
         error("typename expected, but got %s", t->input);
@@ -718,9 +734,9 @@ Node *toplevel() {
         node->ty->ty = FUNC;
         node->ty->returning = ty;
         if (!consume(')')) {
-            vec_push(node->args, param());
+            vec_push(node->args, param_declaration());
             while(consume(','))
-                vec_push(node->args, param());
+                vec_push(node->args, param_declaration());
             expect(')');
         }
 
@@ -748,7 +764,7 @@ Node *toplevel() {
     return node;
 }
 
-static Type *read_type() {
+static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
     if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID)
         error("typename expected, but got %s", t->input);
@@ -790,7 +806,7 @@ static Type *read_type() {
         if (consume('{')) {
             members = new_vector();
             while (!consume('}'))
-                vec_push(members, decl());
+                vec_push(members, declaration());
         }
 
         if (!tag && !members)
@@ -807,6 +823,7 @@ static Type *read_type() {
 
         return struct_of(members);
     }
+    bad_token(t, "typename expected");
     return NULL;
 }
 

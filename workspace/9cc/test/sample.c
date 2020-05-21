@@ -1,10 +1,7 @@
 int main() {
-    int i = 0;
-    for (int j =0; j < 10; j++) {
-        if (j < 3)
-            continue;
-        i++;
-    }
-    printf("%d\n", i);
+    int x[2];
+    x[0] = 1;
+    x[1] = 2;
+    printf("%p\n", x);
     return 0;
 }

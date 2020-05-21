@@ -28,6 +28,7 @@ int fuga() {
 int hoge() { return 20; }
 int add1(int a) { return a; }
 int add2(int a, int b) { return a + b; }
+int add2_array(int (*a)[2]) { return (*a)[0] + (*a)[1]; }
 int add3(int a, int b, int c) { return a + b + c; }
 int add4(int a, int b, int c, int d) { return a + b + c + d; }
 int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }
@@ -117,6 +118,8 @@ int main() {
     assert(25,  ({ int fuga; int hoge; fuga = fuga(); hoge = hoge(); fuga + hoge; }), " ({ int fuga; int hoge; fuga = fuga(); hoge = hoge(); fuga + hoge; })");
     assert(3,  ({ add1(3); }), " ({ add1(3); })");
     assert(7,  ({ add2(3, 4); }), " ({ add2(3, 4); })");
+    assert(8, ({ int ary[2][2]; ary[0][0]=3; ary[0][1]=5; add2_array(ary); }), "({ int ary[2][2]; ary[0][0]=3; ary[0][1]=5; add2_array(ary); })");
+    assert(8, ({ int ary[2][2]; ary[1][0]=3; ary[1][1]=5; add2_array(ary+1); }), "({ int ary[2][2]; ary[0][0]=3; ary[0][1]=5; add2_array(ary+t1); })");
     assert(12,  ({ add3(3, 4, 5); }), " ({ add3(3, 4, 5); })");
     assert(18,  ({ add4(3, 4, 5, 6); }), " ({ add4(3, 4, 5, 6); })");
     assert(25,  ({ add5(3, 4, 5, 6, 7); }), " ({ add5(3, 4, 5, 6, 7); })");
