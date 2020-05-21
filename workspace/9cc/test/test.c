@@ -177,6 +177,14 @@ int main() {
     assert(9, sizeof("ab\0c" "\0def"), "sizeof(\"abc\" \"def\")");
     assert(1, sizeof(char), "sizeof(char)");
     assert(4, sizeof(int), "sizeof(int)");
+    assert(8, sizeof(char*), "sizeof(char*)");
+    assert(8, sizeof(int *), "sizeof(int*)");
+    assert(8, sizeof(int **), "sizeof(int**)");
+    assert(8, sizeof(int(*)[4]), "sizeof(int(*)[4])");
+    assert(32, sizeof(int* [4]), "sizeof(int*[4])");
+    assert(16, sizeof(int [4]), "sizeof(int*[4])");
+    assert(48, sizeof(int [3][4]), "sizeof(int*[4])");
+
 
 // array
     assert(5,  ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); }), " ({ int a[2]; *a = 2; *(a + 1) = 3; int *p; p = a;  *p + *(p + 1); })");

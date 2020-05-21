@@ -163,6 +163,8 @@ static Type* read_array(Type *ty) {
     return ty;
 }
 
+static Type *abstract_declarator(Type *ty);
+
 static Node *compound_stmt();
 static Type *decl_specifiers();
 Node *primary() {
@@ -209,7 +211,8 @@ Node *primary() {
         Token *t2 = tokens->data[pos + 1];
         if (t1->ty == '(' && is_typename(t2)) {
             expect('(');
-            Type* ty = decl_specifiers();
+            Type *ty = decl_specifiers();
+            ty = abstract_declarator(ty);
             expect(')');
             if (ty-ty == VOID)
                 error("voidはだめ\n");
@@ -519,6 +522,24 @@ static Node *declarator(Type *ty) {
     while (consume('*'))
         ty = ptr_to(ty);
     return direct_decl(ty);
+}
+
+static Type *abstract_direct_decl(Type *ty) {
+    Type *placeholder = calloc(1, sizeof(Type));
+    Type *ret_type = placeholder;
+    if (consume('(')) {
+        ret_type = abstract_declarator(placeholder);
+        expect(')');
+    }
+    *placeholder = *read_array(ty);
+
+    return ret_type;
+}
+
+static Type *abstract_declarator(Type *ty) {
+    while (consume('*'))
+        ty = ptr_to(ty);
+    return abstract_direct_decl(ty);
 }
 
 static Node *declaration() {
