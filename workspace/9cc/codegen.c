@@ -55,6 +55,8 @@ void gen_initial() {
         if (var->is_extern) {
             continue;
         } else {
+            if (!var->is_static)
+                printf(".globl %s\n", var->name);
             printf("%s:\n", var->name);
             if (var->ty->ty != INT)
                 printf("  .ascii \"%s\"\n", escape(var->data, var->len));

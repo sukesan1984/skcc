@@ -1,5 +1,6 @@
 int g1;
 int g2[5];
+static int ext1 = 3;
 extern int global_var;
 
 typedef struct {
@@ -298,6 +299,7 @@ int main() {
     assert(3, ({ int x; int y; x=y=3; y; }), "({ int x; int y; x=y=3; y; })");
 // static
     assert(3, static_fn(), "static_fn()");
+    assert(3, ext1, "ext1");
 
 
     printf("OK\n");

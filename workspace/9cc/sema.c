@@ -40,11 +40,12 @@ Node *recreate_assgin_op(int ty, Node *lhs, Node *rhs) {
     return walk(create_new_node('=', lhs, new_rhs), true);
 }
 
-static Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern) {
+static Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool is_static) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
     var->is_local = false;
     var->is_extern = is_extern;
+    var->is_static = is_static;
     var->data = data;
     var->len = len;
     var->name = name;
@@ -58,7 +59,7 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_STR: {
         char *name = format(".L.str%d", str_label++);
-        Var *var = new_global(node->ty, name, node->data, node->len, false);
+        Var *var = new_global(node->ty, name, node->data, node->len, false, true);
         vec_push(globals, var);
         Node *ret = calloc(1, sizeof(Node));
         ret->op = ND_GVAR;
@@ -283,7 +284,7 @@ void sema(Vector *nodes) {
 
         // Global Variables
         if (node->op == ND_VARDEF) {
-            Var *var = new_global(node->ty, node->name, node->data, node->len, node->is_extern);
+            Var *var = new_global(node->ty, node->name, node->data, node->len, node->is_extern, node->is_static);
             if (node->has_initial_value) {
                 var->has_initial_value = true;
                 var->val = node->val;
@@ -295,7 +296,7 @@ void sema(Vector *nodes) {
         }
 
         assert(node->op == ND_DECL || node->op == ND_FUNC);
-        Var *var = new_global(node->ty, node->name, "", 0, node->is_extern);
+        Var *var = new_global(node->ty, node->name, "", 0, node->is_extern, node->is_static);
         map_put(vars, node->name, var);
         if (node->op == ND_DECL)
             continue;

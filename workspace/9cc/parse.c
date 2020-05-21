@@ -783,6 +783,7 @@ Node *toplevel() {
     node->op = ND_VARDEF;
     node->ty = ty;
     node->is_extern = is_extern;
+    node->is_static = is_static;
     node->data = calloc(1, node->ty->size);
     node->len = node->ty->size;
     node->has_initial_value = false;

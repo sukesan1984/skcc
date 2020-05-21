@@ -74,6 +74,7 @@ typedef struct {
     int val;
     char *name;
     bool is_extern;
+    bool is_static;
 } Var;
 
 typedef struct Node {
