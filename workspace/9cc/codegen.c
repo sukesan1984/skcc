@@ -60,6 +60,7 @@ void gen_initial() {
         }
     }
 
+    printf(".text\n");
     printf(".global main\n");
 }
 
