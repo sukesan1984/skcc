@@ -18,6 +18,12 @@ static Node *maybe_decay(Node *base, bool decay) {
     return node;
 }
 
+static void check_lval(Node *node) {
+    int op = node->op;
+    if (op != ND_LVAR && op != ND_GVAR && op != ND_DEREF && op != ND_DOT)
+        error("not an lvaleu: %d (%s)", op, node->name);
+}
+
 Node *create_new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->op = ty;
@@ -205,6 +211,7 @@ static Node* walk(Node *node, bool decay) {
         return maybe_decay(node, decay);
     case ND_ADDR:
         node->lhs = walk(node->lhs, true);
+        check_lval(node->lhs);
         node->ty = ptr_to(node->lhs->ty);
         return node;
     case ND_PREINC:
