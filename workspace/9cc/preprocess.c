@@ -280,6 +280,27 @@ static void define() {
     return objlike_macro(name);
 }
 
+static char *join_paths(char *dir, char *file) {
+    char *buf = malloc(strlen(dir) + strlen(file) + 2);
+    sprintf(buf, "%s/%s", dir, file);
+    return buf;
+}
+
+static bool file_exists(char *path) {
+    struct stat st;
+    return !stat(path, &st);
+}
+
+static char *search_include_paths(char *filename) {
+    // Search a file from the include paths.
+    for (char **p = include_paths; *p; p++) {
+        char *path = join_paths(*p, filename);
+        if (file_exists(path))
+            return path;
+    }
+    error("%s: file not found", filename);
+}
+
 static void include() {
     Token *t = next();//get(TK_STR, "string expected");
     if (t->ty == TK_STR) {
@@ -297,8 +318,7 @@ static void include() {
                 fprintf(stderr, "expected '>'");
             end += 1;
         }
-        char *path = join_tokens(start, end - 1);
-        fprintf(stderr, "path: %s\n", path);
+        char *path = search_include_paths(join_tokens(start, end - 1));
         append(tokenize(path, false));
     }
 }
