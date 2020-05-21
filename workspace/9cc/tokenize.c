@@ -295,6 +295,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "static", 6) == 0 && !is_alnum(p[6])) {
+            Token *t = add_token(tokens, TK_STATIC, p);
+            p += 6;
+            t->end = p;
+            t->len = 6;
+            continue;
+        }
+
         if (strncmp(p, "<<", 2) == 0) {
             Token *t = add_token(tokens, TK_LSHIFT, p);
             p += 2;

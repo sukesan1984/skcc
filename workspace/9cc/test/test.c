@@ -40,6 +40,7 @@ int add5(int a, int b, int c, int d, int e) { return a + b + c + d + e; }
 int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f; }
 int plus(int x, int y) { return x + y; }
 void nop() {}
+static int static_fn() { return 3; }
 
 int main() {
 #include "test/test3.h"
@@ -295,6 +296,9 @@ int main() {
 
     assert(3, ({ int x; int y; x=y=3; x; }), "({ int x; int y; x=y=3; x; })");
     assert(3, ({ int x; int y; x=y=3; y; }), "({ int x; int y; x=y=3; y; })");
+// static
+    assert(3, static_fn(), "static_fn()");
+
 
     printf("OK\n");
     return 0;

@@ -677,6 +677,8 @@ void gen_main(Vector* v) {
         // 関数定義
         if (node->op == ND_FUNC) {
             printf("#ND_FUNCの処理\n");
+            if(!node->is_static)
+                printf(".globl %s\n", node->name);
             printf("%s:\n", node->name);
             // プロローグ
             // 使用した変数分の領域を確保する
