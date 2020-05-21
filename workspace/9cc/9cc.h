@@ -70,6 +70,8 @@ typedef struct {
     bool is_local;
     char* data;
     int len;
+    bool has_initial_value;
+    int val;
     char *name;
     bool is_extern;
 } Var;
@@ -104,6 +106,7 @@ typedef struct Node {
     // Global variable
     char *data;
     int len;
+    bool has_initial_value;
 
     int stacksize;
 
