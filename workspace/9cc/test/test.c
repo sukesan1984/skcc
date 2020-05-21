@@ -2,6 +2,11 @@ int g1;
 int g2[5];
 extern int global_var;
 
+typedef struct {
+    int x;
+    int y;
+} HogeStruct;
+
 int printf();
 int fprintf();
 int exit();
@@ -223,6 +228,7 @@ int main() {
     assert(48,  ({ struct { struct { int b; int c[5]; } a[2]; } x;  sizeof(x); }), " ({ struct { struct { int b; int c[5]; } a[2]; } x;  sizeof(x); })");
     assert(8,  ({ struct { struct { int b; int c[5]; } a[2]; } x; x.a[0].b = 3; x.a[0].c[1] = 5;  x.a[0].b + x.a[0].c[1]; }), " ({ struct { struct { int b; int c[5]; } a[2]; } x; x.a[0].b = 3; x.a[0].c[1] = 5;  x.a[0].b + x.a[0].c[1]; })");
     assert(4, ({ Point p; p.x = 4; p.y = 5; p.x; }), "({ Point p; p.x = 4; p.y = 5; p.x})");
+    assert(4, ({ HogeStruct p; p.x = 4; p.y = 5; p.x; }), "({ HogeStruct p; p.x = 4; p.y = 5; p.x})");
 
 // typedef
     assert(3,  ({ typedef int foo; foo x; x = 3;  x; }), " ({ typedef int foo; foo x; x = 3;  x; })");

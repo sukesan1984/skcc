@@ -708,14 +708,9 @@ Node* compound_stmt() {
 
 
 Node *toplevel() {
-    bool is_extern = false;
-    if (consume(TK_EXTERN))
-        is_extern = true;
+    bool is_typedef = consume(TK_TYPEDEF);
+    bool is_extern = consume(TK_EXTERN);
     Type *ty = decl_specifiers();
-    if (!ty) {
-        Token *t = tokens->data[pos];
-        error("typename expected, but got %s", t->input);
-    }
 
     while (consume('*'))
         ty = ptr_to(ty);
@@ -742,7 +737,7 @@ Node *toplevel() {
 
         if (consume(';')) {
             node->op = ND_DECL;
-            return node;
+            return NULL;
         }
 
         node->op = ND_FUNC;
@@ -751,15 +746,22 @@ Node *toplevel() {
         return node;
     }
 
+    ty = read_array(ty);
+    expect(';');
+
+    if (is_typedef) {
+        map_put(env->typedefs, name, ty);
+        return NULL;
+    }
+
     //Global variables
     Node *node = calloc(1, sizeof(Node));
     node->name = name;
     node->op = ND_VARDEF;
-    node->ty = read_array(ty);
+    node->ty = ty;
     node->is_extern = is_extern;
     node->data = calloc(1, node->ty->size);
     node->len = node->ty->size;
-    expect(';');
 
     return node;
 }
@@ -832,8 +834,11 @@ Vector *parse(Vector *tokens_) {
     pos = 0;
     Vector *v = new_vector();
     env = new_env(env);
-    while(((Token *)tokens->data[pos])->ty != TK_EOF)
-        vec_push(v, toplevel());
+    while(((Token *)tokens->data[pos])->ty != TK_EOF) {
+        Node *node = toplevel();
+        if (node)
+            vec_push(v, node);
+    }
     fprintf(stderr, "parse succeeded\n");
     return v;
 }
