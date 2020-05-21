@@ -184,6 +184,7 @@ int main() {
     assert(32, sizeof(int* [4]), "sizeof(int*[4])");
     assert(16, sizeof(int [4]), "sizeof(int*[4])");
     assert(48, sizeof(int [3][4]), "sizeof(int*[4])");
+    assert(8, sizeof(struct {int a; int b;}), " sizeof(struct {int a; int b;})");
 
 
 // array
