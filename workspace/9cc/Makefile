@@ -24,8 +24,10 @@ dump: 9cc
 	./dump.sh $(TEST_FILE)
 
 sample: 9cc
-	./dump.sh test/sample.c
-	gcc -static -o tmp tmp.s test/external.c
+	@./9cc -Iinclude  -I/usr/local/include -I/usr/include \
+		-I/usr/include/linux -I/usr/include/x86_64-linux-gnu \
+		-I. test/sample.c > tmp-sample.s
+	gcc -static -o tmp tmp-sample.s test/external.c
 	@./tmp
 
 break: 9cc
