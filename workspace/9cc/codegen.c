@@ -445,6 +445,18 @@ void gen_expr(Node *node){
             printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
             push("  push rax\n # !した値をつむ");
             return;
+        case ND_CAST: {
+            gen_expr(node->lhs);
+            if (node->ty->ty != BOOL)
+                return;
+            pop("  pop rax\n");
+            printf("  mov r10, 0\n");
+            printf("  cmp rax, r10 # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+            printf("  setne al  # != \n");
+            printf("  movzb rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            push("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
+            return;
+        }
         case ND_STMT_EXPR:
             gen_stmt(node->lhs);
             push("  sub rsp, 8#stmtをコンパイルして最後に値が入ってるはず\n");

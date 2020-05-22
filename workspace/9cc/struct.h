@@ -31,7 +31,7 @@ typedef struct {
 } Token;
 
 typedef struct Type {
-    enum {INT, PTR, ARRAY, CHAR, VOID, STRUCT, FUNC} ty;
+    int ty;
     int size;
     int align;
 

@@ -24,6 +24,14 @@ static void check_lval(Node *node) {
         error("not an lvaleu: %d (%s)", op, node->name);
 }
 
+static Node *cast(Node *base, Type *ty) {
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_CAST;
+    node->ty = ty;
+    node->lhs = base;
+    return node;
+}
+
 Node *create_new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->op = ty;
@@ -167,6 +175,8 @@ static Node* walk(Node *node, bool decay) {
     case '=':
         node->lhs = walk(node->lhs, false);
         node->rhs = walk(node->rhs, true);
+        if (node->lhs->ty->ty == BOOL)
+            node->rhs = cast(node->rhs, bool_ty());
         node->ty = node->lhs->ty;
         return node;
     case ND_SWITCH:
