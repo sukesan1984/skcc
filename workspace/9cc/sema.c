@@ -272,6 +272,7 @@ static Node* walk(Node *node, bool decay) {
         return node;
     default:
         assert(0 && "unknown node type");
+        return NULL;
     }
 }
 

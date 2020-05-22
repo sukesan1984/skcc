@@ -1,5 +1,11 @@
 #include "9cc.h"
 
+void assert(int cond) {
+    if (cond) return;
+    fprintf(stderr, "[ASSERT] %s, %d\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+}
+
 // エラーを報告するための関数
 noreturn void error(char *fmt, ...){
     va_list ap;
