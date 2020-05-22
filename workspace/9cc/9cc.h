@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
-#include <assert.h>
+//#include <assert.h>
+void assert(int expression);
 #include <stdnoreturn.h>
 #include <stdio.h>
 #include <stdlib.h>
