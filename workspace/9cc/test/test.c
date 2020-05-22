@@ -301,6 +301,13 @@ int main() {
     assert(3, static_fn(), "static_fn()");
     assert(3, ext1, "ext1");
 
+    int M1 = 5;
+#define M1 3
+    assert(3, M1, "M1");
+#define M1 4
+    assert(4, M1, "M1");
+#undef M1
+    assert(5, M1, "M1");
 
     printf("OK\n");
     return 0;
