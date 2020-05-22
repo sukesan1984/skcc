@@ -14,7 +14,7 @@ void assert(int expression);
 
 Type *ary_of(Type *base, size_t size);
 Type *ptr_to(Type *base);
-
+Type *bool_ty();
 
 // トークンの型を表す値
 enum {
@@ -61,6 +61,7 @@ enum {
     TK_BITOR_EQ, // |=
     TK_PARAM,
     TK_STATIC, // static
+    TK_BOOL, // _Bool
 };
 
 enum {
@@ -112,8 +113,19 @@ enum {
     ND_SWITCH,   // swtich
     ND_CASE,     // case
     ND_CONTINUE, // continue
+    ND_CAST,
 };
 
+enum {
+    INT,
+    PTR,
+    ARRAY,
+    CHAR,
+    VOID,
+    STRUCT,
+    FUNC,
+    BOOL,
+};
 // parse.c
 noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);

@@ -309,6 +309,16 @@ int main() {
 #undef M1
     assert(5, M1, "M1");
 
+// _Bool
+    assert(0, ({ _Bool x = 0; x; }), "({ _Bool x = 0; x; })");
+    assert(1, ({ _Bool x = 1; x; }), "({ _Bool x = 1; x; })");
+    assert(0, ({ _Bool x; x = 0; x; }), "({ _Bool x; x = 0; x; })");
+    assert(1, ({ _Bool x; x = 2; x; }), "({ _Bool x; x = 2; x; })");
+    assert(0, ({ _Bool x; int y = 0; x = y; x; }), "({ _Bool x; int y = 0; x = y; x; })");
+    assert(1, ({ _Bool x; int y = -1; x = y; x; }), "({ _Bool x; int y = -1; x = y; x; })");
+    assert(0, ({ _Bool x; int y = 0; x = y; x; }), "({ _Bool x; int y = 0; x = y; x; })");
+    assert(1, ({ _Bool x; int y = 1; x = y; x; }), "({ _Bool x; int y = 1; x = y; x; })");
+    
     printf("OK\n");
     return 0;
 }

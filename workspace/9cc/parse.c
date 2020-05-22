@@ -54,11 +54,12 @@ static Type *new_prim_ty(int ty, int size) {
 static Type *void_ty() { return new_prim_ty(VOID, 0); }
 static Type *char_ty() { return new_prim_ty(CHAR, 1); }
 static Type *int_ty() { return new_prim_ty(INT, 4); }
+Type *bool_ty() { return new_prim_ty(BOOL, 1); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return map_exists(env->typedefs, t->name);
-    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_VOID || t->ty == TK_STRUCT;
+    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -799,7 +800,7 @@ Node *toplevel() {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID)
+    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -817,6 +818,12 @@ static Type *decl_specifiers() {
     {
         pos++;
         return char_ty();
+    }
+
+    if (t->ty == TK_BOOL)
+    {
+        pos++;
+        return bool_ty();
     }
 
     if (t->ty == TK_VOID)

@@ -303,6 +303,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "_Bool", 5) == 0 && !is_alnum(p[5])) {
+            Token *t = add_token(tokens, TK_BOOL, p);
+            p += 5;
+            t->end = p;
+            t->len = 5;
+            continue;
+        }
+
         if (strncmp(p, "<<", 2) == 0) {
             Token *t = add_token(tokens, TK_LSHIFT, p);
             p += 2;
