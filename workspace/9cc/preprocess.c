@@ -31,11 +31,13 @@ typedef struct Macro {
     int ty;
     Vector *tokens;
     Vector *params;
+    bool deleted;
 } Macro;
 
 static Macro *new_macro(int ty, char *name) {
     Macro *m = calloc(1, sizeof(Macro));
     m->ty = ty;
+    m->deleted = false;
     m->tokens = new_vector();
     m->params = new_vector();
     map_put(macros, name, m);
@@ -280,6 +282,13 @@ static void define() {
     return objlike_macro(name);
 }
 
+static void undef() {
+    char *name = ident("macro name must be an identifier");
+    Macro *m = new_macro(OBJLIKE, name);
+    m->tokens = read_until_eol();
+    m->deleted = true;
+}
+
 static char *join_paths(char *dir, char *file) {
     char *buf = malloc(strlen(dir) + strlen(file) + 2);
     sprintf(buf, "%s/%s", dir, file);
@@ -332,6 +341,7 @@ Vector *preprocess(Vector *tokens) {
         Token *t = next();
         if (t->ty == TK_IDENT) {
             Macro *m = map_get(macros, t->name);
+            m = (m && m->deleted) ? NULL : m;
             if (m)
                 apply(m, t);
             else
@@ -349,6 +359,8 @@ Vector *preprocess(Vector *tokens) {
             define();
         } else if (!strcmp(t->name, "include")) {
             include();
+        } else if (!strcmp(t->name, "undef")) {
+            undef();
         } else {
             bad_token(t, "unknown directive");
         }
