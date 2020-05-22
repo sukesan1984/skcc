@@ -168,23 +168,3 @@ char *read_file(char *path) {
 int roundup(int x, int align) {
     return (x + align - 1) & ~(align - 1);
 }
-
-Type *struct_of(Vector *members) {
-    Type *ty = calloc(1, sizeof(Type));
-    ty->ty = STRUCT;
-    ty->members = members;
-    int offset = 0;
-    for (int i = 0; i < members->len; i++) {
-        Node *node = members->data[i];
-        assert(node->op == ND_VARDEF);
-        Type *t = node->ty;
-        offset = roundup(offset, t->align);
-        t->offset = offset;
-        offset += t->size;
-        if (ty->align < node->ty->align) {
-            ty->align = node->ty->align;
-        }
-    }
-    ty->size = roundup(offset, ty->align);
-    return ty;
-}

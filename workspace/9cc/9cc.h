@@ -174,7 +174,6 @@ char *read_file(char *path);
 
 // util
 int roundup(int x, int align);
-Type *struct_of(Vector *members);
 
 // Global変数
 extern Node *code[100];

@@ -25,6 +25,20 @@ static Env *new_env(Env *next) {
     return env;
 }
 
+static Type *find_typedef(char *name) {
+    for (Env *e = env; e; e = e->next) 
+        if (map_exists(e->typedefs, name))
+            return map_get(e->typedefs, name);
+    return NULL;
+}
+
+static Type *find_tag(char *name) {
+    for (Env *e = env; e; e = e->next)
+        if (map_exists(e->tags, name))
+            return map_get(e->tags, name);
+    return NULL;
+}
+
 //int variables = 0;
 int consume(int ty) {
     Token *t = tokens->data[pos];
@@ -58,7 +72,7 @@ Type *bool_ty() { return new_prim_ty(BOOL, 1); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
-        return map_exists(env->typedefs, t->name);
+        return find_typedef(t->name);
     return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT;
 }
 
@@ -798,13 +812,30 @@ Node *toplevel() {
     return node;
 }
 
+static void add_members(Type *ty, Vector *members) {
+    int off = 0;
+    for (int i = 0; i < members->len; i++) {
+        Node *node = members->data[i];
+        assert(node->op == ND_VARDEF);
+
+        Type *t = node->ty;
+        off = roundup(off, t->align);
+        t->offset = off;
+        off += t->size;
+        if (ty->align < node->ty->align)
+            ty->align = node->ty->align;
+    }
+    ty->members = members;
+    ty->size = roundup(off, ty->align);
+}
+
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
     if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
-        Type *ty = map_get(env->typedefs, t->name);
+        Type *ty = find_typedef(t->name);
         if (ty)
             pos++;
         return ty;
@@ -852,16 +883,20 @@ static Type *decl_specifiers() {
         if (!tag && !members)
             error("bad struct definition");
 
-        if (tag && members) {
-            map_put(env->tags, tag, members);
-        } else if (tag && !members) {
-            members = map_get(env->tags, tag);
-            t = tokens->data[pos];
-            if (!members)
-                error("incomplete type: %s input: %s", tag, t->input);
+        Type *ty = NULL;
+        if (tag && !members)
+            ty = find_tag(tag);
+        if (!ty) {
+            ty = calloc(1, sizeof(Type));
+            ty->ty = STRUCT;
         }
 
-        return struct_of(members);
+        if (members) {
+            add_members(ty, members);
+            if (tag)
+                map_put(env->tags, tag, ty);
+        }
+        return ty;
     }
     bad_token(t, "typename expected");
     return NULL;
