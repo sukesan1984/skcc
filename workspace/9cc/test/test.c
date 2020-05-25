@@ -318,6 +318,14 @@ int main() {
     assert(1, ({ _Bool x; int y = -1; x = y; x; }), "({ _Bool x; int y = -1; x = y; x; })");
     assert(0, ({ _Bool x; int y = 0; x = y; x; }), "({ _Bool x; int y = 0; x = y; x; })");
     assert(1, ({ _Bool x; int y = 1; x = y; x; }), "({ _Bool x; int y = 1; x = y; x; })");
+// local variable initialize
+    assert(1, ({ int x[3] = {1, 2, 3}; x[0]; }), "({ int x[3] = {1, 2, 3}; x[0]; })");
+    assert(2, ({ int x[3] = {1, 2, 3}; x[1]; }), "({ int x[3] = {1, 2, 3}; x[0]; })");
+    assert(3, ({ int x[3] = {1, 2, 3}; x[2]; }), "({ int x[3] = {1, 2, 3}; x[0]; })");
+    assert(2, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[0][1]; }), "({ int x[2][3]={{1,2,3},{4,5,6}}; x[0][1]; })");
+    assert(4, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; }), "({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][0]; })");
+    assert(6, ({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; }), "({ int x[2][3]={{1,2,3},{4,5,6}}; x[1][2]; })");
+
     
     printf("OK\n");
     return 0;

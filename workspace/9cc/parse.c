@@ -15,7 +15,12 @@ static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, false, 0, 0, false, false};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, false, 0, 0, false, false, NULL};
+typedef struct Designator Designator;
+struct Designator {
+    Designator *next;
+    int idx;
+};
 
 static Env *new_env(Env *next) {
     Env *env = calloc(1, sizeof(Env));
@@ -26,7 +31,7 @@ static Env *new_env(Env *next) {
 }
 
 static Type *find_typedef(char *name) {
-    for (Env *e = env; e; e = e->next) 
+    for (Env *e = env; e; e = e->next)
         if (map_exists(e->typedefs, name))
             return map_get(e->typedefs, name);
     return NULL;
@@ -139,6 +144,24 @@ Node *new_node_for(int ty, Node *lhs, Node *lhs2, Node *lhs3, Node *rhs) {
     node->lhs3 = lhs3;
     node->rhs = rhs;
     return node;
+}
+
+static Node *new_desg_node2(Type *type, char *name, Designator *desg) {
+    if (!desg)
+        return new_node_ident(name);
+
+    Node *node = new_desg_node2(type, name, desg->next);
+    node = new_node('+', node, new_node_num(desg->idx));
+    return new_expr(ND_DEREF, node);
+}
+
+static Node *new_desg_node(Type *type, char *name, Designator *desg, Node *rhs) {
+    Node *lhs = new_desg_node2(type, name, desg);
+    Node *node = new_node('=', lhs, rhs);
+    Node *n = calloc(1, sizeof(Node));
+    n->op = ND_EXPR_STMT;
+    n->lhs = node;
+    return n;
 }
 
 static char *ident() {
@@ -506,6 +529,42 @@ Node *expr() {
     return new_node(',', lhs, expr());
 }
 
+static bool peek_end(void) {
+    bool ret = consume('}') || (consume(',') && consume('}'));
+    return ret;
+}
+
+static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg) {
+    if (ty->ty == ARRAY) {
+        expect('{');
+        int i = 0;
+        do {
+            Designator desg2 = { desg, i++ };
+            cur = lvar_initializer2(cur, ty->array_of, name, &desg2);
+        } while (!peek_end());
+        return cur;
+    }
+
+    Node *node = assign();
+    cur->next = new_desg_node(ty, name, desg, node);
+    return cur->next;
+}
+
+static Node *lvar_initializer(Type *type, char *name) {
+    Node head = {};
+    lvar_initializer2(&head, type, name, NULL);
+    Node *node = calloc(1, sizeof(Node));
+    node->op = ND_COMP_STMT;
+    node->stmts = new_vector();
+    Node *next = head.next;
+    while(next) {
+        vec_push(node->stmts, next);
+        next = next->next;
+    }
+
+    return node;
+}
+
 static Node *declarator(Type *ty);
 static Node *direct_decl(Type *ty) {
     Token *t = tokens->data[pos];
@@ -528,7 +587,7 @@ static Node *direct_decl(Type *ty) {
     *placeholder = *read_array(ty);
 
     if(consume('=')) {
-        node->init = expr();
+        node->init = lvar_initializer(node->ty, node->name);
     }
     return node;
 }

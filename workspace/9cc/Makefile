@@ -28,6 +28,7 @@ sample: 9cc
 		-I/usr/include/linux -I/usr/include/x86_64-linux-gnu \
 		-I. test/sample.c > tmp-sample.s
 	gcc -static -o tmp tmp-sample.s test/external.c
+	cat tmp-sample.s
 	@./tmp
 
 break: 9cc
