@@ -534,14 +534,32 @@ static bool peek_end(void) {
     return ret;
 }
 
+static Node *lvar_init_zero(Node *cur, Type *ty, char *name, Designator *desg) {
+    if (ty->ty == ARRAY) {
+        for (int i = 0; i < ty->array_size; i++) {
+            Designator desg2 = {desg, i++};
+            cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
+        }
+        return cur;
+    }
+    cur->next = new_desg_node(ty, name, desg, new_node_num(0));
+    return cur->next;
+}
+
 static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg) {
     if (ty->ty == ARRAY) {
         expect('{');
         int i = 0;
-        do {
-            Designator desg2 = { desg, i++ };
-            cur = lvar_initializer2(cur, ty->array_of, name, &desg2);
-        } while (!peek_end());
+        if (!consume('}')) {
+            do {
+                Designator desg2 = { desg, i++ };
+                cur = lvar_initializer2(cur, ty->array_of, name, &desg2);
+            } while (!peek_end());
+        }
+        while (i < ty->array_size) {
+            Designator desg2 = {desg, i++};
+            cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
+        }
         return cur;
     }
 
