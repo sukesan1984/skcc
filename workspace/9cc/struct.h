@@ -51,6 +51,7 @@ typedef struct Type {
     int offset;
     // Function
     struct Type *returning;
+    bool is_incomplete;
 } Type;
 
 typedef struct {
