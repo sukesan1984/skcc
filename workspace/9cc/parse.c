@@ -187,17 +187,21 @@ static int const_expr() {
 
 static Type* read_array(Type *ty) {
     Vector *v = new_vector();
+    bool is_incomplete = true;
     while(consume('[')) {
-        Node *len = expr();
-        if (len->op != ND_NUM)
-            error("number expected");
-        vec_push(v, len);
-        expect(']');
+        if (!consume(']')) {
+            Node *len = expr();
+            if (len->op != ND_NUM)
+                error("number expected");
+            vec_push(v, len);
+            expect(']');
+        }
     }
     for (int i = v->len - 1;  i >= 0; i--) {
         Node *len = v->data[i];
         ty = ary_of(ty, len->val);
     }
+    ty->is_incomplete = is_incomplete;
     return ty;
 }
 

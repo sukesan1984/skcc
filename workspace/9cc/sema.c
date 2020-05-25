@@ -1,6 +1,6 @@
 #include "9cc.h"
 
-static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0, NULL};
+static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0, NULL, 0};
 
 static int str_label;
 static Map *vars;
