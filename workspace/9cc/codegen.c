@@ -539,20 +539,7 @@ void gen_stmt(Node *node) {
         printf("#gen_stmt ND_VARDEFの処理がここはいる\n");
         if (!node->init)
             return;
-        gen_expr(node->init);
-        // 右辺の結果がスタックに入る入る
-        printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
-        printf("  sub rax, %d   # raxを%sのoffset:%d分だけ押し下げたアドレスが%sの変数のアドレス。それをraxに保存)\n", node->offset, node->name, node->offset, node->name);  // raxをoffset文だけ押し下げ（nameの変数のアドレスをraxに保存)
-        push("  push rax      # 結果をスタックに積む(変数のアドレスがスタック格納されてる) \n");             // raxをスタックにプッシュ
-        pop("  pop rax       # 代入すべきアドレスがスタックされている\n");
-        pop("  pop r10       # 宣言時の右辺の値が入っている\n");
-
-        char *reg = "r10";
-        if (node->ty->ty == INT)
-            reg = "r10d";
-        else if(node->ty->ty == CHAR)
-            reg = "r10b";
-        printf("  mov [rax], %s\n", reg);
+        gen_stmt(node->init);
         return;
     }
 
@@ -676,6 +663,7 @@ void gen_stmt(Node *node) {
     if (node->op == ND_EXPR_STMT) {
         printf("#gen_stmt ND_EXPR_STMTの処理\n");
         gen_expr(node->lhs);
+        fprintf(stderr, "expr_stmt: op%d(%d)\n", node->lhs->op, '=');
         pop("  pop rax # ND_EXPR_STMTなので、expressionからpopしておく\n");
         return;
     }

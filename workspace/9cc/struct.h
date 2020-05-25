@@ -105,5 +105,6 @@ typedef struct Node {
 
     bool is_extern;
     bool is_static;
+    struct Node *next;
 } Node;
 
