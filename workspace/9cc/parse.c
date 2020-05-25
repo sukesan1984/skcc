@@ -187,7 +187,7 @@ static int const_expr() {
 
 static Type* read_array(Type *ty) {
     Vector *v = new_vector();
-    bool is_incomplete = true;
+    bool is_incomplete = false;
     while(consume('[')) {
         if (!consume(']')) {
             Node *len = expr();
@@ -195,6 +195,9 @@ static Type* read_array(Type *ty) {
                 error("number expected");
             vec_push(v, len);
             expect(']');
+        } else {
+            is_incomplete = true;
+            ty = ary_of(ty, 0);
         }
     }
     for (int i = v->len - 1;  i >= 0; i--) {
@@ -554,6 +557,11 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
     if (ty->ty == ARRAY && ty->array_of->ty == CHAR) {
         Token* t = tokens->data[pos++];
         if (t->ty == TK_STR) {
+            if (ty->is_incomplete) {
+                ty->size = t->len;
+                ty->array_size = t->len;
+                ty->is_incomplete = false;
+            }
             int len = (ty->array_size < t->len) ? ty->array_size : t->len;
             for (int i = 0; i < len; i++) {
                 Designator desg2 = {desg, i};
@@ -582,6 +590,13 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
             Designator desg2 = {desg, i++};
             cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
         }
+
+        if (ty->is_incomplete) {
+            ty->size = ty->array_of->size * i;
+            ty->array_size = i;
+            ty->is_incomplete = false;
+        }
+
         return cur;
     }
 
@@ -626,8 +641,12 @@ static Node *direct_decl(Type *ty) {
         error("void variable: %s", node->name);
     *placeholder = *read_array(ty);
 
+
     if(consume('=')) {
         node->init = lvar_initializer(node->ty, node->name);
+    } else {
+        if (node->ty->is_incomplete)
+            error("incomplete type: %s", node->name);
     }
     return node;
 }
