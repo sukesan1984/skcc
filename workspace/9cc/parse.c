@@ -20,6 +20,7 @@ typedef struct Designator Designator;
 struct Designator {
     Designator *next;
     int idx;
+    char *name;
 };
 
 static Env *new_env(Env *next) {
@@ -151,6 +152,14 @@ static Node *new_desg_node2(Type *type, char *name, Designator *desg) {
         return new_node_ident(name);
 
     Node *node = new_desg_node2(type, name, desg->next);
+
+    if (desg->name) {
+        Node *n = calloc(1, sizeof(Node));
+        n->op = ND_DOT;
+        n->name = desg->name;
+        n->lhs = node;
+        return n;
+    }
     node = new_node('+', node, new_node_num(desg->idx));
     return new_expr(ND_DEREF, node);
 }
@@ -544,7 +553,7 @@ static bool peek_end(void) {
 static Node *lvar_init_zero(Node *cur, Type *ty, char *name, Designator *desg) {
     if (ty->ty == ARRAY) {
         for (int i = 0; i < ty->array_size; i++) {
-            Designator desg2 = {desg, i++};
+            Designator desg2 = {desg, i++, NULL};
             cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
         }
         return cur;
@@ -564,14 +573,14 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
             }
             int len = (ty->array_size < t->len) ? ty->array_size : t->len;
             for (int i = 0; i < len; i++) {
-                Designator desg2 = {desg, i};
+                Designator desg2 = {desg, i, NULL};
                 Node *rhs = new_node_num(t->str[i]);
                 cur->next = new_desg_node(ty, name, &desg2, rhs);
                 cur = cur->next;
             }
 
             for (int i = len; i < ty->array_size; i++) {
-                Designator desg2 = {desg, i};
+                Designator desg2 = {desg, i, NULL};
                 cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
             }
             return cur;
@@ -582,12 +591,12 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
         int i = 0;
         if (!consume('}')) {
             do {
-                Designator desg2 = { desg, i++ };
+                Designator desg2 = { desg, i++, NULL};
                 cur = lvar_initializer2(cur, ty->array_of, name, &desg2);
             } while (!peek_end());
         }
         while (i < ty->array_size) {
-            Designator desg2 = {desg, i++};
+            Designator desg2 = {desg, i++, NULL};
             cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
         }
 
@@ -599,6 +608,26 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
 
         return cur;
     }
+
+    if (ty->ty == STRUCT) {
+        expect('{');
+        int i = 0;
+        Vector *members = ty->members;
+        if (!consume('}')) {
+            do {
+                Node *n = members->data[i++];
+                Designator desg2 = { desg, 0, n->name };
+                cur = lvar_initializer2(cur, n->ty, name, &desg2);
+            } while (!peek_end());
+        }
+        while (i < ty->members->len) {
+            Node *n = members->data[i++];
+            Designator desg2 = { desg, 0, n->name };
+            cur = lvar_init_zero(cur, n->ty, name, &desg2);
+        }
+        return cur;
+    }
+
 
     Node *node = assign();
     cur->next = new_desg_node(ty, name, desg, node);
