@@ -663,7 +663,6 @@ void gen_stmt(Node *node) {
     if (node->op == ND_EXPR_STMT) {
         printf("#gen_stmt ND_EXPR_STMTの処理\n");
         gen_expr(node->lhs);
-        fprintf(stderr, "expr_stmt: op%d(%d)\n", node->lhs->op, '=');
         pop("  pop rax # ND_EXPR_STMTなので、expressionからpopしておく\n");
         return;
     }
