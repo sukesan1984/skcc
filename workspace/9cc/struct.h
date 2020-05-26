@@ -54,17 +54,24 @@ typedef struct Type {
     bool is_incomplete;
 } Type;
 
+typedef struct Initializer {
+    struct Initializer *next;
+    int sz;
+    long val;
+
+    char *label;
+} Initializer;
+
 typedef struct {
     Type *ty;
     int offset;
     bool is_local;
     char* data;
     int len;
-    bool has_initial_value;
-    int val;
     char *name;
     bool is_extern;
     bool is_static;
+    Initializer *initializer;
 } Var;
 
 typedef struct Node {
@@ -97,7 +104,7 @@ typedef struct Node {
     // Global variable
     char *data;
     int len;
-    bool has_initial_value;
+    Initializer *initializer;
 
     int stacksize;
 

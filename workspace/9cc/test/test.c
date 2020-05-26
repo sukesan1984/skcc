@@ -2,6 +2,10 @@ int g1;
 int g2[5];
 static int ext1 = 3;
 extern int global_var;
+char g3 = 3;
+int g4 = 5;
+int *g5 = &g4;
+char *g6 = "abc";
 
 typedef struct {
     int x;
@@ -10,6 +14,7 @@ typedef struct {
 
 int printf();
 int fprintf();
+int strcmp(char *p, char *q);
 int exit();
 int *alloc(int x);
 int **alloc2(int x);
@@ -358,7 +363,11 @@ int main() {
     assert(0, ({ struct {int a; int b;} x={}; x.a; }), "struct {int a; int b;}; x={}; x.a;");
     assert(0, ({ struct {int a; int b;} x={}; x.b; }), "struct {int a; int b;}; x={}; x.b;");
 
-    
+    assert(3, g3, "g3");
+    assert(5, g4, "g4");
+    assert(5, *g5, "*g5");
+    assert(0, strcmp(g6, "abc"), "strcmp(g6, \"abc\")");
+
     printf("OK\n");
     return 0;
 }
