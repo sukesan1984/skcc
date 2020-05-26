@@ -126,7 +126,9 @@ enum {
     FUNC,
     BOOL,
 };
+
 // parse.c
+Initializer *gvar_init_string(char *p, int len);
 noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);
 

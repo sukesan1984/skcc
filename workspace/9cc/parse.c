@@ -15,7 +15,7 @@ static Vector *tokens;
 
 int pos = 0;
 struct Env *env;
-static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, false, 0, 0, false, false, NULL};
+static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, NULL, 0, 0, false, false, NULL};
 typedef struct Designator Designator;
 struct Designator {
     Designator *next;
@@ -890,6 +890,100 @@ Node* compound_stmt() {
 }
 
 
+static Initializer *new_init_val(Initializer *cur, int sz, int val) {
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->sz = sz;
+    init->val = val;
+    cur->next = init;
+    return init;
+}
+
+static Initializer *new_init_label(Initializer *cur, char *label) {
+    Initializer *init = calloc(1, sizeof(Initializer));
+    init->label = label;
+    cur->next = init;
+    return init;
+}
+
+Initializer *gvar_init_string(char *p, int len) {
+    Initializer head = {};
+    Initializer *cur = &head;
+    for (int i = 0; i < len; i++)
+        cur = new_init_val(cur, 1, p[i]);
+    return head.next;
+}
+
+static long eval(Node *node) {
+    switch(node->op) {
+        case '+':
+            return eval(node->lhs) + eval(node->rhs);
+        case '-':
+            return eval(node->lhs) - eval(node->rhs);
+        case '*':
+            return eval(node->lhs) * eval(node->rhs);
+        case '/':
+            return eval(node->lhs) / eval(node->rhs);
+        case '&':
+            return eval(node->lhs) & eval(node->rhs);
+        case '|':
+            return eval(node->lhs) | eval(node->rhs);
+        case '^':
+            return eval(node->lhs) ^ eval(node->rhs);
+        case ND_LSHIFT:
+            return eval(node->lhs) << eval(node->rhs);
+        case ND_RSHIFT:
+            return eval(node->lhs) >> eval(node->rhs);
+        case ND_EQ:
+            return eval(node->lhs) == eval(node->rhs);
+        case ND_NE:
+            return eval(node->lhs) != eval(node->rhs);
+        case '<':
+            return eval(node->lhs) < eval(node->rhs);
+        case ND_LE:
+            return eval(node->lhs) <= eval(node->rhs);
+        case '?':
+            return eval(node->cond) ? eval(node->if_body) : eval(node->else_body);
+        case ',':
+            return eval(node->rhs);
+        case '!':
+            return !eval(node->lhs);
+        case '~':
+            return ~eval(node->lhs);
+        case ND_LOGAND:
+            return eval(node->lhs) && eval(node->rhs);
+        case ND_LOGOR:
+            return eval(node->lhs) || eval(node->rhs);
+        case ND_NUM:
+            return node->val;
+    }
+    error("not a constant expression %d", node->op);
+}
+
+static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
+    Node *expr = conditional();
+    if (expr->op == ND_ADDR) {
+        if (expr->lhs->op != ND_IDENT)
+            error("invalid initializer");
+        return new_init_label(cur, expr->lhs->name);
+    }
+
+    if (expr->op == ND_VARDEF && expr->ty->ty == ARRAY)
+        return new_init_label(cur, expr->name);
+
+    if (expr->op == ND_STR) {
+        cur->next = gvar_init_string(expr->data, expr->len);
+        return cur->next;
+    }
+
+    return new_init_val(cur, ty->size, eval(expr));
+}
+
+static Initializer *gvar_initializer(Type *ty) {
+    Initializer head = {};
+    gvar_initializer2(&head, ty);
+    return head.next;
+}
+
 Node *toplevel() {
     bool is_typedef = consume(TK_TYPEDEF);
     bool is_extern = consume(TK_EXTERN);
@@ -948,12 +1042,8 @@ Node *toplevel() {
     node->is_static = is_static;
     node->data = calloc(1, node->ty->size);
     node->len = node->ty->size;
-    node->has_initial_value = false;
-    if (consume('=')) {
-        // Only int is supported.
-        node->has_initial_value = true;
-        node->val = const_expr();
-    }
+    if (consume('='))
+        node->initializer = gvar_initializer(ty);
     expect(';');
 
     return node;

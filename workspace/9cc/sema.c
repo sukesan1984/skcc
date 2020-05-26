@@ -60,6 +60,7 @@ static Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern
     return var;
 }
 
+
 static Node* walk(Node *node, bool decay) {
     switch (node->op) {
     case ND_NUM:
@@ -68,6 +69,7 @@ static Node* walk(Node *node, bool decay) {
     case ND_STR: {
         char *name = format(".L.str%d", str_label++);
         Var *var = new_global(node->ty, name, node->data, node->len, false, true);
+        var->initializer = gvar_init_string(node->data, node->len);
         vec_push(globals, var);
         Node *ret = calloc(1, sizeof(Node));
         ret->op = ND_GVAR;
@@ -296,9 +298,10 @@ void sema(Vector *nodes) {
         // Global Variables
         if (node->op == ND_VARDEF) {
             Var *var = new_global(node->ty, node->name, node->data, node->len, node->is_extern, node->is_static);
-            if (node->has_initial_value) {
-                var->has_initial_value = true;
-                var->val = node->val;
+            if (node->initializer) {
+                var->initializer = node->initializer;
+                //var->has_initial_value = true;
+                //var->val = node->val;
             }
 
             vec_push(globals, var);

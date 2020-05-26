@@ -4,29 +4,6 @@ char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char* argreg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
-static char *escape(char *s, int len) {
-    static char escaped[256] = {
-        ['\b'] = 'b', ['\f'] = 'f', ['\n'] = 'n', ['\r'] = 'r',
-        ['\t'] = 't', ['\\'] = '\\', ['\''] = '\'', ['"'] = '"',
-    };
-    char *buf = malloc(len * 4);
-    char *p = buf;
-    for (int i = 0; i < len; i++) {
-        uint8_t c = s[i];
-        char esc = escaped[c];
-        if (esc) {
-            *p++ = '\\';
-            *p++ = esc;
-        } else if (isgraph(s[i]) || s[i] == ' ') {
-            *p++ = s[i];
-        } else {
-            sprintf(p, "\\%03o", s[i]);
-            p += 4;
-        }
-    }
-    *p = '\0';
-    return buf;
-}
 
 int stack = 0;
 
@@ -58,16 +35,18 @@ void gen_initial() {
             if (!var->is_static)
                 printf(".globl %s\n", var->name);
             printf("%s:\n", var->name);
-            if (var->ty->ty != INT)
-                printf("  .ascii \"%s\"\n", escape(var->data, var->len));
-            else
-                // Only int is supported
-                if (var->has_initial_value) {
-                    printf("  .byte %d\n", var->val % 256);
-                    printf("  .byte %d\n", (var->val / 256) % 256);
-                    printf("  .byte %d\n", (var->val / 256 / 256) % 256);
-                    printf("  .byte %d\n", (var->val / 256 / 256 / 256) % 256);
-                }
+            if (!var->initializer) {
+                printf("  .zero %d\n", var->ty->size);
+                continue;
+            }
+            for (Initializer *init = var->initializer; init; init = init->next) {
+                if (init->label)
+                    printf("  .quad %s\n", init->label);
+                else if(init->sz == 1)
+                    printf("  .byte %ld\n", init->val);
+                else
+                    printf("  .%dbyte %ld\n", init->sz, init->val);
+            }
         }
     }
 
@@ -151,15 +130,35 @@ void gen_expr(Node *node){
         }
 
         case ND_GVAR:
-        case ND_LVAR: {
-            printf("#gen_expr ND_IDENTの処理開始\n");
+            printf("#gen_expr ND_GVARの処理開始 \n");
             gen_lval(node);
             pop("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
             char *reg = "rax";
-            if (node->ty->ty == INT)
+            if (node->ty->ty == INT) {
                 reg = "eax";
-            else if(node->ty->ty == CHAR) {
-                push("  push rax\n");
+            } else if (node->ty->ty == CHAR) {
+                printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
+                printf("  movzb rax, al\n");
+                push("  push rax   \n");         // スタックにraxをpush
+                return;
+            } else if (node->ty->ty == PTR && node->ty->ptr_to->ty == CHAR) {
+                push("  push rax \n");
+                return;
+            }
+            printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
+            push("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
+            return;
+        case ND_LVAR: {
+            printf("#gen_expr ND_LVARの処理開始 \n");
+            gen_lval(node);
+            pop("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
+            char *reg = "rax";
+            if (node->ty->ty == INT) {
+                reg = "eax";
+            } else if (node->ty->ty == CHAR) {
+                printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
+                printf("  movzb rax, al\n");
+                push("  push rax   \n");         // スタックにraxをpush
                 return;
             }
             printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
