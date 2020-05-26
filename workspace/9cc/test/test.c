@@ -6,6 +6,8 @@ char g3 = 3;
 int g4 = 5;
 int *g5 = &g4;
 char *g6 = "abc";
+int g7[3] = {0, 1, 2};
+char *g8[] = {"foo", "bar"};
 
 typedef struct {
     int x;
@@ -367,6 +369,13 @@ int main() {
     assert(5, g4, "g4");
     assert(5, *g5, "*g5");
     assert(0, strcmp(g6, "abc"), "strcmp(g6, \"abc\")");
+
+    assert(0, g7[0], "g7[0]");
+    assert(1, g7[1], "g7[1]");
+    assert(2, g7[2], "g7[2]");
+
+    assert(0, strcmp(g8[0], "foo"), "strcmp(g8[0], \"foo\")");
+    assert(0, strcmp(g8[1], "bar"), "strcmp(g8[1], \"bar\")");
 
     printf("OK\n");
     return 0;
