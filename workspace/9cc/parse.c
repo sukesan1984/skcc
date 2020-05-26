@@ -1,6 +1,8 @@
 #include "9cc.h"
 
 int nlabel = 1;
+static int str_label = 0;
+extern Vector* globals;
 
 typedef struct Env {
     Map *tags;
@@ -228,7 +230,18 @@ Node *primary() {
     }
 
     if (t->ty == TK_STR) {
-        return new_node_str((Token *) tokens->data[pos++]);
+        Token *t = tokens->data[pos++];
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_GVAR;
+        node->ty = ary_of(char_ty(), t->len);
+        char *name = format(".L.str%d", str_label++);
+        node->name = name;
+        Var *var = new_global(node->ty, name, t->str, t->len, false, true);
+        var->initializer = gvar_init_string(t->str, t->len);
+        if(!globals)
+            globals = new_vector();
+        vec_push(globals, var);
+        return node;
     }
 
     if (consume(TK_IDENT)) {
@@ -959,7 +972,34 @@ static long eval(Node *node) {
     error("not a constant expression %d", node->op);
 }
 
+static Initializer *new_init_zero(Initializer *cur, int nbytes) {
+    for (int i = 0;  i < nbytes; i++)
+        cur = new_init_val(cur, 1, 0);
+    return cur;
+}
+
 static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
+    fprintf(stderr, "gvar_initializer2: %d(%d)\n", ty->ty, ARRAY);
+    if (ty->ty == ARRAY) {
+        expect('{');
+        int i = 0;
+
+        if (!consume('}')) {
+            do {
+                cur = gvar_initializer2(cur, ty->array_of);
+                i++;
+            } while (!peek_end());
+        }
+
+        if (i < ty->array_size)
+            cur = new_init_zero(cur, ty->array_of->size * (ty->array_size - i));
+        if (ty->is_incomplete) {
+            ty->size = ty->array_of->size * i;
+            ty->array_size = i;
+            ty->is_incomplete = false;
+        }
+        return cur;
+    }
     Node *expr = conditional();
     if (expr->op == ND_ADDR) {
         if (expr->lhs->op != ND_IDENT)
@@ -967,13 +1007,8 @@ static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
         return new_init_label(cur, expr->lhs->name);
     }
 
-    if (expr->op == ND_VARDEF && expr->ty->ty == ARRAY)
+    if ((expr->op == ND_VARDEF || expr->op == ND_GVAR) && expr->ty->ty == ARRAY)
         return new_init_label(cur, expr->name);
-
-    if (expr->op == ND_STR) {
-        cur->next = gvar_init_string(expr->data, expr->len);
-        return cur->next;
-    }
 
     return new_init_val(cur, ty->size, eval(expr));
 }

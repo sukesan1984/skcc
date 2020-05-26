@@ -130,24 +130,6 @@ void gen_expr(Node *node){
         }
 
         case ND_GVAR:
-            printf("#gen_expr ND_GVARの処理開始 \n");
-            gen_lval(node);
-            pop("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
-            char *reg = "rax";
-            if (node->ty->ty == INT) {
-                reg = "eax";
-            } else if (node->ty->ty == CHAR) {
-                printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
-                printf("  movzb rax, al\n");
-                push("  push rax   \n");         // スタックにraxをpush
-                return;
-            } else if (node->ty->ty == PTR && node->ty->ptr_to->ty == CHAR) {
-                push("  push rax \n");
-                return;
-            }
-            printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
-            push("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
-            return;
         case ND_LVAR: {
             printf("#gen_expr ND_LVARの処理開始 \n");
             gen_lval(node);
@@ -173,9 +155,9 @@ void gen_expr(Node *node){
             printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
             pop("  pop rax        \n");          // スタックからpopしてraxに格納
             char *reg = "rax";
-            if (node->ty->ty == INT)
+            if (node->ty->ty == INT) {
                 reg = "eax";
-            else if(node->ty->ty == CHAR) {
+            } else if(node->ty->ty == CHAR) {
                 printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
                 printf("  movzb rax, al\n");
                 push("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush

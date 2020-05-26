@@ -48,7 +48,7 @@ Node *recreate_assgin_op(int ty, Node *lhs, Node *rhs) {
     return walk(create_new_node('=', lhs, new_rhs), true);
 }
 
-static Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool is_static) {
+Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool is_static) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
     var->is_local = false;
@@ -290,7 +290,8 @@ static Node* walk(Node *node, bool decay) {
 
 void sema(Vector *nodes) {
     str_label = 0;
-    globals = new_vector();
+    if (!globals)
+        globals = new_vector();
     vars = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
@@ -300,8 +301,6 @@ void sema(Vector *nodes) {
             Var *var = new_global(node->ty, node->name, node->data, node->len, node->is_extern, node->is_static);
             if (node->initializer) {
                 var->initializer = node->initializer;
-                //var->has_initial_value = true;
-                //var->val = node->val;
             }
 
             vec_push(globals, var);

@@ -131,6 +131,7 @@ enum {
 Initializer *gvar_init_string(char *p, int len);
 noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);
+Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool is_static);
 
 extern int nlabel;
 

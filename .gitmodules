@@ -7,3 +7,6 @@
 [submodule "workspace/9cc/test/atcoder"]
 	path = workspace/9cc/test/atcoder
 	url = git@github.com:sukesan1984/atcoder.git
+[submodule "workspace/chibicc"]
+	path = workspace/chibicc
+	url = https://github.com/rui314/chibicc.git
