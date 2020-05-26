@@ -8,6 +8,8 @@ int *g5 = &g4;
 char *g6 = "abc";
 int g7[3] = {0, 1, 2};
 char *g8[] = {"foo", "bar"};
+struct { char a; int b; } g9[2] = {{1, 2}, {3, 4}};
+struct { int a[2]; } g10[2] = {{{1, 2}}};
 
 typedef struct {
     int x;
@@ -376,6 +378,16 @@ int main() {
 
     assert(0, strcmp(g8[0], "foo"), "strcmp(g8[0], \"foo\")");
     assert(0, strcmp(g8[1], "bar"), "strcmp(g8[1], \"bar\")");
+    assert(1, g9[0].a, "g9[0].a");
+    assert(2, g9[0].b, "g9[0].b");
+    assert(3, g9[1].a, "g9[1].a");
+    assert(4, g9[1].b, "g9[1].b");
+
+    assert(1, g10[0].a[0], "g10[0].a[0]");
+    assert(2, g10[0].a[1], "g10[0].a[1]");
+    assert(0, g10[1].a[0], "g10[1].a[0]");
+    assert(0, g10[1].a[1], "g10[1].a[1]");
+
 
     printf("OK\n");
     return 0;

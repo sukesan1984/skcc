@@ -979,7 +979,6 @@ static Initializer *new_init_zero(Initializer *cur, int nbytes) {
 }
 
 static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
-    fprintf(stderr, "gvar_initializer2: %d(%d)\n", ty->ty, ARRAY);
     if (ty->ty == ARRAY) {
         expect('{');
         int i = 0;
@@ -998,6 +997,25 @@ static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
             ty->array_size = i;
             ty->is_incomplete = false;
         }
+        return cur;
+    }
+    if (ty->ty == STRUCT) {
+        expect('{');
+        int i = 0;
+
+        Vector *members = ty->members;
+        if (!consume('}')) {
+            do {
+                Node *node = members->data[i];
+                cur = gvar_initializer2(cur, node->ty);
+                int start = node->ty->offset + node->ty->size;
+                int end = (members->len > (i + 1)) ? ((Node*)members->data[i+1])->ty->offset : (node->ty->offset + node->ty->size);
+                cur = new_init_zero(cur, end - start);
+                i++;
+            } while (!peek_end());
+        }
+        if (members->len > i)
+            cur = new_init_zero(cur, ty->size - ((Node*)members->data[i])->ty->offset);
         return cur;
     }
     Node *expr = conditional();
