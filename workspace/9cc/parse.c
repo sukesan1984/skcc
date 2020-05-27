@@ -237,6 +237,21 @@ static int const_expr() {
     return node->val;
 }
 
+Node *conditional();
+static long eval(Node *node);
+
+long const_expr_token(Vector *override_tokens, int override_pos) {
+    Vector *_tokens = tokens;
+    int _pos = pos;
+    tokens = override_tokens;
+    pos = override_pos;
+    Node *node = conditional();
+    long result = eval(node);
+    pos = _pos;
+    tokens = _tokens;
+    return result;
+}
+
 static Type* read_array(Type *ty) {
     Vector *v = new_vector();
     bool is_incomplete = false;

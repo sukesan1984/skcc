@@ -1,9 +1,13 @@
+//#include <stdio.h>
 int main () {
-    struct t {
-        int x;
-        int y;
-    };
-    struct t hoge;
-    printf("%d\n", sizeof(hoge));
+#if 0
+#include "/no/such/file"
+    assert(0, 1, "1");
+#endif
+    printf("%d, %s\n", 1
+#if 1
+            +2
+#endif
+            , "1 + 2");
     return 0;
 }

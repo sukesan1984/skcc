@@ -409,6 +409,18 @@ int main() {
     assert(4, ({ enum { zero, one, two} x; sizeof(x); }), "{ enum { zero, one, two} x; sizeof(x); }");
     assert(4, ({ enum t { zero, one, two }; enum t y; sizeof(y); }), "{ enum { zero, one, two} x; sizeof(x); }");
 
+#if 0
+#include "/no/such/file"
+    assert(0, 1, "1");
+#endif
+    assert(3, 1
+#if 1
+            +2
+#endif
+            , "1 + 2");
+#if 1 + 2
+    assert(3, 1 + 2, "eval test..1 + 2");
+#endif
 
     printf("OK\n");
     return 0;

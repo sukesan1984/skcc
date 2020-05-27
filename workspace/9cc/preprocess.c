@@ -97,6 +97,14 @@ static Vector *read_until_eol() {
     return v;
 }
 
+static void skip_until_eol() {
+    while (!eof()) {
+        Token *t = next();
+        if (t->ty == '\n')
+            break;
+    }
+}
+
 static Token *new_int(int val) {
     Token *t = calloc(1, sizeof(Token));
     t->ty = TK_NUM;
@@ -332,6 +340,17 @@ static void include() {
     }
 }
 
+static void skip_cond_incl() {
+    while (!eof()) {
+        int i = ctx->pos;
+        Token *t1 = ((Token*)ctx->input->data[i+1]);
+        Token *t2 =  ((Token*)ctx->input->data[i+2]);
+        if (t1->ty == '#'  && strcmp(t2->name, "endif") == 0)
+            return;
+        next();
+    }
+}
+
 Vector *preprocess(Vector *tokens) {
     if (!macros)
         macros = new_map();
@@ -354,13 +373,28 @@ Vector *preprocess(Vector *tokens) {
             continue;
         }
 
-        t = get(TK_IDENT, "identifier expected");
+        t = next();
+        if (t->ty != TK_IDENT && t->ty != TK_IF)
+            bad_token(t, "identifier or if is expected");
+        if (t->ty == TK_IF) {
+           Vector *tokens = ctx->input;
+           int pos = ctx->pos;
+           long expr = const_expr_token(tokens, pos);
+           if (!expr)
+               skip_cond_incl();
+           else
+               skip_until_eol();
+           continue;
+        }
         if (!strcmp(t->name, "define")) {
             define();
         } else if (!strcmp(t->name, "include")) {
             include();
         } else if (!strcmp(t->name, "undef")) {
             undef();
+        } else if (!strcmp(t->name, "endif")) {
+            skip_until_eol();
+            continue;
         } else {
             bad_token(t, "unknown directive");
         }
