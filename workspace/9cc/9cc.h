@@ -132,6 +132,7 @@ enum {
 };
 
 // parse.c
+long const_expr_token(Vector *tokens, int pos);
 Initializer *gvar_init_string(char *p, int len);
 noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);

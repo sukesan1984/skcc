@@ -22,6 +22,13 @@ int line(Token *t) {
     return n;
 }
 
+void show_tokens(Vector *tokens) {
+    fprintf(stderr, "show_tokens...\n");
+    for (int i = 0; i < tokens->len; i++) {
+        fprintf(stderr, "%s", tokstr(tokens->data[i]));
+    }
+}
+
 Token *add_token(Vector *v, int ty, char *input) {
     Token * token = malloc(sizeof(Token));
     token->ty = ty;
@@ -510,6 +517,8 @@ Vector *tokenize(char *path, bool add_eof) {
     if (add_eof)
         add_token(tokens, TK_EOF, buf);
     tokens = preprocess(tokens);
+    //fprintf(stderr, "preprocessed...\n");
+    //show_tokens(tokens);
     strip_newlines();
     Vector *ret = tokens;
     buf = buf_;
