@@ -4,10 +4,19 @@ int nlabel = 1;
 static int str_label = 0;
 extern Vector* globals;
 
+typedef struct VarScope {
+    struct  VarScope *next;
+    char *name;
+    Type *enum_ty;
+    int enum_val;
+} VarScope;
+
+
 typedef struct Env {
     Map *tags;
     Map *typedefs;
     struct Env *next;
+    struct VarScope *var_scope;
 } Env;
 
 static Vector *switches;
@@ -30,6 +39,7 @@ static Env *new_env(Env *next) {
     env->tags = new_map();
     env->typedefs = new_map();
     env->next = next;
+    env->var_scope = NULL;
     return env;
 }
 
@@ -47,7 +57,25 @@ static Type *find_tag(char *name) {
     return NULL;
 }
 
-//int variables = 0;
+static VarScope* find_var(char *name) {
+    for (Env *e = env; e; e = e->next) {
+        VarScope *sc = e->var_scope;
+        while(sc) {
+            if (strcmp(sc->name, name) == 0)
+                return sc;
+            sc = sc->next;
+        }
+    }
+    return NULL;
+}
+
+int peek(int ty) {
+    Token *t = tokens->data[pos];
+    if (t->ty != ty)
+        return 0;
+    return 1;
+}
+
 int consume(int ty) {
     Token *t = tokens->data[pos];
     if (t->ty != ty)
@@ -76,12 +104,13 @@ static Type *new_prim_ty(int ty, int size) {
 static Type *void_ty() { return new_prim_ty(VOID, 0); }
 static Type *char_ty() { return new_prim_ty(CHAR, 1); }
 static Type *int_ty() { return new_prim_ty(INT, 4); }
+static Type *enum_ty() { return new_prim_ty(ENUM, 4); }
 Type *bool_ty() { return new_prim_ty(BOOL, 1); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return find_typedef(t->name);
-    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT;
+    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -175,6 +204,18 @@ static Node *new_desg_node(Type *type, char *name, Designator *desg, Node *rhs) 
     return n;
 }
 
+static VarScope *push_scope(char *name) {
+    VarScope *sc = calloc(1, sizeof(VarScope));
+    sc->name = name;
+    if (env->var_scope != NULL) {
+        sc->next = env->var_scope;
+        env->var_scope = sc;
+    } else {
+        env->var_scope = sc;
+    }
+    return sc;
+}
+
 static char *ident() {
     Token *t = tokens->data[pos++];
     if (t->ty != TK_IDENT)
@@ -190,7 +231,7 @@ Node *expr();
 
 static int const_expr() {
     Token *t = tokens->data[pos];
-    Node *node = expr();
+    Node *node = primary();
     if (node->op != ND_NUM)
         bad_token(t, "constant expression expected");
     return node->val;
@@ -255,6 +296,12 @@ Node *primary() {
                 vec_push(args, (void *) node);
             }
             return new_node_func(t->name, args);
+        }
+
+        VarScope *sc = find_var(t->name);
+        if (sc) {
+            if(sc->enum_ty)
+                return new_node_num(sc->enum_val);
         }
 
         return new_node_ident(t->name);
@@ -719,6 +766,9 @@ static Type *abstract_declarator(Type *ty) {
 
 static Node *declaration() {
     Type *ty = decl_specifiers();
+    if (consume(';')) {
+        return &null_stmt;
+    }
     Node *node = declarator(ty);
     expect(';');
     return node;
@@ -1121,7 +1171,7 @@ static void add_members(Type *ty, Vector *members) {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL)
+    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -1183,6 +1233,45 @@ static Type *decl_specifiers() {
 
         if (members) {
             add_members(ty, members);
+            if (tag)
+                map_put(env->tags, tag, ty);
+        }
+        return ty;
+    }
+    if (t->ty == TK_ENUM) {
+        pos++;
+        Type *ty = enum_ty();
+        char *tag = NULL;
+        Token *t = tokens->data[pos];
+
+        if (t->ty == TK_IDENT) {
+            pos++;
+            tag = t->name;
+        }
+        if (tag && !peek('{')) {
+            ty = find_tag(tag);
+            if (!ty)
+                error("unknown enum type");
+            if (ty->ty != ENUM)
+                error("not an enum tag");
+            return ty;
+        }
+
+        expect('{');
+
+        int cnt = 0;
+        VarScope *sc;
+        for (;;) {
+            char *name = ident();
+            if (consume('='))
+                cnt = const_expr();
+            sc = push_scope(name);
+            sc->enum_ty = ty;
+            sc->enum_val = cnt++;
+            if (peek_end())
+                break;
+        }
+        if (sc) {
             if (tag)
                 map_put(env->tags, tag, ty);
         }
