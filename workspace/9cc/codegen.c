@@ -576,6 +576,19 @@ void gen_stmt(Node *node) {
         return;
     }
 
+    if (node->op == ND_DO_WHILE) {
+        int seq = nlabel++;
+        printf(".Lbegin%d: #ループの開始地点\n", seq);
+        printf(".Lend%d: #continue の開始地点\n", node->continue_label);
+        gen_stmt(node->body);
+        gen_expr(node->cond);
+        pop("  pop rax # do whileの評価結果(0 or 1) \n");
+        printf("  cmp rax, 0 #\n");
+        printf("  jne .Lbegin%d\n", seq);
+        printf(".Lend%d:\n", node->break_label);
+        return;
+    }
+
     // while(lhs) rhsをコンパイル
     if (node->op == ND_WHILE) {
         printf("#gen_stmt WHILEの処理\n");

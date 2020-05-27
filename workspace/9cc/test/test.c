@@ -113,6 +113,13 @@ int main() {
     assert(55, ({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; }), "({ int i=0; int j=0; while(i<=10) {j=i+j; i=i+1;} j; })");
     assert(1, ({ int x=0; while(1) { x++; break; } x; }), "({ int x=0; while(1) { x++; break; } x; })");
     assert(3, ({ int x=0; while(x < 3) { if (x <= 3) { x++; continue; } break; } x; }), "({ int x=0; while(x > 3) { if (x <= 3) { x++; continue; } break; } x; })");
+
+    printf("do ~ while...\n");
+    assert(5, ({ int x=0; do { x++; } while(x < 5); x; }),"{ int x=0; do { x++; } while(x < 5); x; }" );
+    assert(4, ({ int x=0; do { if (x > 3) { break; } x++; } while(x < 5); x; }),"{ int x=0; do { if (x > 3) { break; } x++; } while(x < 5); x; }" );
+    assert(5, ({ int x=0; int y = 0; do { if (y < 5) { y++; continue; }  x++; } while(x != 1); y; }),"int x=0; int y = 0; do { if (y < 5) { y++; continue; }  x++; } while(x != 1); y; }" );
+
+
     printf("for...\n");
 
 // switch

@@ -191,6 +191,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "do", 2) == 0 && !is_alnum(p[2])) {
+            Token *t = add_token(tokens, TK_DO, p);
+            p += 2;
+            t->end = p;
+            t->len = 2;
+            continue;
+        }
+
         if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
             Token *t = add_token(tokens, TK_WHILE, p);
             p += 5;

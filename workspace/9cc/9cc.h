@@ -63,6 +63,7 @@ enum {
     TK_STATIC, // static
     TK_BOOL, // _Bool
     TK_ENUM,
+    TK_DO,
 };
 
 enum {
@@ -115,6 +116,7 @@ enum {
     ND_CASE,     // case
     ND_CONTINUE, // continue
     ND_CAST,
+    ND_DO_WHILE, // do ~ while
 };
 
 enum {

@@ -154,6 +154,10 @@ static Node* walk(Node *node, bool decay) {
         node->lhs = walk(node->lhs, true);
         node->rhs = walk(node->rhs, true);
         return node;
+    case ND_DO_WHILE:
+        node->body = walk(node->body, true);
+        node->cond = walk(node->cond, true);
+        return node;
     case ND_MUL_EQ:
         return recreate_assgin_op('*', node->lhs, node->rhs);
     case ND_DIV_EQ:

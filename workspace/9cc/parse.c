@@ -834,6 +834,21 @@ Node *control() {
         vec_push(n->cases, node);
         return node;
     }
+    if (consume(TK_DO)) {
+        Node *node = new_loop(ND_DO_WHILE);
+        vec_push(breaks, node);
+        vec_push(continues, node);
+        node->op = ND_DO_WHILE;
+        node->body = stmt();
+        expect(TK_WHILE);
+        expect('(');
+        node->cond = assign();
+        expect(')');
+        expect(';');
+        vec_pop(breaks);
+        vec_pop(continues);
+        return node;
+    }
 
     if (consume(TK_WHILE)) {
         if(consume('(')) {
@@ -897,6 +912,7 @@ Node *stmt() {
         case TK_SWITCH:
         case TK_CASE:
         case TK_FOR:
+        case TK_DO:
             return control();
         case TK_RETURN:
             pos++;
