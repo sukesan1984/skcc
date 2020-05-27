@@ -11,6 +11,14 @@ typedef struct Context {
     struct Context *next;
 } Context;
 
+typedef struct CondIncl CondIncl;
+struct CondIncl {
+    CondIncl *next;
+    enum { IN_THEN, IN_ELSE } ctx;
+    bool included;
+};
+
+static CondIncl *cond_incl;
 static Context *ctx;
 
 static Context *new_ctx(Context *next, Vector *input) {
@@ -121,6 +129,15 @@ static Token *new_param(int val) {
 
 static bool is_ident(Token *t, char *s) {
     return t->ty == TK_IDENT && !strcmp(t->name, s);
+}
+
+static CondIncl *push_cond_incl(bool included) {
+    CondIncl *ci = calloc(1, sizeof(CondIncl));
+    ci->next = cond_incl;
+    ci->ctx = IN_THEN;
+    ci->included = included;
+    cond_incl = ci;
+    return ci;
 }
 
 static void replace_param(Macro *m) {
@@ -340,17 +357,43 @@ static void include() {
     }
 }
 
+// Skip until next `#endif`.
+static void skip_cond_incl2() {
+    fprintf(stderr, "無視される行のif\n");
+    skip_until_eol(); // TK_IF行を消費
+    while (!eof()) {
+        int i = ctx->pos;
+        Token *t1 = ((Token*)ctx->input->data[i]);
+        Token *t2 =  ((Token*)ctx->input->data[i+1]);
+        if (t1->ty == '#' && t2->ty == TK_IF) {
+            skip_cond_incl2();
+            return;
+        }
+
+        if (t1->ty == '#' && t2->ty == TK_ELSE) {
+            skip_until_eol();
+            continue;
+        }
+        if (t1->ty == '#' && strcmp(t2->name, "endif") == 0) {
+            skip_until_eol(); // endifがくるまで
+            return;
+        }
+        next();
+    }
+}
+
+// Skip until next `#else` or `#endif`
+// Nested `#if` and `#endif` are skipped.
 static void skip_cond_incl() {
     while (!eof()) {
         int i = ctx->pos;
-        Token *t1 = ((Token*)ctx->input->data[i+1]);
-        Token *t2 =  ((Token*)ctx->input->data[i+2]);
+        Token *t1 = ((Token*)ctx->input->data[i]);
+        Token *t2 =  ((Token*)ctx->input->data[i+1]);
         if (t1->ty == '#' && t2->ty == TK_IF) {
-            skip_until_eol();
-            skip_cond_incl();
+            skip_cond_incl2();
             continue;
         }
-        if (t1->ty == '#' && strcmp(t2->name, "endif") == 0)
+        if (t1->ty == '#' && (t2->ty == TK_ELSE || (strcmp(t2->name, "endif") == 0)))
             return;
         next();
     }
@@ -379,17 +422,28 @@ Vector *preprocess(Vector *tokens) {
         }
 
         t = next();
-        if (t->ty != TK_IDENT && t->ty != TK_IF)
+        if (t->ty != TK_IDENT && t->ty != TK_IF && t->ty != TK_ELSE)
             bad_token(t, "identifier or if is expected");
         if (t->ty == TK_IF) {
            Vector *tokens = ctx->input;
            int pos = ctx->pos;
            long expr = const_expr_token(tokens, pos);
+           push_cond_incl(expr);
            if (!expr)
                skip_cond_incl();
            else
                skip_until_eol();
            continue;
+        }
+
+        if (t->ty == TK_ELSE) {
+            if (!cond_incl || cond_incl->ctx == IN_ELSE)
+                bad_token(t, "stray #else");
+            cond_incl->ctx = IN_ELSE;
+            skip_until_eol();
+            if (cond_incl->included)
+                skip_cond_incl();
+            continue;
         }
         if (!strcmp(t->name, "define")) {
             define();
@@ -398,6 +452,9 @@ Vector *preprocess(Vector *tokens) {
         } else if (!strcmp(t->name, "undef")) {
             undef();
         } else if (!strcmp(t->name, "endif")) {
+            if(!cond_incl)
+                bad_token(t, "stray #endif");
+            cond_incl = cond_incl->next;
             skip_until_eol();
             continue;
         } else {

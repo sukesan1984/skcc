@@ -1,15 +1,18 @@
-//#include <stdio.h>
 int main () {
-#if 0
-#include "/no/such/file"
-    assert(0, 1, "1");
-#if nest
+
+#if 1-1
+# if 1
+# endif
+# if 1
+# else
+# endif
+# if 0
+# else
+# endif
+#else
+# if 1
+# endif
 #endif
-#endif
-    printf("%d, %s\n", 1
-#if 1
-            +2
-#endif
-            , "1 + 2");
+
     return 0;
 }

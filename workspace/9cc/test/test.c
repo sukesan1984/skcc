@@ -423,6 +423,42 @@ int main() {
 #if 1 + 2
     assert(3, 1 + 2, "eval test..1 + 2");
 #endif
+  assert(3, 1
+#if 1
+# if 0
+#  if 1
+    foo bar
+#  endif
+# endif
+    + 2
+#endif
+    , "1+2");
+
+  assert(3,
+#if 1-1
+# if 1
+# endif
+# if 1
+# else
+# endif
+# if 0
+# else
+# endif
+         2,
+#else
+# if 1
+         3,
+# endif
+#endif
+         "3");
+
+  assert(2,
+#if 1
+         2,
+#else
+         3,
+#endif
+         "2");
 
     printf("OK\n");
     return 0;
