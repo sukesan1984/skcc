@@ -345,7 +345,12 @@ static void skip_cond_incl() {
         int i = ctx->pos;
         Token *t1 = ((Token*)ctx->input->data[i+1]);
         Token *t2 =  ((Token*)ctx->input->data[i+2]);
-        if (t1->ty == '#'  && strcmp(t2->name, "endif") == 0)
+        if (t1->ty == '#' && t2->ty == TK_IF) {
+            skip_until_eol();
+            skip_cond_incl();
+            continue;
+        }
+        if (t1->ty == '#' && strcmp(t2->name, "endif") == 0)
             return;
         next();
     }
