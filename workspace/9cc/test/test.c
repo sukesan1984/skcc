@@ -388,6 +388,20 @@ int main() {
     assert(0, g10[1].a[0], "g10[1].a[0]");
     assert(0, g10[1].a[1], "g10[1].a[1]");
 
+// enum
+    assert(0, ({ enum { zero, one, two }; zero; }), "{ enum { zero, one, two }; zero; }");
+    assert(1, ({ enum { zero, one, two }; one; }), "{ enum { zero, one, two }; one; }");
+    assert(2, ({ enum { zero, one, two }; two; }), "{ enum { zero, one, two }; two; }");
+    assert(5, ({ enum { five=5, six, seven }; five; }), "{ enum { five=5, six, seven }; five; }");
+    assert(6, ({ enum { five=5, six, seven }; six; }), "enum { five=5, six, seven }; six;");
+    assert(7, ({ enum { five=5, six, seven }; seven; }), "enum { five=5, six, seven }; seven;");
+    assert(0, ({ enum { zero, five=5, three=3, four }; zero; }), "enum { zero, five=5, three=4, four }; zero;");
+    assert(5, ({ enum { zero, five=5, three=3, four }; five; }), "enum { zero, five=5, three=4, four }; five;");
+    assert(3, ({ enum { zero, five=5, three=3, four }; three; }), "enum { zero, five=5, three=4, four }; three;");
+    assert(4, ({ enum { zero, five=5, three=3, four }; four; }), "enum { zero, five=5, three=4, four }; four;");
+    assert(4, ({ enum { zero, one, two} x; sizeof(x); }), "{ enum { zero, one, two} x; sizeof(x); }");
+    assert(4, ({ enum t { zero, one, two }; enum t y; sizeof(y); }), "{ enum { zero, one, two} x; sizeof(x); }");
+
 
     printf("OK\n");
     return 0;

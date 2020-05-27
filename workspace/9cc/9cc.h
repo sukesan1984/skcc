@@ -62,6 +62,7 @@ enum {
     TK_PARAM,
     TK_STATIC, // static
     TK_BOOL, // _Bool
+    TK_ENUM,
 };
 
 enum {
@@ -125,6 +126,7 @@ enum {
     STRUCT,
     FUNC,
     BOOL,
+    ENUM,
 };
 
 // parse.c

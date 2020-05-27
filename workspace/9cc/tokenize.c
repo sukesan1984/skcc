@@ -311,6 +311,15 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "enum", 4) == 0 && !is_alnum(p[4])) {
+            Token *t = add_token(tokens, TK_ENUM, p);
+            fprintf(stderr, "tokenize ENUM\n");
+            p += 4;
+            t->end = p;
+            t->len = 4;
+            continue;
+        }
+
         if (strncmp(p, "<<", 2) == 0) {
             Token *t = add_token(tokens, TK_LSHIFT, p);
             p += 2;
