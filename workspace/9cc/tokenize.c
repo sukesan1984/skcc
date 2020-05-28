@@ -134,6 +134,17 @@ static void scan() {
             continue;
         }
 
+        // constをスキップ
+        if (strncmp(p, "const", 5) == 0) {
+            p += 5;
+            continue;
+        }
+
+        if (strncmp(p, "noreturn", 8) == 0) {
+            p += 8;
+            continue;
+        }
+
         if (strncmp(p, "//", 2) == 0) {
             while(*p != '\n') {
                 p++;
