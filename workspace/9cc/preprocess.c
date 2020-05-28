@@ -365,7 +365,10 @@ static void skip_cond_incl2() {
         int i = ctx->pos;
         Token *t1 = ((Token*)ctx->input->data[i]);
         Token *t2 =  ((Token*)ctx->input->data[i+1]);
-        if (t1->ty == '#' && t2->ty == TK_IF) {
+        if (t1->ty == '#' &&
+                (t2->ty == TK_IF ||
+                 (t2->ty == TK_IDENT && !strcmp(t2->name, "ifdef")) ||
+                 (t2->ty == TK_IDENT && !strcmp(t2->name, "ifndef")))) {
             skip_cond_incl2();
             return;
         }
@@ -395,8 +398,10 @@ static void skip_cond_incl() {
         }
         if (t1->ty == '#' &&
                 (t2->ty == TK_ELSE ||
-                 (strcmp(t2->name, "endif") == 0) ||
-                 (strcmp(t2->name, "elif") == 0)))
+                 !strcmp(t2->name, "endif") ||
+                 !strcmp(t2->name, "elif") ||
+                 !strcmp(t2->name, "ifdef") ||
+                 !strcmp(t2->name, "ifndef")))
             return;
         next();
     }
@@ -424,6 +429,11 @@ static long eval_const_expr() {
     int _pos = 0;
     long expr = const_expr_token(_tokens, _pos);
     return expr;
+}
+
+bool find_macro(char *name) {
+    Macro *m = map_get(macros, name);
+    return m != NULL;
 }
 
 Vector *preprocess(Vector *tokens) {
@@ -476,6 +486,20 @@ Vector *preprocess(Vector *tokens) {
             include();
         } else if (!strcmp(t->name, "undef")) {
             undef();
+        } else if (!strcmp(t->name, "ifdef")) {
+            char *name = ident("macro name expected");
+            bool defined = find_macro(name);
+            push_cond_incl(defined);
+            if (!defined)
+                skip_cond_incl();
+            continue;
+        } else if (!strcmp(t->name, "ifndef")) {
+            char *name = ident("macro name expected");
+            bool defined = find_macro(name);
+            push_cond_incl(!defined);
+            if (defined)
+                skip_cond_incl();
+            continue;
         } else if (!strcmp(t->name, "elif")) {
             if (!cond_incl || cond_incl->ctx == IN_ELSE)
                 bad_token(t, "stray #elif");

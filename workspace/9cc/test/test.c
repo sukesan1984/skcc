@@ -497,6 +497,45 @@ int main() {
 #endif
             "5");
 
+    assert(3,
+#ifdef UNDEFINED_M
+           5,
+#else
+           3,
+#endif
+           "3");
+
+#define M2
+    assert(2,
+#ifdef M2
+            2,
+#else
+            3,
+#endif
+            "2");
+
+    assert(3,
+#ifndef UNDEFINED_M
+            3,
+#else
+            5,
+#endif
+            "3");
+    assert(3,
+#ifndef M2
+            5,
+#else
+            3,
+#endif
+            "3");
+#if 0
+#ifdef NO_SUCH_MACRO
+#endif
+#ifndef NO_SUCH_MACRO
+#endif
+#else
+#endif
+
     printf("OK\n");
     return 0;
 }
