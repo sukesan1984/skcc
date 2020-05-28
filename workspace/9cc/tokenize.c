@@ -280,7 +280,7 @@ static void scan() {
             t->len = 4;
             continue;
         }
-        
+
         if (strncmp(p, "short", 5) == 0 && !is_alnum(p[5])) {
             Token *t = add_token(tokens, TK_SHORT, p);
             p += 5;
@@ -301,6 +301,14 @@ static void scan() {
             Token *t = add_token(tokens, TK_VOID, p);
             p += 4;
             t->len = 4;
+            t->end = p;
+            continue;
+        }
+
+        if (strncmp(p, "signed", 6) == 0 && !is_alnum(p[6])) {
+            Token *t = add_token(tokens, TK_SIGNED, p);
+            p += 6;
+            t->len = 6;
             t->end = p;
             continue;
         }

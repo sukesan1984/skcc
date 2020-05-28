@@ -112,7 +112,7 @@ Type *bool_ty() { return new_prim_ty(BOOL, 1); }
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return find_typedef(t->name);
-    return t->ty == TK_INT || t->ty == TK_LONG || t->ty == TK_SHORT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM;
+    return t->ty == TK_INT || t->ty == TK_LONG || t->ty == TK_SHORT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM || t->ty == TK_SIGNED;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -1280,7 +1280,7 @@ static Type *enum_decl() {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM)
+    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM && t->ty != TK_SIGNED)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -1300,11 +1300,10 @@ static Type *decl_specifiers() {
                 return enum_decl();
         }
         pos++;
-        if (t->ty == TK_BOOL) {
-            return bool_ty();
-        }
         if (t->ty == TK_VOID)
             counter += VOID;
+        else if (t->ty == TK_BOOL)
+            counter += BOOL;
         else if (t->ty == TK_CHAR)
             counter += CHAR;
         else if (t->ty == TK_SHORT)
@@ -1313,26 +1312,40 @@ static Type *decl_specifiers() {
             counter += INT;
         else if (t->ty == TK_LONG)
             counter += LONG;
+        else if (t->ty == TK_SIGNED)
+            counter |= SIGNED;
         else
             bad_token(t, "typename expected");
         switch (counter) {
             case VOID:
                 ty = void_ty();
                 break;
+            case BOOL:
+                ty = bool_ty();
+                break;
             case CHAR:
+            case SIGNED + CHAR:
                 ty = char_ty();
                 break;
             case SHORT:
             case SHORT + INT:
+            case SIGNED + SHORT:
+            case SIGNED + SHORT + INT:
                 ty = short_ty();
                 break;
             case INT:
+            case SIGNED:
+            case SIGNED + INT:
                 ty = int_ty();
                 break;
             case LONG:
             case LONG + INT:
             case LONG + LONG:
             case LONG + LONG + INT:
+            case SIGNED + LONG:
+            case SIGNED + LONG + INT:
+            case SIGNED + LONG + LONG:
+            case SIGNED + LONG + LONG + INT:
                 ty = long_ty();
                 break;
             default:

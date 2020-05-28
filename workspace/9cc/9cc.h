@@ -66,6 +66,7 @@ enum {
     TK_BOOL, // _Bool
     TK_ENUM,
     TK_DO,
+    TK_SIGNED,
 };
 
 enum {
@@ -123,16 +124,17 @@ enum {
 
 enum {
     VOID = 1 << 0,
-    CHAR = 1 << 2,
-    SHORT = 1 << 4,
-    INT = 1 << 6,
-    LONG = 1 << 8,
-    OTHER = 1 << 10,
+    BOOL = 1 << 2,
+    CHAR = 1 << 4,
+    SHORT = 1 << 6,
+    INT = 1 << 8,
+    LONG = 1 << 10,
+    OTHER = 1 << 12,
+    SIGNED = 1 << 13,
     PTR,
     ARRAY,
     STRUCT,
     FUNC,
-    BOOL,
     ENUM,
 };
 
