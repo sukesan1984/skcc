@@ -36,6 +36,8 @@ enum {
     TK_GE, // >=
     TK_EOF,
     TK_INT, // int
+    TK_LONG,
+    TK_SHORT,
     TK_CHAR, // char
     TK_VOID, // void
     TK_LOGOR, // ||
@@ -121,6 +123,8 @@ enum {
 
 enum {
     INT,
+    LONG,
+    SHORT,
     PTR,
     ARRAY,
     CHAR,

@@ -1,7 +1,8 @@
 #include "9cc.h"
 
-char* argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char* argreg64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+char* argreg16[] = { "di", "si", "dx", "cx", "r8w", "r9w" };
 char* argreg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
 
@@ -92,6 +93,10 @@ void gen_expr(Node *node){
             char *reg = "r10";
             if (node->lhs->ty->ty == INT)
                 reg = "r10d";
+            else if (node->lhs->ty->ty == LONG)
+                reg = "r10";
+            else if (node->lhs->ty->ty == SHORT)
+                reg = "r10w";
             else if(node->lhs->ty->ty == CHAR)
                 reg = "r10b";
 
@@ -110,7 +115,7 @@ void gen_expr(Node *node){
             }
             for (int i = args_len - 1; i >= 0; i--) {
                 pop("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納
-                printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg[i]);        // raxから各レジスタに格納
+                printf("  mov %s, rax # raxには引数が積まれているので、各レジスタに値を格納\n", argreg64[i]);        // raxから各レジスタに格納
             }
             seq = nlabel++;
             printf("  mov rax, rsp\n");
@@ -137,6 +142,13 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT) {
                 reg = "eax";
+            } else if (node->ty->ty == LONG) {
+                reg = "rax";
+            } else if (node->ty->ty == SHORT) {
+                printf("  mov ax, [rax] # ND_GVARのSHORTをロード \n");
+                printf("  movzw rax, ax\n");
+                push("  push rax \n");
+                return;
             } else if (node->ty->ty == CHAR) {
                 printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
                 printf("  movzb rax, al\n");
@@ -157,6 +169,13 @@ void gen_expr(Node *node){
             char *reg = "rax";
             if (node->ty->ty == INT) {
                 reg = "eax";
+            } else if (node->ty->ty == LONG) {
+                reg = "rax";
+            } else if (node->ty->ty == SHORT) {
+                printf("  mov ax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
+                printf("  movzw rax, ax\n");
+                push("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
+                return;
             } else if(node->ty->ty == CHAR) {
                 printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
                 printf("  movzb rax, al\n");
@@ -505,12 +524,17 @@ void gen_args(Vector *args) {
         gen_lval(node);       // 関数の引数定義はlvalとして定義
         pop("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
 
-        if (node->ty->ty == INT)
+        if (node->ty->ty == INT) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg32[i]);
-        else if (node->ty->ty == CHAR)
+        } else if (node->ty->ty == LONG) {
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg64[i]);
+        } else if (node->ty->ty == SHORT) {
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg16[i]);
+        } else if (node->ty->ty == CHAR) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg8[i]);
-        else
-            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+        } else {
+            printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg64[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
+        }
     }
 }
 

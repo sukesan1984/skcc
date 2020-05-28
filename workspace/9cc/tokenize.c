@@ -273,6 +273,22 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "long", 4) == 0 && !is_alnum(p[4])) {
+            Token *t = add_token(tokens, TK_LONG, p);
+            p += 4;
+            t->end = p;
+            t->len = 4;
+            continue;
+        }
+        
+        if (strncmp(p, "short", 5) == 0 && !is_alnum(p[5])) {
+            Token *t = add_token(tokens, TK_SHORT, p);
+            p += 5;
+            t->end = p;
+            t->len = 5;
+            continue;
+        }
+
         if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
             Token *t = add_token(tokens, TK_CHAR, p);
             p += 4;
