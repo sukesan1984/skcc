@@ -122,13 +122,14 @@ enum {
 };
 
 enum {
-    INT,
-    LONG,
-    SHORT,
+    VOID = 1 << 0,
+    CHAR = 1 << 2,
+    SHORT = 1 << 4,
+    INT = 1 << 6,
+    LONG = 1 << 8,
+    OTHER = 1 << 10,
     PTR,
     ARRAY,
-    CHAR,
-    VOID,
     STRUCT,
     FUNC,
     BOOL,

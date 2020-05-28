@@ -1289,49 +1289,56 @@ static Type *decl_specifiers() {
             pos++;
         return ty;
     }
-
-    if (t->ty == TK_INT)
-    {
+    Type *ty = int_ty();
+    int counter = 0;
+    while (is_typename(tokens->data[pos])) {
+        t = tokens->data[pos];
+        if (t->ty == TK_STRUCT || t->ty == TK_ENUM) {
+            if (t->ty == TK_STRUCT)
+                return struct_decl();
+            else
+                return enum_decl();
+        }
         pos++;
-        return int_ty();
+        if (t->ty == TK_BOOL) {
+            return bool_ty();
+        }
+        if (t->ty == TK_VOID)
+            counter += VOID;
+        else if (t->ty == TK_CHAR)
+            counter += CHAR;
+        else if (t->ty == TK_SHORT)
+            counter += SHORT;
+        else if (t->ty == TK_INT)
+            counter += INT;
+        else if (t->ty == TK_LONG)
+            counter += LONG;
+        else
+            bad_token(t, "typename expected");
+        switch (counter) {
+            case VOID:
+                ty = void_ty();
+                break;
+            case CHAR:
+                ty = char_ty();
+                break;
+            case SHORT:
+            case SHORT + INT:
+                ty = short_ty();
+                break;
+            case INT:
+                ty = int_ty();
+                break;
+            case LONG:
+            case LONG + INT:
+                ty = long_ty();
+                break;
+            default:
+                fprintf(stderr, "counter: %d", counter);
+                bad_token(t, "invalid type.");
+        }
     }
-    if (t->ty == TK_LONG)
-    {
-        pos++;
-        return long_ty();
-    }
-
-    if(t->ty == TK_SHORT)
-    {
-        pos++;
-        return short_ty();
-    }
-    if (t->ty == TK_CHAR)
-    {
-        pos++;
-        return char_ty();
-    }
-
-    if (t->ty == TK_BOOL)
-    {
-        pos++;
-        return bool_ty();
-    }
-
-    if (t->ty == TK_VOID)
-    {
-        pos++;
-        return void_ty();
-    }
-    if (t->ty == TK_STRUCT)
-    {
-        return struct_decl();
-    }
-    if (t->ty == TK_ENUM) {
-        return enum_decl();
-    }
-    bad_token(t, "typename expected");
-    return NULL;
+    return ty;
 }
 
 Vector *parse(Vector *tokens_) {
