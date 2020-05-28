@@ -424,8 +424,50 @@ static Vector* copy_until_eol() {
     return copied;
 }
 
+bool find_macro(char *name);
+
+static Token *new_num_token(int val) {
+    Token *t = calloc(1, sizeof(Token));
+    t->ty = TK_NUM;
+    t->val = val;
+    return t;
+}
+
+static Vector *read_const_expr() {
+    Vector *_tokens = copy_until_eol();
+    Vector *new_tokens = new_vector();
+    int i = 0;
+    while (i < _tokens->len) {
+        Token *t = _tokens->data[i++];
+        if (t->ty == TK_IDENT && !strcmp(t->name, "defined")) {
+            t = _tokens->data[i++];
+            bool has_paren = false;
+            if (t->ty == '(') {
+                has_paren = true;
+                t = _tokens->data[i];
+            }
+            if (t->ty != TK_IDENT)
+                bad_token(t, "macro name must be an identifier");
+            char *name = t->name;
+            bool defined = find_macro(name);
+            i++;
+            if (has_paren) {
+                t = _tokens->data[i];
+                if (t->ty != ')') {
+                    bad_token(t, "parenthes ')' is needed");
+                }
+                i++;
+            }
+            vec_push(new_tokens, new_num_token(defined ? 1: 0));
+        } else {
+            vec_push(new_tokens, t);
+        }
+    }
+    return new_tokens;
+}
+
 static long eval_const_expr() {
-    Vector *_tokens = preprocess(copy_until_eol());
+    Vector *_tokens = preprocess(read_const_expr());
     int _pos = 0;
     long expr = const_expr_token(_tokens, _pos);
     return expr;
