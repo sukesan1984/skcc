@@ -103,14 +103,16 @@ static Type *new_prim_ty(int ty, int size) {
 
 static Type *void_ty() { return new_prim_ty(VOID, 0); }
 static Type *char_ty() { return new_prim_ty(CHAR, 1); }
+static Type *short_ty() { return new_prim_ty(SHORT, 2); }
 static Type *int_ty() { return new_prim_ty(INT, 4); }
+static Type *long_ty() { return new_prim_ty(LONG, 8); }
 static Type *enum_ty() { return new_prim_ty(ENUM, 4); }
 Type *bool_ty() { return new_prim_ty(BOOL, 1); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return find_typedef(t->name);
-    return t->ty == TK_INT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM;
+    return t->ty == TK_INT || t->ty == TK_LONG || t->ty == TK_SHORT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -1202,7 +1204,7 @@ static void add_members(Type *ty, Vector *members) {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM)
+    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -1215,6 +1217,17 @@ static Type *decl_specifiers() {
     {
         pos++;
         return int_ty();
+    }
+    if (t->ty == TK_LONG)
+    {
+        pos++;
+        return long_ty();
+    }
+
+    if(t->ty == TK_SHORT)
+    {
+        pos++;
+        return short_ty();
     }
     if (t->ty == TK_CHAR)
     {
