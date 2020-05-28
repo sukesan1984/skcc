@@ -1,18 +1,14 @@
 int main () {
-
-#if 1-1
-# if 1
-# endif
-# if 1
-# else
-# endif
-# if 0
-# else
-# endif
-#else
-# if 1
-# endif
+  printf("%d, %s\n",
+#if 0
+            1,
+#elif 0
+            2,
+#elif 3+5
+            3,
+#elif 1*5
+            4,
 #endif
-
+            "3");
     return 0;
 }

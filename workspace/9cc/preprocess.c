@@ -14,7 +14,7 @@ typedef struct Context {
 typedef struct CondIncl CondIncl;
 struct CondIncl {
     CondIncl *next;
-    enum { IN_THEN, IN_ELSE } ctx;
+    enum { IN_THEN, IN_ELSE, IN_ELIF } ctx;
     bool included;
 };
 
@@ -382,7 +382,7 @@ static void skip_cond_incl2() {
     }
 }
 
-// Skip until next `#else` or `#endif`
+// Skip until next `#else`, `#elif` or `#endif`
 // Nested `#if` and `#endif` are skipped.
 static void skip_cond_incl() {
     while (!eof()) {
@@ -393,7 +393,10 @@ static void skip_cond_incl() {
             skip_cond_incl2();
             continue;
         }
-        if (t1->ty == '#' && (t2->ty == TK_ELSE || (strcmp(t2->name, "endif") == 0)))
+        if (t1->ty == '#' &&
+                (t2->ty == TK_ELSE ||
+                 (strcmp(t2->name, "endif") == 0) ||
+                 (strcmp(t2->name, "elif") == 0)))
             return;
         next();
     }
@@ -451,6 +454,27 @@ Vector *preprocess(Vector *tokens) {
             include();
         } else if (!strcmp(t->name, "undef")) {
             undef();
+        } else if (!strcmp(t->name, "elif")) {
+            if (!cond_incl || cond_incl->ctx == IN_ELSE)
+                bad_token(t, "stray #elif");
+            cond_incl->ctx = IN_ELIF;
+
+            if (!cond_incl->included) {
+               Vector *tokens = ctx->input;
+               int pos = ctx->pos;
+               long expr = const_expr_token(tokens, pos);
+               if (expr) {
+                   skip_until_eol();
+                   cond_incl->included = true;
+               } else {
+                   skip_until_eol();
+                   skip_cond_incl();
+               }
+            } else {
+                skip_until_eol();
+                skip_cond_incl();
+            }
+           continue;
         } else if (!strcmp(t->name, "endif")) {
             if(!cond_incl)
                 bad_token(t, "stray #endif");

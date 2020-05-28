@@ -459,7 +459,26 @@ int main() {
          3,
 #endif
          "2");
-
+    assert(3,
+#if 0
+            1,
+#elif 0
+            2,
+#elif 3+5
+            3,
+#elif 1*5
+            4,
+#endif
+            "3");
+    assert(1,
+#if 1+5
+            1,
+#elif 1
+            2,
+#elif 3
+            2,
+#endif
+            "1");
     printf("OK\n");
     return 0;
 }
