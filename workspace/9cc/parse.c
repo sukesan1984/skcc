@@ -1202,6 +1202,82 @@ static void add_members(Type *ty, Vector *members) {
     ty->size = roundup(off, ty->align);
 }
 
+static Type *struct_decl() {
+    pos++;
+    char *tag = NULL;
+    Token *t = tokens->data[pos];
+
+    if (t->ty == TK_IDENT) {
+        pos++;
+        tag = t->name;
+    }
+    Vector *members = NULL;
+    if (consume('{')) {
+        members = new_vector();
+        while (!consume('}'))
+            vec_push(members, declaration());
+    }
+
+    if (!tag && !members)
+        error("bad struct definition");
+
+    Type *ty = NULL;
+    if (tag && !members)
+        ty = find_tag(tag);
+    if (!ty) {
+        ty = calloc(1, sizeof(Type));
+        ty->ty = STRUCT;
+    }
+
+    if (members) {
+        add_members(ty, members);
+        if (tag)
+            map_put(env->tags, tag, ty);
+    }
+    return ty;
+}
+
+static Type *enum_decl() {
+    pos++;
+    Type *ty = enum_ty();
+    char *tag = NULL;
+    Token *t = tokens->data[pos];
+
+    if (t->ty == TK_IDENT) {
+        pos++;
+        tag = t->name;
+    }
+    if (tag && !peek('{')) {
+        ty = find_tag(tag);
+        if (!ty)
+            error("unknown enum type");
+        if (ty->ty != ENUM)
+            error("not an enum tag");
+        return ty;
+    }
+
+    expect('{');
+
+    int cnt = 0;
+    VarScope *sc;
+    for (;;) {
+        char *name = ident();
+        if (consume('='))
+            cnt = const_expr();
+        sc = push_scope(name);
+        sc->enum_ty = ty;
+        sc->enum_val = cnt++;
+        if (peek_end())
+            break;
+    }
+    if (sc) {
+        if (tag)
+            map_put(env->tags, tag, ty);
+    }
+    return ty;
+
+}
+
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
     if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM)
@@ -1213,6 +1289,7 @@ static Type *decl_specifiers() {
             pos++;
         return ty;
     }
+
     if (t->ty == TK_INT)
     {
         pos++;
@@ -1248,78 +1325,10 @@ static Type *decl_specifiers() {
     }
     if (t->ty == TK_STRUCT)
     {
-        pos++;
-
-        char *tag = NULL;
-        Token *t = tokens->data[pos];
-
-        if (t->ty == TK_IDENT) {
-            pos++;
-            tag = t->name;
-        }
-        Vector *members = NULL;
-        if (consume('{')) {
-            members = new_vector();
-            while (!consume('}'))
-                vec_push(members, declaration());
-        }
-
-        if (!tag && !members)
-            error("bad struct definition");
-
-        Type *ty = NULL;
-        if (tag && !members)
-            ty = find_tag(tag);
-        if (!ty) {
-            ty = calloc(1, sizeof(Type));
-            ty->ty = STRUCT;
-        }
-
-        if (members) {
-            add_members(ty, members);
-            if (tag)
-                map_put(env->tags, tag, ty);
-        }
-        return ty;
+        return struct_decl();
     }
     if (t->ty == TK_ENUM) {
-        pos++;
-        Type *ty = enum_ty();
-        char *tag = NULL;
-        Token *t = tokens->data[pos];
-
-        if (t->ty == TK_IDENT) {
-            pos++;
-            tag = t->name;
-        }
-        if (tag && !peek('{')) {
-            ty = find_tag(tag);
-            if (!ty)
-                error("unknown enum type");
-            if (ty->ty != ENUM)
-                error("not an enum tag");
-            return ty;
-        }
-
-        expect('{');
-
-        int cnt = 0;
-        VarScope *sc;
-        for (;;) {
-            char *name = ident();
-            if (consume('='))
-                cnt = const_expr();
-            sc = push_scope(name);
-            sc->enum_ty = ty;
-            sc->enum_val = cnt++;
-            if (peek_end())
-                break;
-        }
-        if (sc) {
-            if (tag)
-                map_put(env->tags, tag, ty);
-        }
-        return ty;
+        return enum_decl();
     }
     bad_token(t, "typename expected");
     return NULL;
