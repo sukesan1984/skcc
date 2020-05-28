@@ -402,6 +402,30 @@ static void skip_cond_incl() {
     }
 }
 
+static Vector* copy_until_eol() {
+    Vector *_tokens = ctx->input;
+    int _pos = ctx->pos;
+    Vector *copied = new_vector();
+    while (_pos < ctx->input->len) {
+        Token *t = _tokens->data[_pos];
+        if (t->ty == '\n')
+            break;
+        vec_push(copied, t);
+        _pos++;
+    }
+    Token *eof = malloc(sizeof(Token));
+    eof->ty = TK_EOF;
+    vec_push(copied, eof);
+    return copied;
+}
+
+static long eval_const_expr() {
+    Vector *_tokens = preprocess(copy_until_eol());
+    int _pos = 0;
+    long expr = const_expr_token(_tokens, _pos);
+    return expr;
+}
+
 Vector *preprocess(Vector *tokens) {
     if (!macros)
         macros = new_map();
@@ -428,15 +452,13 @@ Vector *preprocess(Vector *tokens) {
         if (t->ty != TK_IDENT && t->ty != TK_IF && t->ty != TK_ELSE)
             bad_token(t, "identifier or if is expected");
         if (t->ty == TK_IF) {
-           Vector *tokens = ctx->input;
-           int pos = ctx->pos;
-           long expr = const_expr_token(tokens, pos);
-           push_cond_incl(expr);
-           if (!expr)
-               skip_cond_incl();
-           else
-               skip_until_eol();
-           continue;
+            long expr = eval_const_expr();
+            push_cond_incl(expr);
+            if (!expr)
+                skip_cond_incl();
+            else
+                skip_until_eol();
+            continue;
         }
 
         if (t->ty == TK_ELSE) {
@@ -460,10 +482,7 @@ Vector *preprocess(Vector *tokens) {
             cond_incl->ctx = IN_ELIF;
 
             if (!cond_incl->included) {
-               Vector *tokens = ctx->input;
-               int pos = ctx->pos;
-               long expr = const_expr_token(tokens, pos);
-               if (expr) {
+               if (eval_const_expr()) {
                    skip_until_eol();
                    cond_incl->included = true;
                } else {
