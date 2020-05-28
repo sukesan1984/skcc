@@ -450,9 +450,8 @@ static Vector *read_const_expr() {
                 bad_token(t, "macro name must be an identifier");
             char *name = t->name;
             bool defined = find_macro(name);
-            i++;
             if (has_paren) {
-                t = _tokens->data[i];
+                t = _tokens->data[++i];
                 if (t->ty != ')') {
                     bad_token(t, "parenthes ')' is needed");
                 }
