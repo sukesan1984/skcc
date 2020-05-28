@@ -535,6 +535,45 @@ int main() {
 #endif
 #else
 #endif
+#define M3
+    assert(3,
+#if defined(M3)
+            3,
+#else
+            4,
+#endif
+            "3");
+
+#define M3
+    assert(3,
+#if defined M3
+            3,
+#else
+            4,
+#endif
+            "3");
+    assert(4,
+#if defined(M2) - 1
+            3,
+#else
+            4,
+#endif
+            "4");
+assert(4,
+#if defined(NO_SUCH_MACRO)
+        3,
+#else
+        4,
+#endif
+        "4");
+assert(4,
+#if defined(NO_SUCH_MACRO) && defined(UNDEFINED_M)
+        3,
+#else
+        4,
+#endif
+        "4");
+
 
     printf("OK\n");
     return 0;
