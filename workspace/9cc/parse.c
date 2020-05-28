@@ -1331,6 +1331,8 @@ static Type *decl_specifiers() {
                 break;
             case LONG:
             case LONG + INT:
+            case LONG + LONG:
+            case LONG + LONG + INT:
                 ty = long_ty();
                 break;
             default:
