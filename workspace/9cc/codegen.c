@@ -72,6 +72,34 @@ void gen_binop(Node *lhs, Node *rhs){
 void gen_lval(Node *node);
 void gen_stmt(Node *node);
 
+static void divmod(Node *node, char *r64) {
+    printf("#gen_expr /の評価開始\n");
+    gen_binop(node->lhs, node->rhs);
+    if ((node->lhs->ty->size) == 8) {
+        pop("  pop r10\n");
+        pop("  pop rax \n");
+        if (node->lhs->ty->is_unsigned) {
+            printf("  mov rdx, 0\n");
+            printf("  div r10\n");
+        } else {
+            printf("  cqo\n");
+            printf("  idiv r10\n");
+        }
+        push("  push %s   #/の値をstackにつむ\n", r64);
+    } else {
+        pop("  pop r10\n");
+        pop("  pop rax\n");
+        if (node->lhs->ty->is_unsigned) {
+            printf("  mov edx, 0\n");
+            printf("  div r10d\n");
+        } else {
+            printf("  cdq\n");
+            printf("  idiv r10d\n");
+        }
+        push("  push %s   #/の値をstackにつむ\n", r64);
+    }
+}
+
 void gen_expr(Node *node){
     int seq;
     switch(node->op) {
@@ -146,12 +174,18 @@ void gen_expr(Node *node){
                 reg = "rax";
             } else if (node->ty->ty == SHORT) {
                 printf("  mov ax, [rax] # ND_GVARのSHORTをロード \n");
-                printf("  movzw rax, ax\n");
+                if (node->ty->is_unsigned)
+                    printf("  movzx rax, ax\n");
+                else
+                    printf("  movsx rax, ax\n");
                 push("  push rax \n");
                 return;
             } else if (node->ty->ty == CHAR) {
                 printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
-                printf("  movzb rax, al\n");
+                if (node->ty->is_unsigned)
+                    printf("  movzx rax, al\n");
+                else
+                    printf("  movsx rax, al\n");
                 push("  push rax   \n");         // スタックにraxをpush
                 return;
             }
@@ -173,12 +207,18 @@ void gen_expr(Node *node){
                 reg = "rax";
             } else if (node->ty->ty == SHORT) {
                 printf("  mov ax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
-                printf("  movzw rax, ax\n");
+                if (node->lhs->ty->is_unsigned)
+                    printf("  movsx rax, ax\n");
+                else
+                    printf("  movzx rax, ax\n");
                 push("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
                 return;
             } else if(node->ty->ty == CHAR) {
                 printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
-                printf("  movzb rax, al\n");
+                if (node->lhs->ty->is_unsigned)
+                    printf("  movsx rax, al\n");
+                else
+                    printf("  movzx rax, al\n");
                 push("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
                 return;
             }
@@ -211,11 +251,19 @@ void gen_expr(Node *node){
                 printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
             if (node->op == ND_NE)
                 printf("  setne al  # != \n");
-            if (node->op == '<' || node->op == '>')
-                printf("  setl al   # < \n");
-            if (node->op == ND_LE)
-                printf("  setle al  # <= \n");
-            printf("  movzb rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            if (node->op == '<' || node->op == '>') {
+                if (node->lhs->ty->is_unsigned)
+                    printf("  setb al   # < \n");
+                else
+                    printf("  setl al   # < \n");
+            }
+            if (node->op == ND_LE) {
+                if (node->lhs->ty->is_unsigned)
+                    printf("  setbe al  # <= \n");
+                else
+                    printf("  setle al  # <= \n");
+            }
+            printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
             push("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
             return;
         }
@@ -285,7 +333,10 @@ void gen_expr(Node *node){
             gen_binop(node->lhs, node->rhs);
             pop("  pop rcx \n");
             pop("  pop rax \n");
-            printf("  shr rax, cl\n");
+            if (node->lhs->ty->is_unsigned)
+                printf("  shr rax, cl\n");
+            else
+                printf("  sar rax, cl\n");
             push("  push rax\n");
             return;
         case '+':
@@ -421,21 +472,10 @@ void gen_expr(Node *node){
             push("  push rax   #*の値をstackにつむ\n");
             return;
         case '/':
-            printf("#gen_expr /の評価開始\n");
-            gen_binop(node->lhs, node->rhs);
-            pop("  pop r10\n");
-            pop("  pop rax\n");
-            printf("  cqo\n");
-            printf("  idiv r10\n");
-            push("  push rax   #/の値をstackにつむ\n");
+            divmod(node, "rax");
             return;
         case '%':
-            gen_binop(node->lhs, node->rhs);
-            pop("  pop r10\n");
-            pop("  pop rax\n");
-            printf("  cqo\n");
-            printf("  idiv r10\n");
-            push("  push rdx # %の値をstackにつむ\n");
+            divmod(node, "rdx");
             return;
         case '!':
             printf("#gen_expr !の評価開始\n");
@@ -453,7 +493,7 @@ void gen_expr(Node *node){
             printf("  mov r10, 0\n");
             printf("  cmp rax, r10 # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
             printf("  setne al  # != \n");
-            printf("  movzb rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
             push("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
             return;
         }

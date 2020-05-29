@@ -37,6 +37,7 @@ typedef struct Type {
     int ty;
     int size;
     int align;
+    bool is_unsigned;
 
     // Pointer
     struct Type *ptr_to;

@@ -93,26 +93,32 @@ int expect(int ty) {
     return 1;
 }
 
-static Type *new_prim_ty(int ty, int size) {
+static Type *new_prim_ty(int ty, int size, bool is_unsigned) {
     Type *ret = calloc(1, sizeof(Type));
     ret->ty = ty;
     ret->size = size;
     ret->align = size;
+    ret->is_unsigned = is_unsigned;
     return ret;
 }
 
-static Type *void_ty() { return new_prim_ty(VOID, 0); }
-static Type *char_ty() { return new_prim_ty(CHAR, 1); }
-static Type *short_ty() { return new_prim_ty(SHORT, 2); }
-static Type *int_ty() { return new_prim_ty(INT, 4); }
-static Type *long_ty() { return new_prim_ty(LONG, 8); }
-static Type *enum_ty() { return new_prim_ty(ENUM, 4); }
-Type *bool_ty() { return new_prim_ty(BOOL, 1); }
+static Type *void_ty() { return new_prim_ty(VOID, 0, false); }
+static Type *char_ty() { return new_prim_ty(CHAR, 1, false); }
+static Type *short_ty() { return new_prim_ty(SHORT, 2, false); }
+Type *int_ty() { return new_prim_ty(INT, 4, false); }
+static Type *long_ty() { return new_prim_ty(LONG, 8, false); }
+static Type *enum_ty() { return new_prim_ty(ENUM, 4, false); }
+Type *bool_ty() { return new_prim_ty(BOOL, 1, false); }
+
+static Type *uchar_ty() { return new_prim_ty(CHAR, 1, true); }
+static Type *ushort_ty() { return new_prim_ty(SHORT, 2, true); }
+static Type *uint_ty() { return new_prim_ty(INT, 4, true); }
+static Type *ulong_ty() { return new_prim_ty(LONG, 8, true); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
         return find_typedef(t->name);
-    return t->ty == TK_INT || t->ty == TK_LONG || t->ty == TK_SHORT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM || t->ty == TK_SIGNED;
+    return t->ty == TK_INT || t->ty == TK_LONG || t->ty == TK_SHORT || t->ty == TK_CHAR || t->ty == TK_BOOL || t->ty == TK_VOID || t->ty == TK_STRUCT || t->ty == TK_ENUM || t->ty == TK_SIGNED || t->ty == TK_UNSIGNED;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -1280,7 +1286,7 @@ static Type *enum_decl() {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM && t->ty != TK_SIGNED)
+    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM && t->ty != TK_SIGNED && t->ty != TK_UNSIGNED)
         error("typename expected, but got %s", t->input);
 
     if (t->ty == TK_IDENT) {
@@ -1314,6 +1320,8 @@ static Type *decl_specifiers() {
             counter += LONG;
         else if (t->ty == TK_SIGNED)
             counter |= SIGNED;
+        else if (t->ty == TK_UNSIGNED)
+            counter |= UNSIGNED;
         else
             bad_token(t, "typename expected");
         switch (counter) {
@@ -1327,16 +1335,27 @@ static Type *decl_specifiers() {
             case SIGNED + CHAR:
                 ty = char_ty();
                 break;
+            case UNSIGNED + CHAR:
+                ty = uchar_ty();
+                break;
             case SHORT:
             case SHORT + INT:
             case SIGNED + SHORT:
             case SIGNED + SHORT + INT:
                 ty = short_ty();
                 break;
+            case UNSIGNED + SHORT:
+            case UNSIGNED + SHORT + INT:
+                ty = ushort_ty();
+                break;
             case INT:
             case SIGNED:
             case SIGNED + INT:
                 ty = int_ty();
+                break;
+            case UNSIGNED:
+            case UNSIGNED + INT:
+                ty = uint_ty();
                 break;
             case LONG:
             case LONG + INT:
@@ -1347,6 +1366,12 @@ static Type *decl_specifiers() {
             case SIGNED + LONG + LONG:
             case SIGNED + LONG + LONG + INT:
                 ty = long_ty();
+                break;
+            case UNSIGNED + LONG:
+            case UNSIGNED + LONG + INT:
+            case UNSIGNED + LONG + LONG:
+            case UNSIGNED + LONG + LONG + INT:
+                ty = ulong_ty();
                 break;
             default:
                 fprintf(stderr, "counter: %d", counter);

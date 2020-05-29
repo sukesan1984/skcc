@@ -15,6 +15,7 @@ void assert(int expression);
 Type *ary_of(Type *base, size_t size);
 Type *ptr_to(Type *base);
 Type *bool_ty();
+Type *int_ty();
 
 // トークンの型を表す値
 enum {
@@ -67,6 +68,7 @@ enum {
     TK_ENUM,
     TK_DO,
     TK_SIGNED,
+    TK_UNSIGNED,
 };
 
 enum {
@@ -123,14 +125,15 @@ enum {
 };
 
 enum {
-    VOID = 1 << 0,
-    BOOL = 1 << 2,
-    CHAR = 1 << 4,
-    SHORT = 1 << 6,
-    INT = 1 << 8,
-    LONG = 1 << 10,
-    OTHER = 1 << 12,
-    SIGNED = 1 << 13,
+    VOID     = 1 << 0,
+    BOOL     = 1 << 2,
+    CHAR     = 1 << 4,
+    SHORT    = 1 << 6,
+    INT      = 1 << 8,
+    LONG     = 1 << 10,
+    OTHER    = 1 << 12,
+    SIGNED   = 1 << 13,
+    UNSIGNED = 1 << 14,
     PTR,
     ARRAY,
     STRUCT,
