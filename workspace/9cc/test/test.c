@@ -601,25 +601,71 @@ assert(4,
     assert(1, sizeof(char), "sizeof(char)");
     assert(1, sizeof(signed char), "sizeof(signed char)");
     assert(1, sizeof(signed char signed), "sizeof(signed char signed)");
+    assert(1, sizeof(unsigned char), "sizeof(unsigned char)");
+    assert(1, sizeof(unsigned char unsigned), "sizeof(unsigned char unsigned)");
 
     assert(2, sizeof(short), "sizeof(short)");
     assert(2, sizeof(int short), "sizeof(int short)");
     assert(2, sizeof(short int), "sizeof(short int)");
     assert(2, sizeof(signed short), "sizeof(signed short)");
     assert(2, sizeof(int short signed), "sizeof(int short signed)");
+    assert(2, sizeof(unsigned short), "sizeof(unsigned short)");
+    assert(2, sizeof(int short unsigned), "sizeof(int short unsigned)");
 
     assert(4, sizeof(int), "sizeof(int)");
     assert(4, sizeof(signed int), "sizeof(signed int)");
     assert(4, sizeof(signed), "sizeof(signed)");
     assert(4, sizeof(signed signed), "sizeof(signed signed)");
+    assert(4, sizeof(unsigned int), "sizeof(unsigned int)");
+    assert(4, sizeof(unsigned), "sizeof(unsigned)");
+    assert(4, sizeof(unsigned unsigned), "sizeof(unsigned unsigned)");
 
     assert(8, sizeof(long), "sizeof(long)");
     assert(8, sizeof(signed long), "sizeof(signed long)");
     assert(8, sizeof(signed long int), "sizeof(signed long int)");
+    assert(8, sizeof(unsigned long), "sizeof(unsigned long)");
+    assert(8, sizeof(unsigned long int), "sizeof(unsigned long int)");
 
     assert(8, sizeof(long long), "sizeof(long long)");
     assert(8, sizeof(signed long long), "sizeof(signed long long)");
     assert(8, sizeof(signed long long int), "sizeof(signed long long int)");
+    assert(8, sizeof(unsigned long long), "sizeof(unsigned long long)");
+    assert(8, sizeof(unsigned long long int), "sizeof(unsigned long long int)");
+
+    assert(1, sizeof(char), "sizeof(char)");
+    assert(255, ({unsigned char x = 255; x; }), "({unsigned char x = 255; x; })");
+    assert(-1, ({signed char x = 255; x; }), "({signed char x = 255; x; })");
+    assert(-128, ({signed char x = 128; x; }), "({signed char x = 128; x; })");
+
+    assert(-1, ({ short x = 65535; x; }), "({ short x = 65535; x; })");
+    assert(65535, ({ unsigned short x = 65535; x; }), "({ unsigned short x = 65535; x; })");
+    assert(-1, ({ int x = 0xffffffff; x; }), "({ int x = 0xffffffff; x; })");
+    // assert(4294967295, ({ unsigned int x = 0xffffffff; x; }), "({ unsigned int x = 0xffffffff; x; })");
+    assert(1, -1 < 1, "-1<1");
+    //assert(0, ({ unsigned int x = 1; -1 < x; }), "({ unsigned int x = 1; -1 < x; })");
+    assert(254, ({ char a = 127; char b = 127; a + b; }), "({ char a = 127; char b = 127; a + b; })");
+    assert(20, ({ char a = 40; char b = 2; a / b; }), "({ char a = 40, char b = 2; a / b; })");
+    assert(20, ({ long a = 40; long b = 2; a / b; }), "({ long a = 40, long b = 2; a / b; })");
+    assert(20, ({ short a = 40; short b = 2; a / b; }), "({ short a = 40, short b = 2; a / b; })");
+    assert(20, ({ int a = 40; int b = 2; a / b; }), "({ int a = 40, int b = 2; a / b; })");
+
+    assert(20, ({ unsigned char a = 40; unsigned char b = 2; a / b; }), "({ unsigned char a = 40; unsigned char b = 2; a / b; })");
+    assert(20, ({ unsigned long a = 40; unsigned long b = 2; a / b; }), "({ unsigned long a = 40; unsigned long b = 2; a / b; })");
+    assert(20, ({ unsigned short a = 40; unsigned  short b = 2; a / b; }), "({ unsigned short a = 40; unsigned short b = 2; a / b; })");
+    assert(20, ({ unsigned int a = 40; unsigned  int b = 2; a / b; }), "({ unsigned int a = 40; unsigned int b = 2; a / b; })");
+
+    assert(19, ({ char a = 40; char b = 21; a % b; }), "({ char a = 40, char b = 21; a % b; })");
+    assert(19, ({ long a = 40; long b = 21; a % b; }), "({ long a = 40, long b = 21; a % b; })");
+    assert(19, ({ short a = 40; short b = 21; a % b; }), "({ short a = 40, short b = 21; a % b; })");
+    assert(19, ({ int a = 40; int b = 21; a % b; }), "({ int a = 40, int b = 21; a % b; })");
+
+    assert(19, ({ unsigned char a = 40; unsigned char b = 21; a % b; }), "({ unsigned char a = 40; unsigned char b = 21; a % b; })");
+    assert(19, ({ unsigned long a = 40; unsigned long b = 21; a % b; }), "({ unsigned long a = 40; unsigned long b = 21; a % b; })");
+    assert(19, ({ unsigned short a = 40; unsigned  short b = 21; a % b; }), "({ unsigned short a = 40; unsigned short b = 21; a % b; })");
+    assert(19, ({ unsigned int a = 40; unsigned  int b = 21; a % b; }), "({ unsigned int a = 40; unsigned int b = 21; a % b; })");
+
+    assert(-2, (-100)%7, "(-100)%7");
+
 
 
     printf("OK\n");

@@ -1,7 +1,5 @@
 #include "9cc.h"
 
-static Type int_ty = {INT, 4, 4, NULL, NULL, 0, NULL, 0, NULL, 0};
-
 static int str_label;
 static Map *vars;
 Vector *globals;
@@ -64,7 +62,7 @@ Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool 
 static Node* walk(Node *node, bool decay) {
     switch (node->op) {
     case ND_NUM:
-        node->ty = &int_ty;
+        node->ty = int_ty();
         return node;
     case ND_STR: {
         char *name = format(".L.str%d", str_label++);
@@ -253,7 +251,7 @@ static Node* walk(Node *node, bool decay) {
             node->ty = var->ty->returning;
         } else {
             fprintf(stderr, "bad function: %s\n", node->name);
-            node->ty = &int_ty;
+            node->ty = int_ty();
         }
         for (int i = 0; i < node->args->len; i++)
             node->args->data[i] = walk(node->args->data[i], true);

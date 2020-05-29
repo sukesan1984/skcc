@@ -313,6 +313,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "unsigned", 8) == 0 && !is_alnum(p[8])) {
+            Token *t = add_token(tokens, TK_UNSIGNED, p);
+            p += 8;
+            t->len = 8;
+            t->end = p;
+            continue;
+        }
+
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
             Token *t = add_token(tokens, TK_SIZEOF, p);
             p += 6;
