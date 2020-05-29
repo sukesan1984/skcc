@@ -228,8 +228,8 @@ static char *join_tokens(int start, int end) {
     int pos = 0;
     for (int i = start; i <= end; i++) {
         Token *t = get_token(i);
-        strncpy(buf + pos, t->input, t->len);
-        pos += t->len;
+        strncpy(buf + pos, t->input, t->end - t->start);
+        pos += (t->end - t->start);
     }
     buf[pos] = '\0';
     return buf;
