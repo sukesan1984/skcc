@@ -397,6 +397,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "alignof", 7) == 0 && !is_alnum(p[7])) {
+            Token *t = add_token(tokens, TK_ALIGNOF, p);
+            p += 7;
+            t->end = p;
+            t->len = 7;
+            continue;
+        }
+
         if (strncmp(p, "extern", 6) == 0 && !is_alnum(p[6])) {
             Token *t = add_token(tokens, TK_EXTERN, p);
             p += 6;

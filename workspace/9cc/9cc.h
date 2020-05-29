@@ -78,6 +78,7 @@ enum {
     TK_DO,
     TK_SIGNED,
     TK_UNSIGNED,
+    TK_ALIGNOF,
 };
 
 enum {
@@ -131,6 +132,7 @@ enum {
     ND_CONTINUE, // continue
     ND_CAST,
     ND_DO_WHILE, // do ~ while
+    ND_ALIGNOF,
 };
 
 enum {

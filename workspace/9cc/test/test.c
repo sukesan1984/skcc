@@ -731,6 +731,21 @@ assert(4,
     assert(-1, SPACE, "SPACE");
 #define abs(a) (a > 0) ? (a) : (-(a))
     assert(3, abs(-3), "abs(-3)");
+#define STRING(X) #X
+    printf("%s", STRING(hello));
+
+// alignof
+    assert(1, alignof(char), "alignof(char)");
+    assert(2, alignof(short), "alignof(short)");
+    assert(4, alignof(int), "alignof(int)");
+    assert(8, alignof(long), "alignof(long)");
+    assert(8, alignof(long long), "alignof(long long)");
+    assert(1, alignof(char[3]), "alignof(char[3])");
+    assert(4, alignof(int[3]), "alignof(int[3])");
+    assert(1, alignof(struct {char a; char b;}[2]), "alignof(struct {char a; char b;}[2])");
+    assert(8, alignof(struct {char a; long b;}[2]), "alignof(struct {char a; long b;}[2])");
+
+
 
     printf("OK\n");
     return 0;
