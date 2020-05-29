@@ -370,14 +370,9 @@ static void skip_cond_incl2() {
                  (t2->ty == TK_IDENT && !strcmp(t2->name, "ifdef")) ||
                  (t2->ty == TK_IDENT && !strcmp(t2->name, "ifndef")))) {
             skip_cond_incl2();
-            return;
-        }
-
-        if (t1->ty == '#' && t2->ty == TK_ELSE) {
-            skip_until_eol();
             continue;
         }
-        if (t1->ty == '#' && strcmp(t2->name, "endif") == 0) {
+        if (t1->ty == '#' && (t2->ty == TK_IDENT && strcmp(t2->name, "endif") == 0)) {
             skip_until_eol(); // endifがくるまで
             return;
         }
