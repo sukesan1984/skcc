@@ -276,6 +276,11 @@ static Node* walk(Node *node, bool decay) {
         node->op = ND_NUM;
         node->val = node->lhs->ty->size;
         return node;
+    case ND_ALIGNOF:
+        node->lhs = walk(node->lhs, false);
+        node->op = ND_NUM;
+        node->val = node->lhs->ty->align;
+        return node;
     case ND_NULL:
         return node;
     case ',':

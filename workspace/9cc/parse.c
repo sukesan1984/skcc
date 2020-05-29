@@ -363,6 +363,24 @@ Node *primary() {
         return node;
     }
 
+    if (consume(TK_ALIGNOF)) {
+        Token *t1 = tokens->data[pos];
+        Token *t2 = tokens->data[pos + 1];
+        if (t1->ty == '(' && is_typename(t2)) {
+            expect('(');
+            Type *ty = decl_specifiers();
+            ty = abstract_declarator(ty);
+            expect(')');
+            if (ty-ty == VOID)
+                error("voidはだめ\n");
+            return new_node_num(ty->align);
+        }
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_ALIGNOF;
+        node->lhs = unary();
+        return node;
+    }
+
     t = tokens->data[pos];
     error("数字でも開き括弧でもないトークンです: %s", t->input);
     exit(1);
