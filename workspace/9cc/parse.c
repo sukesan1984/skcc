@@ -102,18 +102,18 @@ static Type *new_prim_ty(int ty, int size, bool is_unsigned) {
     return ret;
 }
 
-static Type *void_ty() { return new_prim_ty(VOID, 0, false); }
-static Type *char_ty() { return new_prim_ty(CHAR, 1, false); }
-static Type *short_ty() { return new_prim_ty(SHORT, 2, false); }
+Type *void_ty() { return new_prim_ty(VOID, 0, false); }
+Type *char_ty() { return new_prim_ty(CHAR, 1, false); }
+Type *short_ty() { return new_prim_ty(SHORT, 2, false); }
 Type *int_ty() { return new_prim_ty(INT, 4, false); }
-static Type *long_ty() { return new_prim_ty(LONG, 8, false); }
-static Type *enum_ty() { return new_prim_ty(ENUM, 4, false); }
+Type *long_ty() { return new_prim_ty(LONG, 8, false); }
+Type *enum_ty() { return new_prim_ty(ENUM, 4, false); }
 Type *bool_ty() { return new_prim_ty(BOOL, 1, false); }
 
-static Type *uchar_ty() { return new_prim_ty(CHAR, 1, true); }
-static Type *ushort_ty() { return new_prim_ty(SHORT, 2, true); }
-static Type *uint_ty() { return new_prim_ty(INT, 4, true); }
-static Type *ulong_ty() { return new_prim_ty(LONG, 8, true); }
+Type *uchar_ty() { return new_prim_ty(CHAR, 1, true); }
+Type *ushort_ty() { return new_prim_ty(SHORT, 2, true); }
+Type *uint_ty() { return new_prim_ty(INT, 4, true); }
+Type *ulong_ty() { return new_prim_ty(LONG, 8, true); }
 
 static bool is_typename(Token *t) {
     if (t->ty == TK_IDENT)
@@ -290,7 +290,9 @@ static Type *decl_specifiers();
 Node *primary() {
     Token *t = tokens->data[pos];
     if (t->ty == TK_NUM){
-        return new_node_num(((Token *)tokens->data[pos++])->val);
+        Node* node = new_node_num(((Token *)tokens->data[pos++])->val);
+        node->ty = t->type;
+        return node;
     }
 
     if (t->ty == TK_STR) {

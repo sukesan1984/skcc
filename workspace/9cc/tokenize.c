@@ -22,6 +22,10 @@ int line(Token *t) {
     return n;
 }
 
+static bool startswith(char *p, char *q) {
+    return strncmp(p, q, strlen(q)) == 0;
+}
+
 void show_tokens(Vector *tokens) {
     fprintf(stderr, "show_tokens...\n");
     for (int i = 0; i < tokens->len; i++) {
@@ -59,7 +63,7 @@ int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
     return 0;
 }
 
-static char *c_char(int *res, char *p) {
+static char *c_char(long *res, char *p) {
     // Nonescaped
     if (*p != '\\') {
         *res = *p;
@@ -88,6 +92,60 @@ static char *c_char(int *res, char *p) {
     return p + 1;
 }
 
+static char* add_number_literal_type(Token *t, char *p, long val, int base) {
+    bool l = false;
+    bool u = false;
+
+    if (startswith(p, "LLU") || startswith(p, "LLu") ||
+        startswith(p, "llU") || startswith(p, "llu") ||
+        startswith(p, "ULL") || startswith(p, "Ull") ||
+        startswith(p, "uLL") || startswith(p, "ull")) {
+        p += 3;
+        l = u = true;
+    } else if (!strncasecmp(p, "lu", 2) || !strncasecmp(p, "ul", 2)) {
+        p += 2;
+        l = u = true;
+    } else if (startswith(p, "LL") || startswith(p, "ll")) {
+        p += 2;
+        l = true;
+    } else if (*p == 'L' || *p == 'l') {
+        p += 1;
+        l = true;
+    } else if (*p == 'U' || *p == 'u') {
+        p += 1;
+        u = true;
+    }
+
+    Type *ty;
+    if (base == 10) {
+        if (l && u)
+            ty = ulong_ty();
+        else if (l)
+            ty = long_ty();
+        else if (u)
+            ty = (val >> 32) ? ulong_ty() : uint_ty();
+        else
+            ty = (val >> 31) ? long_ty() : int_ty();
+    } else {
+        if (l && u)
+            ty = ulong_ty();
+        else if (l)
+            ty = (val >> 63) ? ulong_ty() : long_ty();
+        else if (u)
+            ty = (val >> 32) ? ulong_ty() : uint_ty();
+        else if (val >> 63)
+            ty = ulong_ty();
+        else if (val >> 32)
+            ty = long_ty();
+        else if (val >> 31)
+            ty = uint_ty();
+        else
+            ty = int_ty();
+    }
+    t->type = ty;
+    return p;
+}
+
 static char *hexdecimal(char *p) {
     Token *t = add_token(tokens, TK_NUM, p);
     t->val = 0;
@@ -104,6 +162,7 @@ static char *hexdecimal(char *p) {
             t->val = (t->val * 16) + (*p++ - 'A' + 10);
         } else {
             t->end = p;
+            p = add_number_literal_type(t, p, t->val, 16);
             return p;
         }
     }
@@ -115,6 +174,7 @@ static char *octal(char *p) {
     while ('0' <= *p && *p <= '7')
         t->val = t->val * 8 + *p++ - '0';
     t->end = p;
+    p = add_number_literal_type(t, p, t->val, 8);
     return p;
 }
 
@@ -430,8 +490,10 @@ static void scan() {
 
         if (isdigit(*p)) {
             Token * t = add_token(tokens, TK_NUM, p);
-            t->val = strtol(p, &p, 10);
+            long val = strtol(p, &p, 10);
+            t->val = val;
             t->end = p;
+            p = add_number_literal_type(t, p, t->val, 10);
             continue;
         }
 
@@ -461,7 +523,7 @@ static void scan() {
             len = 0;
             // ここで、\, nみたいに分かれているのを統一する => \n
             while(*p != '"') {
-                int c;
+                long c;
                 p = c_char(&c, p);
                 str[i++] = c;
                 len++;

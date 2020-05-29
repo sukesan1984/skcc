@@ -62,7 +62,6 @@ Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool 
 static Node* walk(Node *node, bool decay) {
     switch (node->op) {
     case ND_NUM:
-        node->ty = int_ty();
         return node;
     case ND_STR: {
         char *name = format(".L.str%d", str_label++);
