@@ -394,10 +394,11 @@ static void skip_cond_incl() {
         }
         if (t1->ty == '#' &&
                 (t2->ty == TK_ELSE ||
-                 !strcmp(t2->name, "endif") ||
-                 !strcmp(t2->name, "elif") ||
-                 !strcmp(t2->name, "ifdef") ||
-                 !strcmp(t2->name, "ifndef")))
+                   (t2->ty == TK_IDENT &&
+                        (!strcmp(t2->name, "endif") ||
+                         !strcmp(t2->name, "elif")  ||
+                         !strcmp(t2->name, "ifdef") ||
+                         !strcmp(t2->name, "ifndef")))))
             return;
         next();
     }
