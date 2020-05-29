@@ -16,6 +16,15 @@ Type *ary_of(Type *base, size_t size);
 Type *ptr_to(Type *base);
 Type *bool_ty();
 Type *int_ty();
+Type *void_ty();
+Type *char_ty();
+Type *short_ty();
+Type *long_ty();
+Type *enum_ty();
+Type *uchar_ty();
+Type *ushort_ty();
+Type *uint_ty();
+Type *ulong_ty();
 
 // トークンの型を表す値
 enum {
