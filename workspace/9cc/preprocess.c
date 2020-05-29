@@ -254,7 +254,7 @@ static Token *stringize(Vector *tokens) {
 
 static void apply(Macro *m, Token *start) {
     if (m->ty == OBJLIKE) {
-        append(m->tokens);
+        append(preprocess(m->tokens));
         return;
     }
 
