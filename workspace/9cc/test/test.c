@@ -727,6 +727,10 @@ assert(4,
     //assert(-1, 0x1 << 31 >> 31, "0x1 << 31 >> 31");
     //assert(-1, 0b1 << 31 >> 31, "0b1 << 31 >> 31");
 
+#define SPACE (-1)
+    assert(-1, SPACE, "SPACE");
+#define abs(a) (a > 0) ? (a) : (-(a))
+    assert(3, abs(-3), "abs(-3)");
 
     printf("OK\n");
     return 0;

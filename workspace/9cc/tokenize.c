@@ -40,10 +40,17 @@ Token *add_token(Vector *v, int ty, char *input) {
     token->start = input;
     token->filename = filename;
     token->input = input;
+    token->has_space = false;
     vec_push(v, (void *)token);
     return token;
 }
 
+void add_space(Vector *v) {
+    if (v->len == 0)
+        return;
+    Token *last = v->data[v->len - 1];
+    last->has_space = true;
+}
 
 int is_alnum(char c) {
     return ('a' <= c && c <= 'z') ||
@@ -190,6 +197,7 @@ static void scan() {
         }
         // 空白文字列をスキップ
         if (isspace(*p)) {
+            add_space(tokens);
             p++;
             continue;
         }

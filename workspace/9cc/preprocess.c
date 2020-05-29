@@ -302,7 +302,8 @@ static void objlike_macro(char *name) {
 
 static void define() {
     char *name = ident("macro name expected");
-    if (consume('('))
+    Token *t = ctx->input->data[ctx->pos-1];
+    if (!t->has_space && consume('('))
         return funclike_macro(name);
     return objlike_macro(name);
 }

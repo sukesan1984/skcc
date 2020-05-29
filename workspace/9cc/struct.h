@@ -48,6 +48,7 @@ typedef struct {
 
     // For preprocessor
     bool stringize;
+    bool has_space;
 
     // For error reporting
     char *buf;
