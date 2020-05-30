@@ -491,6 +491,13 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "...", 3) == 0) {
+            Token *t = add_token(tokens, TK_DOTS, p);
+            p += 3;
+            t->end = p;
+            t->len = 3;
+            continue;
+        }
         if (strchr("+-*/%()=;{},<>&[].!?:|&^~#", *p)) {
             Token *t = add_token(tokens, *p, p);
             p++;

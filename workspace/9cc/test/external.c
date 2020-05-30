@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 int global_var = 5;
 
@@ -38,4 +39,16 @@ void show(char* p) {
 
 void show_num(int i) {
     printf("%d\n", i);
+}
+
+int add_all1(int x, ...) {
+    va_list ap;
+    va_start(ap, x);
+
+    for (;;) {
+        int y = va_arg(ap, int);
+        if (y == 0)
+            return x;
+        x += y;
+    }
 }
