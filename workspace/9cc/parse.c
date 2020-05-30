@@ -1061,6 +1061,8 @@ static long eval(Node *node) {
             return eval(node->lhs) != eval(node->rhs);
         case '<':
             return eval(node->lhs) < eval(node->rhs);
+        case '>':
+            return eval(node->lhs) > eval(node->rhs);
         case ND_LE:
             return eval(node->lhs) <= eval(node->rhs);
         case '?':
