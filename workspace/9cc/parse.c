@@ -1154,6 +1154,9 @@ Node *toplevel() {
     bool is_static = consume(TK_STATIC);
     Type *ty = decl_specifiers();
 
+    if (consume(';'))
+        return NULL;
+
     while (consume('*'))
         ty = ptr_to(ty);
 
