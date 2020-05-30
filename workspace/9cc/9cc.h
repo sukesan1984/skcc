@@ -2,15 +2,76 @@
 #include "struct.h"
 //#include <assert.h>
 void assert(int expression);
-#include <stdnoreturn.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <errno.h>
+//#include <stdnoreturn.h>
+#define noreturn _Noreturn
+//#include <stddef.h>
+#define size_t int
+#define NULL 0
+//#include <stdarg.h>
+//#include <stdio.h>
+typedef struct FILE FILE;
+extern struct FILE *stdin;
+extern struct FILE *stdout;
+extern struct FILE *stderr;
+#define SEEK_SET        0        /* Seek from beginning of file.  */
+#define SEEK_CUR        1        /* Seek from current position.  */
+#define SEEK_END        2        /* Seek from end of file.  */
+typedef struct {
+    unsigned int gp_offset;
+    unsigned int fp_offset;
+    void *overflow_arg_area;
+    void *reg_save_area;
+} va_list[1];
+//typedef __builtin_va_list va_list;
+extern int printf (const char *__format, ...);
+extern int fprintf (FILE *__stream, const char *__format, ...);
+extern int sprintf (char *__s, const char *__format, ...);
+extern int vfprintf (FILE *__s, const char *__format, va_list __arg);
+extern int vsnprintf (char *__s, size_t __maxlen, const char *__format, va_list __arg);
+extern FILE *fopen (const char *__filename, const char *__modes);
+extern int fseek (FILE *__stream, long int __off, int __whence);
+extern long int ftell (FILE *__stream);
+extern int fread (void *__ptr, int __size, int __n, FILE *__stream);
+extern int fclose (FILE *__stream);
+
+//#include <stdlib.h>
+#define EXIT_FAILURE    1   /* Failing exit status.  */
+#define EXIT_SUCCESS    0   /* Successful exit status.  */
+
+extern void *malloc (size_t __size);
+extern void *realloc (void *__ptr, size_t __size);
+extern void *calloc (size_t __nmemb, size_t __size);
+extern long int strtol (const char *__nptr, char **__endptr, int __base);
+extern void exit (int __status);
+//#include <stdint.h>
+typedef unsigned char uint8_t;
+typedef long int                intptr_t;
+//#include <string.h>
+extern char *strdup(const char *__string);
+extern char *strndup(const char *__string, int __n);
+extern int strcmp (const char *__s1, const char *__s2);
+extern int strncmp (const char *__s1, const char *__s2, size_t __n);
+int strncasecmp(const char *s1, const char *s2, int n);
+extern size_t strlen (const char *__s);
+extern char *strchr (char *__s, int __c);
+extern char *strcpy (char *__dest, const char *__src);
+extern char *strncpy (char *__dest, const char *__src, size_t __n);
+extern void *memcpy (void *__dest, const void *__src, size_t __n);
+extern char *strerror (int __errnum);
+//#include <sys/stat.h>
+struct stat {
+      char _[512];
+};
+int stat(char *path, struct stat *statbuf);
+#define va_start __builtin_va_start
+#define va_end __builtin_va_end
+//#include <stdarg.h>
+
+//#include <ctype.h>
+int isxdigit(int c);
+int isspace(int c);
+int isdigit(int c);
+//#include <errno.h>
 
 Type *ary_of(Type *base, size_t size);
 Type *ptr_to(Type *base);
