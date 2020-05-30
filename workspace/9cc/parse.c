@@ -47,6 +47,7 @@ static Type *find_typedef(char *name) {
     for (Env *e = env; e; e = e->next)
         if (map_exists(e->typedefs, name))
             return map_get(e->typedefs, name);
+    fprintf(stderr, "name is not found: %s\n", name);
     return NULL;
 }
 
@@ -1323,6 +1324,7 @@ static Type *decl_specifiers() {
         Type *ty = find_typedef(t->name);
         if (ty)
             pos++;
+        fprintf(stderr, "decl_specifiers: not defined %s\n", t->name);
         return ty;
     }
     Type *ty = int_ty();
