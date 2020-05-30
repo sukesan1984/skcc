@@ -746,6 +746,8 @@ assert(4,
     assert(8, alignof(struct {char a; long b;}[2]), "alignof(struct {char a; long b;}[2])");
 
 
+// variadic
+    assert(6, add_all1(1,2,3,0), "add_all1(1,2,3,0)");
 
     printf("OK\n");
     return 0;

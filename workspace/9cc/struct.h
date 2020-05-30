@@ -34,6 +34,7 @@ typedef struct Type {
     // Function
     struct Type *returning;
     bool is_incomplete;
+    bool is_variadic;
 } Type;
 
 // トークンの型

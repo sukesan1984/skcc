@@ -140,6 +140,7 @@ enum {
     TK_SIGNED,
     TK_UNSIGNED,
     TK_ALIGNOF,
+    TK_DOTS, // ...
 };
 
 enum {

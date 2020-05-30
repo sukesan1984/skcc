@@ -1162,6 +1162,7 @@ Node *toplevel() {
     // Fuction
     if (consume('(')) {
         Node *node = calloc(1, sizeof(Node));
+        bool is_variadic = false;
         switches = new_vector();
         breaks = new_vector();
         continues = new_vector();
@@ -1172,8 +1173,14 @@ Node *toplevel() {
         node->ty->returning = ty;
         if (!consume(')')) {
             vec_push(node->args, param_declaration());
-            while(consume(','))
+            while(consume(',')) {
+                if (consume(TK_DOTS)) {
+                    is_variadic = true;
+                    break;
+                }
                 vec_push(node->args, param_declaration());
+            }
+            node->ty->is_variadic = is_variadic;
             expect(')');
         }
 
