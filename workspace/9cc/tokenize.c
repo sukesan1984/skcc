@@ -203,17 +203,17 @@ static void scan() {
         }
 
         // constをスキップ
-        if (strncmp(p, "const", 5) == 0) {
+        if (strncmp(p, "const", 5) == 0 && !is_alnum(p[5])) {
             p += 5;
             continue;
         }
 
-        if (strncmp(p, "_Noreturn", 8) == 0) {
-            p += 8;
+        if (strncmp(p, "_Noreturn", 9) == 0 && !is_alnum(p[9])) {
+            p += 9;
             continue;
         }
 
-        if (strncmp(p, "__inline", 8) == 0) {
+        if (strncmp(p, "__inline", 8) == 0 && !is_alnum(p[8])) {
             p += 8;
             continue;
         }

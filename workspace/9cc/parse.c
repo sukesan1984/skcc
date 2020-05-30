@@ -237,16 +237,14 @@ Node *unary();
 Node *primary();
 Node *expr();
 
-static int const_expr() {
-    Token *t = tokens->data[pos];
-    Node *node = primary();
-    if (node->op != ND_NUM)
-        bad_token(t, "constant expression expected");
-    return node->val;
-}
-
 Node *conditional();
 static long eval(Node *node);
+
+static long const_expr() {
+    Token *t = tokens->data[pos];
+    Node *node = conditional();
+    return eval(node);
+}
 
 long const_expr_token(Vector *override_tokens, int override_pos) {
     Vector *_tokens = tokens;
@@ -1296,7 +1294,7 @@ static Type *enum_decl() {
 
     expect('{');
 
-    int cnt = 0;
+    long cnt = 0;
     VarScope *sc;
     for (;;) {
         char *name = ident();

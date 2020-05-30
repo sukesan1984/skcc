@@ -30,8 +30,7 @@ sample: 9cc
 		-I/usr/include/linux -I/usr/include/x86_64-linux-gnu \
 		-I/usr/lib/gcc/x86_64-linux-gnu/7.5.0/include \
 		-I. test/sample.c > tmp-sample.s
-	#gcc -static -o tmp tmp-sample.s test/external.c
-	gcc -o tmp tmp-sample.s test/external.c
+	gcc -static -o tmp tmp-sample.s test/external.c
 	cat tmp-sample.s
 	@./tmp
 
