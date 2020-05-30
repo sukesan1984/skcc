@@ -254,7 +254,7 @@ typedef struct {
     int len;
 } StringBuilder;
 
-StringBuilder *new_sb(void);
+StringBuilder *new_sb();
 void sb_add(StringBuilder *sb, char c);
 void sb_append(StringBuilder *sb, char *s);
 void sb_append_n(StringBuilder *sb, char *s, int len);
