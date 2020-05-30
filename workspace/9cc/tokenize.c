@@ -426,7 +426,7 @@ static void scan() {
             continue;
         }
 
-        if (strncmp(p, "typedef", 7) == 0) {
+        if (strncmp(p, "typedef", 7) == 0 && !is_alnum(p[7])) {
             Token *t = add_token(tokens, TK_TYPEDEF, p);
             p += 7;
             t->end = p;
