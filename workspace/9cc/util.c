@@ -144,14 +144,14 @@ char *read_file(char *path) {
     // ファイルを開く
     FILE *fp = fopen(path, "r");
     if (!fp)
-        error("cannnot open %s: %s", path, strerror(errno));
+        error("cannnot open %s", path);
 
     // ファイルの長さを調べる
     if (fseek(fp, 0, SEEK_END) == -1)
-        error("%s: fseek: %s", path, strerror(errno));
+        error("%s: fseek", path);
     size_t size = ftell(fp);
     if (fseek(fp, 0, SEEK_SET) == -1)
-        error("%s: fseek: %s", path, strerror(errno));
+        error("%s: fseek", path);
 
     // ファイル内容を読み込む
     char *buf = malloc(size + 2);
