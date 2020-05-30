@@ -239,7 +239,8 @@ static Node* walk(Node *node, bool decay) {
         node->ty  = node->lhs->ty;
         return node;
     case ND_RETURN:
-        node->lhs = walk(node->lhs, true);
+        if (node->lhs)
+            node->lhs = walk(node->lhs, true);
         return node;
     case ND_BREAK:
     case ND_CONTINUE:

@@ -695,8 +695,10 @@ void gen_stmt(Node *node) {
 
     if (node->op == ND_RETURN) {
         printf("#en_stmt ND_RETURNの処理\n");
-        gen_expr(node->lhs);
-        pop("  pop rax #returnしたい結果がスタックに入っているのでをraxにロード\n");          // genで生成された値をraxにpopして格納
+        if (node->lhs) {
+            gen_expr(node->lhs);
+            pop("  pop rax #returnしたい結果がスタックに入っているのでをraxにロード\n");          // genで生成された値をraxにpopして格納
+        }
 
         //関数のエピローグ
         printf("# return したのでエピローグ\n");

@@ -959,6 +959,8 @@ Node *stmt() {
         case TK_RETURN:
             pos++;
             node->op = ND_RETURN;
+            if (consume(';'))
+                return node;
             node->lhs = expr();
             expect(';');
             return node;
