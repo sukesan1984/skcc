@@ -208,7 +208,12 @@ static void scan() {
             continue;
         }
 
-        if (strncmp(p, "noreturn", 8) == 0) {
+        if (strncmp(p, "_Noreturn", 8) == 0) {
+            p += 8;
+            continue;
+        }
+
+        if (strncmp(p, "__inline", 8) == 0) {
             p += 8;
             continue;
         }
