@@ -1,5 +1,5 @@
 //CFLAGS=-Wall -Werror -Wextra -std=c11 -g -static
-CFLAGS=-std=c11 -g -static
+CFLAGS=-std=c11 -Wno-builtin-declaration-mismatch -Wno-incompatible-pointer-types -g -static
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 TEST_FILE=test/test.c
