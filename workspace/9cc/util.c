@@ -124,7 +124,7 @@ Type *ary_of(Type *base, size_t size) {
     Type *ty = calloc(1, sizeof(Type));
     ty->ty = ARRAY;
     ty->array_size = size;
-    ty->array_of = base;
+    ty->ptr_to = base;
     ty->size = base->size * size;
     ty->align = base->align;
     return ty;
