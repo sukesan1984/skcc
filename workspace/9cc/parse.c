@@ -674,7 +674,7 @@ static Node *lvar_init_zero(Node *cur, Type *ty, char *name, Designator *desg) {
     if (ty->ty == ARRAY) {
         for (int i = 0; i < ty->array_size; i++) {
             Designator desg2 = {desg, i++, NULL};
-            cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
+            cur = lvar_init_zero(cur, ty->ptr_to, name, &desg2);
         }
         return cur;
     }
@@ -683,7 +683,7 @@ static Node *lvar_init_zero(Node *cur, Type *ty, char *name, Designator *desg) {
 }
 
 static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg) {
-    if (ty->ty == ARRAY && ty->array_of->ty == CHAR) {
+    if (ty->ty == ARRAY && ty->ptr_to->ty == CHAR) {
         Token* t = tokens->data[pos++];
         if (t->ty == TK_STR) {
             if (ty->is_incomplete) {
@@ -701,7 +701,7 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
 
             for (int i = len; i < ty->array_size; i++) {
                 Designator desg2 = {desg, i, NULL};
-                cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
+                cur = lvar_init_zero(cur, ty->ptr_to, name, &desg2);
             }
             return cur;
         }
@@ -712,16 +712,16 @@ static Node *lvar_initializer2(Node *cur, Type *ty, char *name, Designator *desg
         if (!consume('}')) {
             do {
                 Designator desg2 = { desg, i++, NULL};
-                cur = lvar_initializer2(cur, ty->array_of, name, &desg2);
+                cur = lvar_initializer2(cur, ty->ptr_to, name, &desg2);
             } while (!peek_end());
         }
         while (i < ty->array_size) {
             Designator desg2 = {desg, i++, NULL};
-            cur = lvar_init_zero(cur, ty->array_of, name, &desg2);
+            cur = lvar_init_zero(cur, ty->ptr_to, name, &desg2);
         }
 
         if (ty->is_incomplete) {
-            ty->size = ty->array_of->size * i;
+            ty->size = ty->ptr_to->size * i;
             ty->array_size = i;
             ty->is_incomplete = false;
         }
@@ -1120,15 +1120,15 @@ static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
 
         if (!consume('}')) {
             do {
-                cur = gvar_initializer2(cur, ty->array_of);
+                cur = gvar_initializer2(cur, ty->ptr_to);
                 i++;
             } while (!peek_end());
         }
 
         if (i < ty->array_size)
-            cur = new_init_zero(cur, ty->array_of->size * (ty->array_size - i));
+            cur = new_init_zero(cur, ty->ptr_to->size * (ty->array_size - i));
         if (ty->is_incomplete) {
-            ty->size = ty->array_of->size * i;
+            ty->size = ty->ptr_to->size * i;
             ty->array_size = i;
             ty->is_incomplete = false;
         }

@@ -11,7 +11,7 @@ static Node *maybe_decay(Node *base, bool decay) {
         return base;
     Node *node = calloc(1, sizeof(Node));
     node->op = ND_ADDR;
-    node->ty = ptr_to(base->ty->array_of);
+    node->ty = ptr_to(base->ty->ptr_to);
     node->lhs = base;
     return node;
 }
@@ -93,7 +93,8 @@ static Node* walk(Node *node, bool decay) {
         ret->name = var->name;
         return maybe_decay(ret, decay);
     }
-
+    case ND_LVAR:
+        return node;
     case ND_DOT:
         node->lhs = walk(node->lhs, true);
         if (node->lhs->ty->ty != STRUCT)

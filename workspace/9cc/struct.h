@@ -24,7 +24,6 @@ typedef struct Type {
     struct Type *ptr_to;
 
     // Array
-    struct Type *array_of;
     int array_size;
 
     // Struct
