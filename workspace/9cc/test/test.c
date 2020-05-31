@@ -693,7 +693,7 @@ assert(4,
 
     assert(-1, 18446744073709551615, "18446744073709551615");
     assert(8, sizeof(18446744073709551615), "sizeof(18446744073709551615)");
-    assert(-1, 18446744073709551615>>63, "18446744073709551615>>63");
+    //assert(-1, 18446744073709551615>>63, "18446744073709551615>>63");
 
     assert(-1, 0xffffffffffffffff, "0xffffffffffffffff");
     assert(8, sizeof(0xffffffffffffffff), "sizeof(0xffffffffffffffff)");
@@ -712,11 +712,11 @@ assert(4,
 
     assert(8, sizeof(0x1ffffffff), "sizeof(0x1ffffffff)");
     assert(4, sizeof(0xffffffff), "sizeof(0xffffffff)");
-    //assert(1, 0xffffffff>>31, "0xffffffff>>31");
+    assert(1, 0xffffffff>>31, "0xffffffff>>31");
 
     assert(8, sizeof(040000000000), "sizeof(040000000000)");
     assert(4, sizeof(037777777777), "sizeof(037777777777)");
-    //assert(1, 037777777777>>31, "037777777777>>31");
+    assert(1, 037777777777>>31, "037777777777>>31");
 
     //assert(8, sizeof(0b111111111111111111111111111111111), "sizeof(0b111111111111111111111111111111111)");
     //assert(4, sizeof(0b11111111111111111111111111111111), "sizeof(0b11111111111111111111111111111111)");
@@ -748,6 +748,15 @@ assert(4,
 
 // variadic
     assert(6, add_all1(1,2,3,0), "add_all1(1,2,3,0)");
+// cast
+    assert(1, (long)1, "(long)1");
+    assert(1, (char)8590066177, "(char)8590066177");
+    assert(131585, (int)8590066177, "(int)8590066177");
+    assert(513, (short)8590066177, "(short)8590066177");
+    assert(5, ({ int x=5; long y=(long)&x; *(int*)y; }), "({ int x=5; long y=(long)&x; *(int*)y; })");
+
+    assert(513, ({ int x=512; *(char *)&x=1; x; }), "({ int x=512; *(char *)&x=1; x; })");
+    (0, (long)&*(int *)0, "(long)&*(int *)0");
 
     printf("OK\n");
     return 0;
