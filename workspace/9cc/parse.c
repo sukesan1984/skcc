@@ -145,9 +145,9 @@ Node *new_expr(int ty, Node *expr) {
     return node;
 }
 
-Node *new_node_num(int val) {
+Node *new_node_num(long val) {
     Node *node = malloc(sizeof(Node));
-    node->ty = int_ty();
+    node->ty = (val >> 31) ? long_ty() :  int_ty();
     node->op = ND_NUM;
     node->val = val;
     return node;
@@ -424,6 +424,7 @@ static Node *postfix() {
 }
 
 Node *mul();
+static Node* cast();
 Node *unary() {
     if (consume('*')) {
         Node *node = calloc(1, sizeof(Node));
@@ -441,36 +442,53 @@ Node *unary() {
     }
 
     if (consume('!')) {
-        Node *node = new_expr('!', unary());
+        Node *node = new_expr('!', cast());
         return node;
     }
 
     if (consume('~')) {
-        Node *node = new_expr('~', unary());
+        Node *node = new_expr('~', cast());
         return node;
     }
 
     // ++ ident
     if (consume(TK_INC)) {
-        Node *node = new_expr(ND_PREINC, unary());
+        Node *node = new_expr(ND_PREINC, cast());
         return node;
     }
 
     if (consume(TK_DEC)) {
-        Node *node = new_expr(ND_PREDEC, unary());
+        Node *node = new_expr(ND_PREDEC, cast());
         return node;
     }
 
     if (consume('-')) {
-        Node *node = new_expr(ND_NEG, unary());
+        Node *node = new_expr(ND_NEG, cast());
         return node;
     }
 
     return postfix();
 }
 
+static Type *typename();
+static Node *cast() {
+    Token *t1 = tokens->data[pos];
+    Token *t2 = tokens->data[pos + 1];
+    if (t1->ty == '(' && is_typename(t2)) {
+        expect('(');
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_CAST;
+        node->ty = typename();
+        expect(')');
+        node->lhs = cast();
+        return node;
+    }
+    return unary();
+}
+
+
 Node *mul() {
-    Node *lhs = unary();
+    Node *lhs = cast();
     Token *t = tokens->data[pos];
     if(t->ty == TK_EOF)
         return lhs;
@@ -804,6 +822,11 @@ static Type *abstract_declarator(Type *ty) {
     while (consume('*'))
         ty = ptr_to(ty);
     return abstract_direct_decl(ty);
+}
+
+static Type *typename() {
+    Type *ty = decl_specifiers();
+    return abstract_declarator(ty);
 }
 
 static Node *declaration() {

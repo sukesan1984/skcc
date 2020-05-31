@@ -529,6 +529,7 @@ static void scan() {
         if (*p == '\'') {
             Token *t = add_token(tokens, TK_NUM, p++);
             p = c_char(&t->val, p);
+            t->type = char_ty();
             p++;
             t->end = p;
             continue;

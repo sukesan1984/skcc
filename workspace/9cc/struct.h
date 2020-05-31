@@ -92,7 +92,7 @@ typedef struct Node {
     struct Node *init;
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
-    int val; // ty がTK_NUMの場合のみ使う
+    long val; // ty がTK_NUMの場合のみ使う
     char* name;
 
     int break_label;

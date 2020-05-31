@@ -113,10 +113,11 @@ static void skip_until_eol() {
     }
 }
 
-static Token *new_int(int val) {
+static Token *new_int(long val) {
     Token *t = calloc(1, sizeof(Token));
     t->ty = TK_NUM;
     t->val = val;
+    t->type = (t->val >> 31) ? long_ty() :  int_ty();
     return t;
 }
 

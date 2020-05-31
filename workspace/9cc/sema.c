@@ -272,14 +272,19 @@ static Node* walk(Node *node, bool decay) {
     case ND_STMT_EXPR:
         node->lhs = walk(node->lhs, true);
         return node;
+    case ND_CAST:
+        node->lhs = walk(node->lhs, true);
+        return node;
     case ND_SIZEOF:
         node->lhs = walk(node->lhs, false);
         node->op = ND_NUM;
+        node->ty = node->lhs->ty;
         node->val = node->lhs->ty->size;
         return node;
     case ND_ALIGNOF:
         node->lhs = walk(node->lhs, false);
         node->op = ND_NUM;
+        node->ty = node->lhs->ty;
         node->val = node->lhs->ty->align;
         return node;
     case ND_NULL:

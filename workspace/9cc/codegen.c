@@ -105,7 +105,12 @@ void gen_expr(Node *node){
     switch(node->op) {
         case ND_NUM: {
             printf("#gen_expr ND_NUM \n");
-            push("  push %d        # スタックに数字を積む\n", node->val);
+            if (node->ty->ty == LONG) {
+                printf("  movabs rax, %ld\n", node->val);
+            } else {
+                printf("  mov rax, %ld\n", node->val);
+            }
+            push("  push rax\n");
             return;
         }
         // 変数に格納
@@ -486,14 +491,22 @@ void gen_expr(Node *node){
             push("  push rax\n # !した値をつむ");
             return;
         case ND_CAST: {
-            gen_expr(node->lhs);
-            if (node->ty->ty != BOOL)
+            if (node->ty->ty == VOID)
                 return;
+            gen_expr(node->lhs);
             pop("  pop rax\n");
-            printf("  mov r10, 0\n");
-            printf("  cmp rax, r10 # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
-            printf("  setne al  # != \n");
-            printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            if (node->ty->ty == BOOL) {
+                printf("  mov r10, 0\n");
+                printf("  cmp rax, r10 # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+                printf("  setne al  # != \n");
+                printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+            } else if (node->ty->size == 1) {
+                printf("  movsx rax, al # raxを0クリアしてからalの結果をraxに格納\n");
+            } else if (node->ty->size == 2) {
+                printf("  movsx rax, ax\n");
+            } else if (node->ty->size == 4) {
+                printf("  movsx rax, eax\n");
+            }
             push("  push rax      # スタックに結果を積む\n");         // スタックに結果を積む
             return;
         }
@@ -677,7 +690,7 @@ void gen_stmt(Node *node) {
         pop("  pop rax # switchのconditionの内容をraxにロード\n");
         for (int i = 0; i < node->cases->len; i++) {
             Node *case_ = node->cases->data[i];
-            printf("  mov r10, %d # case[%d]のconst値をr10にロード\n", case_->val, i);
+            printf("  mov r10, %ld # case[%d]のconst値をr10にロード\n", case_->val, i);
             printf("  cmp rax, r10\n");
             printf("  je .Lcase%d\n", case_->case_label);
         }
