@@ -14,14 +14,15 @@ typedef struct {
     Vector *vals;
 } Map;
 
-typedef struct Type {
+typedef struct Type Type;
+struct Type {
     int ty;
     int size;
     int align;
     bool is_unsigned;
 
     // Pointer
-    struct Type *ptr_to;
+    Type *ptr_to;
 
     // Array
     int array_size;
@@ -31,10 +32,10 @@ typedef struct Type {
 
     int offset;
     // Function
-    struct Type *returning;
+    Type *returning;
     bool is_incomplete;
     bool is_variadic;
-} Type;
+};
 
 // トークンの型
 typedef struct {
@@ -57,13 +58,14 @@ typedef struct {
     char *end;
 } Token;
 
-typedef struct Initializer {
-    struct Initializer *next;
+typedef struct Initializer Initializer;
+struct Initializer {
+    Initializer *next;
     int sz;
     long val;
 
     char *label;
-} Initializer;
+};
 
 typedef struct {
     Type *ty;
@@ -77,18 +79,19 @@ typedef struct {
     Initializer *initializer;
 } Var;
 
-typedef struct Node {
+typedef struct Node Node;
+struct Node {
     int op; // 演算子かTK_NUM
     Type *ty;         // C type
-    struct Node *lhs; // 左辺(tyがTK_FORのときforの左)
-    struct Node *lhs2; //tyがTK_FORのときのforの真ん中
-    struct Node *lhs3; //tyがTK_FORのときのforの右
-    struct Node *rhs; // 右辺
-    struct Node *cond; // TK_IFのcondition
-    struct Node *if_body; // TK_IFのbody
-    struct Node *else_body; // TK_ELSEのbody
-    struct Node *body; // function definition
-    struct Node *init;
+    Node *lhs; // 左辺(tyがTK_FORのときforの左)
+    Node *lhs2; //tyがTK_FORのときのforの真ん中
+    Node *lhs3; //tyがTK_FORのときのforの右
+    Node *rhs; // 右辺
+    Node *cond; // TK_IFのcondition
+    Node *if_body; // TK_IFのbody
+    Node *else_body; // TK_ELSEのbody
+    Node *body; // function definition
+    Node *init;
     Vector *args;      // 関数の場合の引数が格納される
     Vector *stmts;     // stmtの集合が入る
     long val; // ty がTK_NUMの場合のみ使う
@@ -102,7 +105,7 @@ typedef struct Node {
     int case_label;
 
     // For break and continue
-    struct Node *target;
+    Node *target;
 
     // Global variable
     char *data;
@@ -116,6 +119,6 @@ typedef struct Node {
 
     bool is_extern;
     bool is_static;
-    struct Node *next;
-} Node;
+    Node *next;
+};
 

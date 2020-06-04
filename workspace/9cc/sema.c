@@ -100,6 +100,8 @@ static Node* walk(Node *node, bool decay) {
         if (node->lhs->ty->ty != STRUCT)
             error("struct expected before '.'");
         Type *ty = node->lhs->ty;
+        if (!ty->members)
+            error("incomplete type");
         for (int i = 0; i < ty->members->len; i++) {
             Node *m = ty->members->data[i];
             if (strcmp(m->name, node->name))
