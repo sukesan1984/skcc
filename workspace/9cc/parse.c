@@ -47,7 +47,6 @@ static Type *find_typedef(char *name) {
     for (Env *e = env; e; e = e->next)
         if (map_exists(e->typedefs, name))
             return map_get(e->typedefs, name);
-    fprintf(stderr, "name is not found: %s\n", name);
     return NULL;
 }
 
@@ -1284,18 +1283,17 @@ static Type *struct_decl() {
         error("bad struct definition");
 
     Type *ty = NULL;
-    if (tag && !members)
+    if (tag)
         ty = find_tag(tag);
     if (!ty) {
         ty = calloc(1, sizeof(Type));
         ty->ty = STRUCT;
-    }
-
-    if (members) {
-        add_members(ty, members);
         if (tag)
             map_put(env->tags, tag, ty);
     }
+
+    if (members)
+        add_members(ty, members);
     return ty;
 }
 
