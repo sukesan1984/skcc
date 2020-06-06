@@ -302,6 +302,7 @@ int main() {
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
     assert(1, ({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; *p++;}), "({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; return *p++;})");
     assert(2, ({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; *++p;}), "({ int ary[2]; ary[0]=1; ary[1]=2; int *p=ary; return *++p;})");
+    assert(2, ({ int ary[2]; int i = 0; ary[i++]=1; ary[i++]=2; int *p=ary; *++p;}), "({ int ary[2]; int i = 0; ary[i++]=1; ary[i++]=2; int *p=ary; *++p;})");
 // post inc i--
     assert(3, ({int i = 3; i--;}), "({int i = 3; i--;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");

@@ -398,9 +398,23 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             pop("  pop rax\n");
-            printf("  mov r11, [rax]\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov r11b, [rax]\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov r11w, [rax]\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov r11d, [rax]\n");
+            else
+                printf("  mov r11, [rax]\n");
             printf("  add r11, r10\n");
-            printf("  mov [rax], r11\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov [rax], r11b\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov [rax], r11w\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov [rax], r11d\n");
+            else
+                printf("  mov [rax], r11\n");
             push("  push r11\n");
             return;
         case ND_POSTINC:
@@ -415,10 +429,24 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             pop("  pop rax\n");
-            printf("  mov r11, [rax]\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov r11b, [rax]\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov r11w, [rax]\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov r11d, [rax]\n");
+            else
+                printf("  mov r11, [rax]\n");
             push("  push r11\n");
             printf("  add r11, r10\n");
-            printf("  mov [rax], r11\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov [rax], r11b\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov [rax], r11w\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov [rax], r11d\n");
+            else
+                printf("  mov [rax], r11\n");
             return;
         case ND_PREDEC:
             printf("#gen_expr 前置-- の評価開始\n");
