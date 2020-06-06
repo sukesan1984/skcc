@@ -516,6 +516,7 @@ void gen_expr(Node *node){
             pop("  pop rax\n");
             printf("  cmp rax, 0\n");
             printf("  sete al   # al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット\n");          // al(raxの下位8ビットを指す別名レジスタ)にcmpの結果(同じなら1/それ以外なら0)をセット
+            printf("  movzb eax, al\n");
             push("  push rax\n # !した値をつむ");
             return;
         case ND_CAST: {
