@@ -163,6 +163,16 @@ void gen_expr(Node *node){
             printf("  call %s       #関数呼び出し \n", node->name);         // 関数の呼び出し
             printf("  add rsp, 8\n");
             printf(".Lend%d: # RSPのスタックフレームが16の倍数 \n", seq);
+            if (node->ty->size == 1) {
+                if (node->ty->is_unsigned)
+                    printf("  movzx rax, al\n");
+                else
+                    printf("  movsx rax, al\n");
+            } else if (node->ty->size == 2) {
+                printf("  movsx rax, ax\n");
+            } else if (node->ty->size == 4) {
+                printf("  movsx rax, eax\n");
+            }
             push("  push rax      #関数の結果をスタックに積む \n");         // スタックに結果を積む
             return;
         }

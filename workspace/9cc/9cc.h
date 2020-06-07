@@ -66,6 +66,7 @@ int stat(char *path, struct stat *statbuf);
 #define va_start __builtin_va_start
 #define va_end __builtin_va_end
 //#include <stdarg.h>
+#define bool _Bool
 
 //#include <ctype.h>
 int isxdigit(int c);

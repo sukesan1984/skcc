@@ -1212,7 +1212,7 @@ Node *toplevel() {
 
         if (consume(';')) {
             node->op = ND_DECL;
-            return NULL;
+            return node;
         }
 
         node->op = ND_FUNC;
