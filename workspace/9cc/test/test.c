@@ -353,6 +353,7 @@ int main() {
     assert(1, ({ _Bool x; int y = -1; x = y; x; }), "({ _Bool x; int y = -1; x = y; x; })");
     assert(0, ({ _Bool x; int y = 0; x = y; x; }), "({ _Bool x; int y = 0; x = y; x; })");
     assert(1, ({ _Bool x; int y = 1; x = y; x; }), "({ _Bool x; int y = 1; x = y; x; })");
+    assert(100, ({ int i = 100; _Bool x; x = 0; i; }),"({ int i = 100; _Bool x; x = 0; i; })");
     assert(1, test_bool(123), "test_bool(123)");
     assert(1, test_bool(122), "test_bool(122)");
     assert(0, test_bool(0), "test_bool(0)");
