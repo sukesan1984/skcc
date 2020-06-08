@@ -192,7 +192,10 @@ void gen_expr(Node *node){
                 push("  push rax\n");
                 return;
             } else if (node->ty->size == 4) {
-                reg = "eax";
+                printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
+                printf("  movsx rax, eax\n");
+                push("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
+                return;
             } else if (node->ty->size == 8) {
                 reg = "rax";
             } else if (node->ty->size ==2) {
@@ -233,7 +236,10 @@ void gen_expr(Node *node){
                 push("  push rax\n");
                 return;
             } else if (node->ty->size == 4) {
-                reg = "eax";
+                printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
+                printf("  movsx rax, eax\n");
+                push("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
+                return;
             } else if (node->ty->size == 8) {
                 reg = "rax";
             } else if (node->ty->size == 2) {

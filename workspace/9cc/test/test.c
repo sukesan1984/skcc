@@ -65,6 +65,9 @@ int sub_long(long a, long b, long c) {
     return a - b- c;
 }
 
+bool is_minus_one(int i) {
+    return i == -1;
+}
 
 int main() {
 #include "test/test3.h"
@@ -767,6 +770,9 @@ assert(4,
 
     assert(513, ({ int x=512; *(char *)&x=1; x; }), "({ int x=512; *(char *)&x=1; x; })");
     (0, (long)&*(int *)0, "(long)&*(int *)0");
+
+// unary
+    assert(1, ({ is_minus_one(-1); }), "is_minus_one(-1);");
 
     printf("OK\n");
     return 0;
