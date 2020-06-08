@@ -616,13 +616,13 @@ void gen_args(Vector *args) {
         gen_lval(node);       // 関数の引数定義はlvalとして定義
         pop("  pop rax        # 第%d引数の変数のアドレスがraxに格納\n", i);          // 変数のアドレスがraxに格納
 
-        if (node->ty->ty == INT) {
+        if (node->ty->size == 4) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg32[i]);
-        } else if (node->ty->ty == LONG) {
+        } else if (node->ty->size == 8) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg64[i]);
-        } else if (node->ty->ty == SHORT) {
+        } else if (node->ty->size == 2) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg16[i]);
-        } else if (node->ty->ty == CHAR) {
+        } else if (node->ty->size == 1) {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg8[i]);
         } else {
             printf("  mov [rax], %s # raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア\n", argreg64[i]);   // raxのレジスタのアドレスに呼び出し側で設定したレジスタの中身をストア
