@@ -40,6 +40,11 @@ int assert(int expected, int actual, char *text) {
 int fuga() {
     return 5;
 }
+
+#define bool _Bool
+bool test_bool(bool a) {
+    return a;
+}
 int hoge() { return 20; }
 int add1(int a) { return a; }
 int add2(int a, int b) { return a + b; }
@@ -345,6 +350,9 @@ int main() {
     assert(1, ({ _Bool x; int y = -1; x = y; x; }), "({ _Bool x; int y = -1; x = y; x; })");
     assert(0, ({ _Bool x; int y = 0; x = y; x; }), "({ _Bool x; int y = 0; x = y; x; })");
     assert(1, ({ _Bool x; int y = 1; x = y; x; }), "({ _Bool x; int y = 1; x = y; x; })");
+    assert(1, test_bool(123), "test_bool(123)");
+    assert(1, test_bool(122), "test_bool(122)");
+    assert(0, test_bool(0), "test_bool(0)");
 // local variable initialize
     assert(0, ({ int x[3] = {}; x[0]; }), "int x[3] = {}; x[0];");
     assert(0, ({ int x[3] = {}; x[1]; }), "int x[3] = {}; x[1];");
