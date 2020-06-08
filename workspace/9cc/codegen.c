@@ -183,11 +183,19 @@ void gen_expr(Node *node){
             gen_lval(node);
             pop("  pop rax        # 左辺値がコンパイルされた結果をスタックからraxにロード\n");          // スタックからpopしてraxに格納
             char *reg = "rax";
-            if (node->ty->ty == INT) {
+            if (node->ty->ty == BOOL) {
+                printf("  mov al, [rax]\n");
+                printf("  mov r10b, 0\n");
+                printf("  cmp al, r10b # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+                printf("  setne al  # != \n");
+                printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+                push("  push rax\n");
+                return;
+            } else if (node->ty->size == 4) {
                 reg = "eax";
-            } else if (node->ty->ty == LONG) {
+            } else if (node->ty->size == 8) {
                 reg = "rax";
-            } else if (node->ty->ty == SHORT) {
+            } else if (node->ty->size ==2) {
                 printf("  mov ax, [rax] # ND_GVARのSHORTをロード \n");
                 if (node->ty->is_unsigned)
                     printf("  movzx rax, ax\n");
@@ -195,7 +203,7 @@ void gen_expr(Node *node){
                     printf("  movsx rax, ax\n");
                 push("  push rax \n");
                 return;
-            } else if (node->ty->ty == CHAR) {
+            } else if (node->ty->size == 1) {
                 printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
                 if (node->ty->is_unsigned)
                     printf("  movzx rax, al\n");
@@ -216,11 +224,19 @@ void gen_expr(Node *node){
             printf("#スタックに値を格納したいさきのアドレスが載ってる\n");
             pop("  pop rax        \n");          // スタックからpopしてraxに格納
             char *reg = "rax";
-            if (node->ty->ty == INT) {
+            if (node->ty->ty == BOOL) {
+                printf("  mov al, [rax]\n");
+                printf("  mov r10b, 0\n");
+                printf("  cmp al, r10b # 左辺と右辺が同じかどうかを比較する\n");     // 2つのレジスタの値が同じかどうか比較する
+                printf("  setne al  # != \n");
+                printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
+                push("  push rax\n");
+                return;
+            } else if (node->ty->size == 4) {
                 reg = "eax";
-            } else if (node->ty->ty == LONG) {
+            } else if (node->ty->size == 8) {
                 reg = "rax";
-            } else if (node->ty->ty == SHORT) {
+            } else if (node->ty->size == 2) {
                 printf("  mov ax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
                 if (node->lhs->ty->is_unsigned)
                     printf("  movsx rax, ax\n");
@@ -228,7 +244,7 @@ void gen_expr(Node *node){
                     printf("  movzx rax, ax\n");
                 push("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
                 return;
-            } else if(node->ty->ty == CHAR) {
+            } else if(node->ty->size == 1) {
                 printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
                 if (node->lhs->ty->is_unsigned)
                     printf("  movsx rax, al\n");
