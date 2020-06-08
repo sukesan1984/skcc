@@ -121,9 +121,19 @@ void gen_expr(Node *node){
 
             printf("#gen_expr =の処理開始\n");
             pop("  pop r10        # 評価された右辺値をr10にロード\n");          // 評価された右辺値がr10にロード
-            pop("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
 
             char *reg = "r10";
+            if (node->lhs->ty->ty == BOOL) {
+                printf("  mov rax, 0\n");
+                printf("  cmp rax, r10\n");
+                printf("  setne al  # != \n");
+                printf("  movzx r10, al # r10を0クリアしてからalの結果をr10に格納\n");    // raxを0クリアしてからalの結果をraxに格納
+                pop("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
+                printf("  mov [rax], r10b\n");
+                push("  push r10\n");
+                return;
+            }
+            pop("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
             if (node->lhs->ty->ty == INT)
                 reg = "r10d";
             else if (node->lhs->ty->ty == LONG)
