@@ -29,7 +29,9 @@ self: 9cc
 	#$(CC) $(CFLAGS) -S main.c -o _self_main.s
 	./9cc main.c > _self_main.s
 	$(CC) $(CFLAGS) -c _self_main.s -o main.self.o
-	$(CC) $(CFLAGS) -S preprocess.c -o _self_preprocess.s
+
+	#$(CC) $(CFLAGS) -S preprocess.c -o _self_preprocess.s
+	./9cc preprocess.c > _self_preprocess.s
 	$(CC) $(CFLAGS) -c _self_preprocess.s -o preprocess.self.o
 	$(CC) $(CFLAGS) -S parse.c -o _self_parse.s
 	$(CC) $(CFLAGS) -c _self_parse.s -o parse.self.o
@@ -40,6 +42,7 @@ self: 9cc
 	$(CC) $(CFLAGS) -S sema.c -o _self_sema.s
 	$(CC) $(CFLAGS) -c _self_sema.s -o sema.self.o
 	$(CC) $(CFLAGS) -S codegen.c -o _self_codegen.s
+	#./9cc codegen.c > _self_codegen.s
 	$(CC) $(CFLAGS) -c _self_codegen.s -o codegen.self.o
 	$(CC) -o self $(SELF_OBJS) $(CFLAGS)
 
@@ -47,7 +50,7 @@ self-test: self
 	@./self $(INCLUDES) $(TEST_FILE) > tmp-test.s
 	echo 'int static_fn() { return 5; }' | \
 		gcc -xc -c -o tmp2.o -
-	@gcc -static -o tmp-test tmp-test.s test/external.c tmp2.o
+	@gcc -g -static -o tmp-test tmp-test.s test/external.c tmp2.o
 	@./tmp-test
 	@./self -I. test/comment.c > tmp-test2.s
 	@gcc -static -o tmp-test2 tmp-test2.s

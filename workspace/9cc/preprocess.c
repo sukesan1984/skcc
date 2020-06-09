@@ -14,7 +14,7 @@ typedef struct Context {
 typedef struct CondIncl CondIncl;
 struct CondIncl {
     CondIncl *next;
-    enum { IN_THEN, IN_ELSE, IN_ELIF } ctx;
+    int ctx;
     bool included;
 };
 

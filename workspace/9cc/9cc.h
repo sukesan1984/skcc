@@ -67,6 +67,8 @@ int stat(char *path, struct stat *statbuf);
 #define va_end __builtin_va_end
 //#include <stdarg.h>
 #define bool _Bool
+#define false 0
+#define true 1
 
 //#include <ctype.h>
 int isxdigit(int c);
@@ -87,7 +89,7 @@ Type *uchar_ty();
 Type *ushort_ty();
 Type *uint_ty();
 Type *ulong_ty();
-
+enum { IN_THEN, IN_ELSE, IN_ELIF };
 // トークンの型を表す値
 enum {
     TK_NUM = 256,
