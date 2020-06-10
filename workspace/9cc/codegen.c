@@ -759,19 +759,30 @@ void gen_stmt(Node *node) {
         printf("#gen_stmt switchの処理\n");
         gen_expr(node->cond);
         pop("  pop rax # switchのconditionの内容をraxにロード\n");
+        Node *default_ = NULL; // if exists
         for (int i = 0; i < node->cases->len; i++) {
             Node *case_ = node->cases->data[i];
-            printf("  mov r10, %ld # case[%d]のconst値をr10にロード\n", case_->val, i);
-            printf("  cmp rax, r10\n");
-            printf("  je .Lcase%d\n", case_->case_label);
+            if (case_->op == ND_CASE) {
+                printf("  mov r10, %ld # case[%d]のconst値をr10にロード\n", case_->val, i);
+                printf("  cmp rax, r10\n");
+                printf("  je .Lcase%d\n", case_->case_label);
+            } else if (case_->op == ND_DEFAULT) {
+                default_ = case_;
+            } else {
+                error("case is not default or case\n");
+            }
         }
-        printf("  jmp .Lend%d\n",node->break_label);
+        // 存在する時は上記で引っかからなかったものをdefaultにとばす
+        if (default_)
+            printf("  jmp .Lcase%d\n", default_->case_label);
+
+        printf("  jmp .Lend%d\n", node->break_label);
         gen_stmt(node->body);
         printf(".Lend%d:\n", node->break_label);
         return;
     }
 
-    if (node->op == ND_CASE) {
+    if (node->op == ND_CASE || node->op == ND_DEFAULT) {
         printf(".Lcase%d:\n", node->case_label);
         gen_stmt(node->body);
         return;

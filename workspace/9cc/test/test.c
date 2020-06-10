@@ -143,6 +143,8 @@ int main() {
     assert(6, ({ int x=0; switch(3) { case 2: x = 5; break; case 3: x=6; break; case 4: x=7; break;} x;}), "({ int x=0; switch(3) { case 2: x = 5; break; case 3: x=6; break; case 4: x=7; break;} x;})");
     assert(7, ({ int x=0; switch(3) { case 2: x = 5; case 3: x=6; case 4: x=7; } x;}), "({ int x=0; switch(3) { case 2: x = 5; case 3: x=6; case 4: x=7;} x;})");
     assert(0, ({ int x=0; switch(3) { case 1: x = 5; } x;}), "({ int x=0; switch(3) { case 1: x = 5; } x;})");
+    assert(4, ({ int x=0; switch(3) { case 1: x = 1; case 2: x=2; default: x=4;} x; }), "({ int x=0; switch(3) { case 1: x = 1; case 2: x=2; default: x=4;} x; })");
+    assert(4, ({ int x=0; switch(3) { case 1: x = 1; break; default: x=4; break;case 2: x=2; break;} x; }), "({ int x=0; switch(3) { case 1: x = 1; break; default: x=4; break;case 2: x=2; break;} x; })");
 
     assert(55, ({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; }), "({ int i=0; int j=0; for (i=0; i<=10; i=i+1) j=i+j; j; })");
     assert(6, ({ int i = 0; for (;;){ if (i > 5) { break; } i++; } i; }), "({ int i = 0; for (;;){ if (i > 5) { break; } i++} i; })");
