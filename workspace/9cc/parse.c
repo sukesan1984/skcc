@@ -664,7 +664,7 @@ Node *expr() {
     return new_node(',', lhs, expr());
 }
 
-static bool peek_end(void) {
+static bool peek_end() {
     bool ret = consume('}') || (consume(',') && consume('}'));
     return ret;
 }
