@@ -78,11 +78,16 @@ static char *c_char(long *res, char *p) {
     }
     p++;
 
-    static char escaped[256] = {
-          ['a'] = '\a', ['b'] = '\b',   ['f'] = '\f',
-          ['n'] = '\n', ['r'] = '\r',   ['t'] = '\t',
-          ['v'] = '\v', ['e'] = '\033', ['E'] = '\033',
-    };
+    char escaped[256];
+    escaped['a'] = '\a';
+    escaped['b'] = '\b';
+    escaped['f'] = '\f';
+    escaped['n'] = '\n';
+    escaped['r'] = '\r';
+    escaped['t'] = '\t';
+    escaped['v'] = '\v';
+    escaped['e'] = 033;
+    escaped['E'] = 033;
 
     if (*p == '0') {
         *res = '\0';
@@ -241,22 +246,22 @@ static void scan() {
             continue;
         }
 
-        if (tokenize_comparable(tokens, TK_EQ, p, "==")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_MUL_EQ, p, "*=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_DIV_EQ, p, "/=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_MOD_EQ, p, "%=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_ADD_EQ, p, "+=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_SUB_EQ, p, "-=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_SHL_EQ, p, "<<=")) { p += 3; continue; };
-        if (tokenize_comparable(tokens, TK_SHR_EQ, p, ">>=")) { p += 3; continue; };
-        if (tokenize_comparable(tokens, TK_BITAND_EQ, p, "&=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_XOR_EQ, p, "^=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_BITOR_EQ, p, "|=")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_LOGOR, p, "||")) { p += 2; continue; };
-        if (tokenize_comparable(tokens, TK_LOGAND, p, "&&")) { p += 2; continue; };
+        if (tokenize_comparable(tokens, TK_EQ, p, "==")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_NE, p, "!=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_LE, p, "<=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_GE, p, ">=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_MUL_EQ, p, "*=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_DIV_EQ, p, "/=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_MOD_EQ, p, "%=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_ADD_EQ, p, "+=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_SUB_EQ, p, "-=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_SHL_EQ, p, "<<=")) { p += 3; continue; }
+        if (tokenize_comparable(tokens, TK_SHR_EQ, p, ">>=")) { p += 3; continue; }
+        if (tokenize_comparable(tokens, TK_BITAND_EQ, p, "&=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_XOR_EQ, p, "^=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_BITOR_EQ, p, "|=")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_LOGOR, p, "||")) { p += 2; continue; }
+        if (tokenize_comparable(tokens, TK_LOGAND, p, "&&")) { p += 2; continue; }
 
         if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
             Token *t = add_token(tokens, TK_IF, p);
