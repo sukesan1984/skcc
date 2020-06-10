@@ -189,6 +189,7 @@ static Node* walk(Node *node, bool decay) {
         node->cond = walk(node->cond, true);
         node->body = walk(node->body, true);
         return node;
+    case ND_DEFAULT:
     case ND_CASE:
         node->body = walk(node->body, true);
         return node;

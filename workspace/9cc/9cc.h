@@ -101,6 +101,7 @@ enum {
     TK_WHILE, // whileのトークン
     TK_SWITCH, // switch
     TK_CASE,
+    TK_DEFAULT, // default
     TK_BREAK, // break
     TK_CONTINUE, // continue
     TK_FOR, // forのトークン
@@ -194,6 +195,7 @@ enum {
     ND_DECL,     // declaration
     ND_SWITCH,   // swtich
     ND_CASE,     // case
+    ND_DEFAULT,  // default
     ND_CONTINUE, // continue
     ND_CAST,
     ND_DO_WHILE, // do ~ while

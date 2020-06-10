@@ -898,6 +898,18 @@ Node *control() {
         vec_push(n->cases, node);
         return node;
     }
+
+    if (consume(TK_DEFAULT)) {
+        Token *t = tokens->data[pos];
+        Node *node = calloc(1, sizeof(Node));
+        node->op = ND_DEFAULT;
+        node->case_label = nlabel++;
+        expect(':');
+        node->body = stmt();
+        Node *n = switches->data[switches->len - 1];
+        vec_push(n->cases, node);
+        return node;
+    }
     if (consume(TK_DO)) {
         Node *node = new_loop(ND_DO_WHILE);
         vec_push(breaks, node);
@@ -975,6 +987,7 @@ Node *stmt() {
         case TK_WHILE:
         case TK_SWITCH:
         case TK_CASE:
+        case TK_DEFAULT:
         case TK_FOR:
         case TK_DO:
             return control();

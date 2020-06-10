@@ -319,6 +319,14 @@ static void scan() {
             continue;
         }
 
+        if (strncmp(p, "default", 7) == 0 && !is_alnum(p[7])) {
+            Token *t = add_token(tokens, TK_DEFAULT, p);
+            p += 7;
+            t->end = p;
+            t->len = 7;
+            continue;
+        }
+
         if (strncmp(p, "break", 5) == 0 && !is_alnum(p[5])) {
             Token *t = add_token(tokens, TK_BREAK, p);
             p += 5;
