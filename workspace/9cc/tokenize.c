@@ -26,10 +26,10 @@ static bool startswith(char *p, char *q) {
     return strncmp(p, q, strlen(q)) == 0;
 }
 
-void show_tokens(Vector *tokens) {
+void show_tokens(Vector *ts) {
     fprintf(stderr, "show_tokens...\n");
-    for (int i = 0; i < tokens->len; i++) {
-        fprintf(stderr, "%s", tokstr(tokens->data[i]));
+    for (int i = 0; i < ts->len; i++) {
+        fprintf(stderr, "%s", tokstr(ts->data[i]));
     }
 }
 
@@ -59,10 +59,10 @@ int is_alnum(char c) {
            (c == '_');
 }
 
-int tokenize_comparable(Vector* tokens, int ty, char *p, char* token) {
+int tokenize_comparable(Vector* ts, int ty, char *p, char* token) {
     int len = strlen(token);
     if (strncmp(p, token, len) == 0) {
-        Token * t = add_token(tokens, ty, p);
+        Token * t = add_token(ts, ty, p);
         t->end = (p + len);
         t->len = len;
         return 1;
