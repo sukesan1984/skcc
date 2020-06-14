@@ -41,7 +41,8 @@ self: 9cc
 	$(CC) $(CFLAGS) -c _self_tokenize.s -o tokenize.self.o
 	$(CC) $(CFLAGS) -S util.c -o _self_util.s
 	$(CC) $(CFLAGS) -c _self_util.s -o util.self.o
-	$(CC) $(CFLAGS) -S sema.c -o _self_sema.s
+	#$(CC) $(CFLAGS) -S sema.c -o _self_sema.s
+	./9cc sema.c > _self_sema.s
 	$(CC) $(CFLAGS) -c _self_sema.s -o sema.self.o
 	$(CC) $(CFLAGS) -S codegen.c -o _self_codegen.s
 	#./9cc codegen.c > _self_codegen.s
