@@ -33,7 +33,8 @@ self: 9cc
 	#$(CC) $(CFLAGS) -S preprocess.c -o _self_preprocess.s
 	./9cc preprocess.c > _self_preprocess.s
 	$(CC) $(CFLAGS) -c _self_preprocess.s -o preprocess.self.o
-	$(CC) $(CFLAGS) -S parse.c -o _self_parse.s
+	#$(CC) $(CFLAGS) -S parse.c -o _self_parse.s
+	./9cc parse.c > _self_parse.s
 	$(CC) $(CFLAGS) -c _self_parse.s -o parse.self.o
 	#$(CC) $(CFLAGS) -S tokenize.c -o _self_tokenize.s
 	./9cc tokenize.c > _self_tokenize.s

@@ -122,3 +122,24 @@ struct Node {
     Node *next;
 };
 
+typedef struct VarScope {
+    struct  VarScope *next;
+    char *name;
+    Type *enum_ty;
+    int enum_val;
+} VarScope;
+
+typedef struct Env {
+    Map *tags;
+    Map *typedefs;
+    struct Env *next;
+    struct VarScope *var_scope;
+} Env;
+
+typedef struct Designator Designator;
+struct Designator {
+    Designator *next;
+    int idx;
+    char *name;
+};
+
