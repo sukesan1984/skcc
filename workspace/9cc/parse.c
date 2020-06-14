@@ -4,21 +4,6 @@ int nlabel = 1;
 static int str_label = 0;
 extern Vector* globals;
 
-typedef struct VarScope {
-    struct  VarScope *next;
-    char *name;
-    Type *enum_ty;
-    int enum_val;
-} VarScope;
-
-
-typedef struct Env {
-    Map *tags;
-    Map *typedefs;
-    struct Env *next;
-    struct VarScope *var_scope;
-} Env;
-
 static Vector *switches;
 static Vector *breaks;
 static Vector *continues;
@@ -27,20 +12,13 @@ static Vector *tokens;
 int pos = 0;
 struct Env *env;
 static Node null_stmt = {ND_NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 0, NULL, 0, 0, false, false, NULL};
-typedef struct Designator Designator;
-struct Designator {
-    Designator *next;
-    int idx;
-    char *name;
-};
-
 static Env *new_env(Env *next) {
-    Env *env = calloc(1, sizeof(Env));
-    env->tags = new_map();
-    env->typedefs = new_map();
-    env->next = next;
-    env->var_scope = NULL;
-    return env;
+    Env *e = calloc(1, sizeof(Env));
+    e->tags = new_map();
+    e->typedefs = new_map();
+    e->next = next;
+    e->var_scope = NULL;
+    return e;
 }
 
 static Type *find_typedef(char *name) {
@@ -294,7 +272,7 @@ Node *primary() {
     }
 
     if (t->ty == TK_STR) {
-        Token *t = tokens->data[pos++];
+        t = tokens->data[pos++];
         Node *node = calloc(1, sizeof(Node));
         node->op = ND_GVAR;
         node->ty = ary_of(char_ty(), t->len);
