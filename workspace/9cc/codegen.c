@@ -115,7 +115,31 @@ void gen_expr(Node *node){
         }
         // 変数に格納
         case '=': {
-            // 左辺が変数であるはず
+            // 左辺、右辺ともにSTRUCTの場合は、1バイトずつロードする
+            if (node->lhs->ty->ty == STRUCT && node->rhs->ty->ty == STRUCT) {
+                gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
+                gen_lval(node->rhs);            // 右辺値が評価されてスタックのトップに入っている
+
+                printf("#gen_expr =の処理開始\n");
+                pop("  pop r10        # 評価された右辺値をr10にロード\n");          // 評価された右辺値がr10にロード
+                pop("  pop r11        # 左辺の変数のアドレスがr11に格納\n");          // 変数のアドレスがraxに格納
+                for(int i = 0; i < node->lhs->ty->size; i++) {
+                    printf("  mov al, [r10 + %d]\n", i);
+                    printf("  mov [r11 + %d], al\n", i);
+                }
+                char *reg = "r10";
+                if (node->lhs->ty->size == 1)
+                    reg = "r10b";
+                else if (node->lhs->ty->size == 2)
+                    reg = "r10w";
+                else if (node->lhs->ty->size == 4)
+                    reg = "r10d";
+                printf("  mov %s, [r10]\n", reg);
+                if (node->lhs->ty->size < 8)
+                    printf("  movsx r10, %s\n", reg);
+                push("  push r10\n");
+                return;
+            }
             gen_lval(node->lhs);            // ここでスタックのトップに変数のアドレスが入っている
             gen_expr(node->rhs);            // 右辺値が評価されてスタックのトップに入っている
 
@@ -201,6 +225,9 @@ void gen_expr(Node *node){
                 printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
                 push("  push rax\n");
                 return;
+            //} else if (node->ty->ty == STRUCT) {
+            //    push("  push rax\n");
+            //    return;
             } else if (node->ty->size == 4) {
                 printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
                 printf("  movsx rax, eax\n");
@@ -245,6 +272,9 @@ void gen_expr(Node *node){
                 printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
                 push("  push rax\n");
                 return;
+            //} else if (node->ty->ty == STRUCT) {
+            //    push("  push rax\n");
+            //    return;
             } else if (node->ty->size == 4) {
                 printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
                 printf("  movsx rax, eax\n");
@@ -611,20 +641,18 @@ void gen_lval(Node *node) {
     printf("#gen_lvalの評価開始\n");
     if (node->op == ND_DEREF)
         return gen_expr(node->lhs);
-
-
     if (node->op == ND_DOT) {
-        printf("#gen_lvalとしてND_DOTを処理する\n");
         gen_lval(node->lhs);
-        printf("#structの先頭のアドレスがraxに入ってる?\n");
         pop("  pop rax\n");
         printf("  add rax, %d # rax %sのmemberのoffset:%d分だけ押し下げたアドレスが%sのmemberの変数のアドレス\n", node->offset, node->name, node->offset, node->name);
         push("  push rax\n");
         return;
     }
 
-    if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF)
+    if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF) {
+        fprintf(stderr, "node->op: %d\n", node->op);
         error("代入の左辺値が変数ではありません", 0);
+    }
 
     if (node->op == ND_LVAR || node->op == ND_VARDEF){
         printf("  mov rax, rbp # 関数のベースポインタをraxにコピー\n");         // ベースポインタをraxにコピー
