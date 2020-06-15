@@ -516,9 +516,24 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov r11b, [rax]\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov r11w, [rax]\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov r11d, [rax]\n");
+            else
+                printf("  mov r11, [rax]\n");
             printf("  mov r11, [rax]\n");
             printf("  sub r11, r10\n");
-            printf("  mov [rax], r11\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov [rax], r11b\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov [rax], r11w\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov [rax], r11d\n");
+            else
+                printf("  mov [rax], r11\n");
             printf("  push r11\n");
             return;
         case ND_POSTDEC:
@@ -533,10 +548,24 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
-            printf("  mov r11, [rax]\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov r11b, [rax]\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov r11w, [rax]\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov r11d, [rax]\n");
+            else
+                printf("  mov r11, [rax]\n");
             printf("  push r11\n");
             printf("  sub r11, r10\n");
-            printf("  mov [rax], r11\n");
+            if (node->lhs->ty->size == 1)
+                printf("  mov [rax], r11b\n");
+            else if (node->lhs->ty->size == 2)
+                printf("  mov [rax], r11w\n");
+            else if (node->lhs->ty->size == 4)
+                printf("  mov [rax], r11d\n");
+            else
+                printf("  mov [rax], r11\n");
             return;
         case ND_NEG:
             printf("#gen_expr - の評価開始\n");
@@ -576,8 +605,10 @@ void gen_expr(Node *node){
             printf("  push rax# !した値をつむ\n");
             return;
         case ND_CAST: {
-            if (node->ty->ty == VOID)
+            if (node->ty->ty == VOID) {
+                fprintf(stderr, "cast to void\n");
                 return;
+            }
             gen_expr(node->lhs);
             printf("  pop rax\n");
             if (node->ty->ty == BOOL) {
