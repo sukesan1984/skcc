@@ -1057,7 +1057,7 @@ Initializer *gvar_init_string(char *p, int len) {
     Initializer head = {};
     Initializer *cur = &head;
     for (int i = 0; i < len; i++)
-        cur = new_init_val(cur, 1, p[i]);
+        cur = new_init_val(cur, 1, (signed char) p[i]);
     return head.next;
 }
 
@@ -1361,7 +1361,6 @@ static Type *decl_specifiers() {
         Type *ty = find_typedef(t->name);
         if (ty)
             pos++;
-        fprintf(stderr, "decl_specifiers: not defined %s\n", t->name);
         return ty;
     }
     Type *ty = int_ty();

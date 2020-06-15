@@ -163,7 +163,7 @@ void gen_expr(Node *node){
             for (int i = 0; i < args_len; i++) {
                 printf("#先にND_NUMがここで処理されるのではない？\n");
                 printf("#gen_expr ND_CALL(引数処理): %d番目の引数\n", i);
-                gen_expr((Node *)  node->args->data[i]);         // スタックに引数を順に積む
+                gen_expr(node->args->data[i]);         // スタックに引数を順に積む
             }
             for (int i = args_len - 1; i >= 0; i--) {
                 printf("  pop rax      # スタックされた引数の評価値をスタックからraxに格納\n");                     // 結果をraxに格納

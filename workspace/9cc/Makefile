@@ -7,6 +7,7 @@ INCLUDES=-Iinclude  -I/usr/local/include -I/usr/include \
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 SELF_OBJS=$(SRCS:.c=.self.o)
+SELF2_OBJS=$(SRCS:.c=.self2.o)
 TEST_FILE=test/test.c
 
 
@@ -50,6 +51,30 @@ self: 9cc
 	$(CC) $(CFLAGS) -c _self_codegen.s -o codegen.self.o
 	$(CC) -o self $(SELF_OBJS) $(CFLAGS)
 
+2nd-self: self
+	./self main.c > _self_main2.s
+	$(CC) $(CFLAGS) -c _self_main2.s -o main.self2.o
+
+	./self preprocess.c > _self_preprocess2.s
+	$(CC) $(CFLAGS) -c _self_preprocess2.s -o preprocess.self2.o
+
+	./self parse.c > _self_parse2.s
+	$(CC) $(CFLAGS) -c _self_parse2.s -o parse.self2.o
+
+	./self tokenize.c > _self_tokenize2.s
+	$(CC) $(CFLAGS) -c _self_tokenize2.s -o tokenize.self2.o
+
+	./self util.c > _self_util2.s
+	$(CC) $(CFLAGS) -c _self_util2.s -o util.self2.o
+
+	./self sema.c > _self_sema2.s
+	$(CC) $(CFLAGS) -c _self_sema2.s -o sema.self2.o
+
+	./self codegen.c > _self_codegen2.s
+	$(CC) $(CFLAGS) -c _self_codegen2.s -o codegen.self2.o
+	$(CC) -o 2nd-self $(SELF2_OBJS) $(CFLAGS)
+
+
 self-test: self
 	@./self $(INCLUDES) $(TEST_FILE) > tmp-test.s
 	echo 'int static_fn() { return 5; }' | \
@@ -57,6 +82,23 @@ self-test: self
 	@gcc -g -static -o tmp-test tmp-test.s test/external.c tmp2.o
 	@./tmp-test
 	@./self -I. test/comment.c > tmp-test2.s
+	@gcc -static -o tmp-test2 tmp-test2.s
+	@./tmp-test2
+
+self2-test: 2nd-self
+	diff _self_main2.s _self_main.s
+	diff _self_preprocess2.s _self_preprocess.s
+	diff _self_parse2.s _self_parse.s
+	diff _self_tokenize2.s _self_tokenize.s
+	diff _self_util2.s _self_util.s
+	diff _self_sema2.s _self_sema.s
+	diff _self_codegen2.s _self_codegen.s
+	@./2nd-self $(INCLUDES) $(TEST_FILE) > tmp-test.s
+	echo 'int static_fn() { return 5; }' | \
+		gcc -xc -c -o tmp2.o -
+	@gcc -g -static -o tmp-test tmp-test.s test/external.c tmp2.o
+	@./tmp-test
+	@./2nd-self -I. test/comment.c > tmp-test2.s
 	@gcc -static -o tmp-test2 tmp-test2.s
 	@./tmp-test2
 
