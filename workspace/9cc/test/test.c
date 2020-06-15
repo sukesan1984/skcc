@@ -26,7 +26,6 @@ int* alloc4(int a, int b, int c, int d);
 int*** alloc5(int** pp, int** pq);
 void show(char* p);
 void show_num(int i);
-
 int assert(int expected, int actual, char *text) {
     if (actual == expected){
         printf("[ok] actual:%d expected: %d %s\n", actual, expected, text);
@@ -41,6 +40,17 @@ int fuga() {
     return 5;
 }
 
+int post_decl(int j) {
+    for (int i = 1; i >= 0; i--) {
+    }
+    return j;
+}
+
+int pre_decl(int j) {
+    for (int i = 1; i >= 0; --i) {
+    }
+    return j;
+}
 #define bool _Bool
 bool test_bool(bool a) {
     return a;
@@ -308,6 +318,8 @@ int main() {
 // pre dec --i
     assert(2, ({int i = 3; --i;}), "({int i = 3; --i;})");
     assert(2, ({int i = 3; int *j; j = &i; --*j;}), "({int i = 3; int *j; j = &i; --*j;})");
+    assert(-1, ({ post_decl(-1); }), "post_decl(-1);");
+    assert(-1, ({ pre_decl(-1); }), "post_decl(-1);");
 // post inc i++
     assert(3, ({int i = 3; i++;}), "({int i = 3; i++;})");
     assert(3, ({int i = 3; int *j; j = &i; *j++;}), "({int i = 3; int *j; j = &i; *j++;})");
