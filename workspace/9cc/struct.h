@@ -43,7 +43,7 @@ typedef struct {
     Type *type;  // tyがTK_NUMの場合の型
     long val;     // tyがTK_NUMの場合,その数値
     char *str;   // tyがTK_STRの場合はそのリテラル
-    char len;
+    int len;
     char *name;  // tyがTK_IDENTの場合、その名前
     char *input; // トークン文字列(エラーメッセージ用)
 

@@ -45,8 +45,8 @@ self: 9cc
 	#$(CC) $(CFLAGS) -S sema.c -o _self_sema.s
 	./9cc sema.c > _self_sema.s
 	$(CC) $(CFLAGS) -c _self_sema.s -o sema.self.o
-	$(CC) $(CFLAGS) -S codegen.c -o _self_codegen.s
-	#./9cc codegen.c > _self_codegen.s
+	#$(CC) $(CFLAGS) -S codegen.c -o _self_codegen.s
+	./9cc codegen.c > _self_codegen.s
 	$(CC) $(CFLAGS) -c _self_codegen.s -o codegen.self.o
 	$(CC) -o self $(SELF_OBJS) $(CFLAGS)
 
