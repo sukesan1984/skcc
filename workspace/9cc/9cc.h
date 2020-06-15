@@ -222,7 +222,6 @@ enum {
 // parse.c
 long const_expr_token(Vector *tokens, int pos);
 Initializer *gvar_init_string(char *p, int len);
-noreturn void error(char *fmt, ...);
 Vector *parse(Vector *tokens);
 Var *new_global(Type* ty, char *name, char *data, int len, bool is_extern, bool is_static);
 
@@ -265,7 +264,7 @@ void sb_append(StringBuilder *sb, char *s);
 void sb_append_n(StringBuilder *sb, char *s, int len);
 char *sb_get(StringBuilder *sb);
 
-char *format(char *fmt, ...);
+char *format(char *fmt, int label);
 char *read_file(char *path);
 
 // util

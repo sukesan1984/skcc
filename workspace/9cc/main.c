@@ -13,8 +13,10 @@ static void parse_args(int argc, char **argv) {
         }
         input_file = argv[i];
     }
-    if (!input_file)
-        error("no input files");
+    if (!input_file) {
+        fprintf(stderr, "no input files\n");
+        exit(1);
+    }
 }
 
 // トークナイズした結果のトークン列はvecに格納する

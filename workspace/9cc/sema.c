@@ -18,8 +18,10 @@ static Node *maybe_decay(Node *base, bool decay) {
 
 static void check_lval(Node *node) {
     int op = node->op;
-    if (op != ND_LVAR && op != ND_GVAR && op != ND_DEREF && op != ND_DOT)
-        error("not an lvaleu: %d (%s)", op, node->name);
+    if (op != ND_LVAR && op != ND_GVAR && op != ND_DEREF && op != ND_DOT) {
+        fprintf(stderr, "not an lvaleu: %d (%s)", op, node->name);
+        exit(1);
+    }
 }
 
 static Node *cast(Node *base, Type *ty) {
@@ -76,8 +78,10 @@ static Node* walk(Node *node, bool decay) {
     }
     case ND_IDENT: {
         Var *var = map_get(vars, node->name);
-        if (!var)
-            error("undefined variable: %s", node->name);
+        if (!var) {
+            fprintf(stderr, "undefined variable: %s", node->name);
+            exit(1);
+        }
         if (var->is_local) {
             Node *ret = calloc(1, sizeof(Node));
             ret->op = ND_LVAR;
@@ -97,11 +101,15 @@ static Node* walk(Node *node, bool decay) {
         return node;
     case ND_DOT:
         node->lhs = walk(node->lhs, true);
-        if (node->lhs->ty->ty != STRUCT)
-            error("struct expected before '.'");
+        if (node->lhs->ty->ty != STRUCT) {
+            fprintf(stderr, "struct expected before '.'");
+            exit(1);
+        }
         Type *ty = node->lhs->ty;
-        if (!ty->members)
-            error("incomplete type");
+        if (!ty->members) {
+            fprintf(stderr, "incomplete type");
+            exit(1);
+        }
         for (int i = 0; i < ty->members->len; i++) {
             Node *m = ty->members->data[i];
             if (strcmp(m->name, node->name))
@@ -110,7 +118,8 @@ static Node* walk(Node *node, bool decay) {
             node->offset = m->ty->offset;
             return maybe_decay(node, decay);
         }
-        error("member missing: %s", node->name);
+        fprintf(stderr, "member missing: %s", node->name);
+        exit(1);
     case ND_GVAR:
         if (decay && node->ty->ty == ARRAY)
             return maybe_decay(node, decay);
@@ -219,11 +228,15 @@ static Node* walk(Node *node, bool decay) {
         if(node->lhs->ty->ty == ARRAY)
             fprintf(stderr, "operand is ARRAY\n");
 
-        if(node->lhs->ty->ty != PTR)
-            error("operand must be a pointer");
+        if(node->lhs->ty->ty != PTR) {
+            fprintf(stderr, "operand must be a pointer");
+            exit(1);
+        }
 
-        if(node->lhs->ty->ptr_to->ty == VOID)
-            error("cannot dereference void pointer");
+        if(node->lhs->ty->ptr_to->ty == VOID) {
+            fprintf(stderr, "cannot dereference void pointer");
+            exit(1);
+        }
 
         node->ty = node->lhs->ty->ptr_to; // *p の場合 tyはptr_of
         return maybe_decay(node, decay);

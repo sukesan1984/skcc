@@ -6,7 +6,8 @@ static Vector *tokens;
 
 void error_token(int i){
     Token *t = tokens->data[i];
-    error("予期せぬトークンです:", t->input);
+    fprintf(stderr, "予期せぬトークンです:%s", t->input);
+    exit(1);
 }
 
 char *tokstr(Token *t) {
@@ -705,6 +706,7 @@ static void print_line(char *start, char *path, char *pos) {
 
 noreturn void bad_token(Token *t, char *msg) {
     print_line(t->buf, t->filename, t->start);
-    error(msg);
+    fprintf(stderr, "%s\n", msg);
+    exit(1);
 }
 

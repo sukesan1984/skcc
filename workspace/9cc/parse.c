@@ -204,8 +204,10 @@ static VarScope *push_scope(char *name) {
 
 static char *ident() {
     Token *t = tokens->data[pos++];
-    if (t->ty != TK_IDENT)
-        error("identifier expected, but got %s ty: %d", t->input, t->ty);
+    if (t->ty != TK_IDENT) {
+        fprintf(stderr, "identifier expected, but got %s ty: %d", t->input, t->ty);
+        exit(1);
+    }
     return t->name;
 }
 
@@ -243,7 +245,7 @@ static Type* read_array(Type *ty) {
         if (!consume(']')) {
             Node *len = expr();
             if (len->op != ND_NUM)
-                error("number expected");
+                fprintf(stderr, "number expected");
             vec_push(v, len);
             expect(']');
         } else {
@@ -329,8 +331,10 @@ Node *primary() {
             Type *ty = decl_specifiers();
             ty = abstract_declarator(ty);
             expect(')');
-            if (ty-ty == VOID)
-                error("voidはだめ\n");
+            if (ty-ty == VOID) {
+                fprintf(stderr, "voidはだめ\n");
+                exit(1);
+            }
             return new_node_num(ty->size);
         }
         Node *node = calloc(1, sizeof(Node));
@@ -347,8 +351,10 @@ Node *primary() {
             Type *ty = decl_specifiers();
             ty = abstract_declarator(ty);
             expect(')');
-            if (ty-ty == VOID)
-                error("voidはだめ\n");
+            if (ty-ty == VOID) {
+                fprintf(stderr, "voidはだめ\n");
+                exit(1);
+            }
             return new_node_num(ty->align);
         }
         Node *node = calloc(1, sizeof(Node));
@@ -358,7 +364,7 @@ Node *primary() {
     }
 
     t = tokens->data[pos];
-    error("数字でも開き括弧でもないトークンです: %s", t->input);
+    fprintf(stderr, "数字でも開き括弧でもないトークンです: %s", t->input);
     exit(1);
 }
 
@@ -763,16 +769,20 @@ static Node *direct_decl(Type *ty) {
         bad_token(t, "bad direct-declarator");
     }
 
-    if (node->ty->ty == VOID)
-        error("void variable: %s", node->name);
+    if (node->ty->ty == VOID) {
+        fprintf(stderr, "void variable: %s", node->name);
+        exit(1);
+    }
     *placeholder = *read_array(ty);
 
 
     if(consume('=')) {
         node->init = lvar_initializer(node->ty, node->name);
     } else {
-        if (node->ty->is_incomplete)
-            error("incomplete type: %s", node->name);
+        if (node->ty->is_incomplete) {
+            fprintf(stderr, "incomplete type: %s", node->name);
+            exit(1);
+        }
     }
     return node;
 }
@@ -836,7 +846,8 @@ Node *control() {
             Node *cond = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
-                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
+                fprintf(stderr, "ifは閉じ括弧で閉じる必要があります: %s", t->input);
+                exit(1);
             }
             pos++;
             if_node->cond = cond;
@@ -912,7 +923,8 @@ Node *control() {
             Node *node = expr(); // if/while分のカッコ内の処理
             Token *t = tokens->data[pos];
             if (t->ty != ')') {
-                error("ifは閉じ括弧で閉じる必要があります: %s", t->input);
+                fprintf(stderr, "ifは閉じ括弧で閉じる必要があります: %s", t->input);
+                exit(1);
             }
             pos++;
             while_node->lhs = node;
@@ -1094,7 +1106,8 @@ static long eval(Node *node) {
         case ND_NUM:
             return node->val;
     }
-    error("not a constant expression %d", node->op);
+    fprintf(stderr, "not a constant expression %d", node->op);
+    exit(1);
 }
 
 static Initializer *new_init_zero(Initializer *cur, int nbytes) {
@@ -1145,8 +1158,10 @@ static Initializer *gvar_initializer2(Initializer *cur, Type *ty) {
     }
     Node *expr = conditional();
     if (expr->op == ND_ADDR) {
-        if (expr->lhs->op != ND_IDENT)
-            error("invalid initializer");
+        if (expr->lhs->op != ND_IDENT) {
+            fprintf(stderr, "invalid initializer");
+            exit(1);
+        }
         return new_init_label(cur, expr->lhs->name);
     }
 
@@ -1270,8 +1285,10 @@ static Type *struct_decl() {
             vec_push(members, declaration());
     }
 
-    if (!tag && !members)
-        error("bad struct definition");
+    if (!tag && !members) {
+        fprintf(stderr, "bad struct definition");
+        exit(1);
+    }
 
     Type *ty = NULL;
     if (tag)
@@ -1300,10 +1317,14 @@ static Type *enum_decl() {
     }
     if (tag && !peek('{')) {
         ty = find_tag(tag);
-        if (!ty)
-            error("unknown enum type");
-        if (ty->ty != ENUM)
-            error("not an enum tag");
+        if (!ty) {
+            fprintf(stderr, "unknown enum type");
+            exit(1);
+        }
+        if (ty->ty != ENUM) {
+            fprintf(stderr, "not an enum tag");
+            exit(1);
+        }
         return ty;
     }
 
@@ -1331,8 +1352,10 @@ static Type *enum_decl() {
 
 static Type *decl_specifiers() {
     Token *t = tokens->data[pos];
-    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM && t->ty != TK_SIGNED && t->ty != TK_UNSIGNED)
-        error("typename expected, but got %s", t->input);
+    if (t->ty != TK_INT && t->ty != TK_LONG && t->ty != TK_SHORT && t->ty != TK_CHAR && t->ty != TK_STRUCT && t->ty != TK_IDENT && t->ty != TK_VOID && t->ty != TK_BOOL && t->ty != TK_ENUM && t->ty != TK_SIGNED && t->ty != TK_UNSIGNED) {
+        fprintf(stderr, "typename expected, but got %s", t->input);
+        exit(1);
+    }
 
     if (t->ty == TK_IDENT) {
         Type *ty = find_typedef(t->name);

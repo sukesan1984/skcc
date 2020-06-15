@@ -2,25 +2,13 @@
 
 void assert(int cond) {
     if (cond) return;
-    fprintf(stderr, "[ASSERT] %s, %d\n", __FILE__, __LINE__);
+    fprintf(stderr, "[ASSERT]\n");
     exit(EXIT_FAILURE);
 }
 
-// エラーを報告するための関数
-noreturn void error(char *fmt, ...){
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-char *format(char *fmt, ...) {
+char *format(char *fmt, int label) {
     char buf[2048];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, ap);
-    va_end(ap);
+    sprintf(buf, fmt, label);
     return strdup(buf);
 }
 
@@ -77,7 +65,7 @@ int map_geti(Map *map, char *key, int undef) {
     return undef;
 }
 
-StringBuilder *new_sb(void) {
+StringBuilder *new_sb() {
     StringBuilder *sb = malloc(sizeof(StringBuilder));
     sb->data = malloc(8);
     sb->capacity = 8;
@@ -143,15 +131,21 @@ Type *ptr_to(Type *base) {
 char *read_file(char *path) {
     // ファイルを開く
     FILE *fp = fopen(path, "r");
-    if (!fp)
-        error("cannnot open %s", path);
+    if (!fp) {
+        fprintf(stderr, "cannnot open %s", path);
+        exit(1);
+    }
 
     // ファイルの長さを調べる
-    if (fseek(fp, 0, SEEK_END) == -1)
-        error("%s: fseek", path);
+    if (fseek(fp, 0, SEEK_END) == -1) {
+        fprintf(stderr, "%s: fseek", path);
+        exit(1);
+    }
     size_t size = ftell(fp);
-    if (fseek(fp, 0, SEEK_SET) == -1)
-        error("%s: fseek", path);
+    if (fseek(fp, 0, SEEK_SET) == -1) {
+        fprintf(stderr, "%s: fseek", path);
+        exit(1);
+    }
 
     // ファイル内容を読み込む
     char *buf = malloc(size + 2);

@@ -334,7 +334,8 @@ static char *search_include_paths(char *filename) {
         if (file_exists(path))
             return path;
     }
-    error("%s: file not found", filename);
+    fprintf(stderr, "%s: file not found", filename);
+    exit(1);
 }
 
 static void include() {
