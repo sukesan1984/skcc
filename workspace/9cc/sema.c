@@ -1,7 +1,7 @@
 #include "9cc.h"
 
 static int str_label;
-static Map *vars;
+Map *vars;
 Vector *globals;
 Vector *strings;
 static int stacksize;

@@ -13,6 +13,10 @@ self-test:
 	make build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make self-test'
 
+self2-test:
+	make build
+	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make self2-test'
+
 dump: build
 	docker run --rm sukesan1984/make_compiler bash -c 'cd 9cc; make clean && make dump'
 
