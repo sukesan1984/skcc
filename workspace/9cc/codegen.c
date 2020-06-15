@@ -666,7 +666,7 @@ void gen_lval(Node *node) {
 
     if (node->op != ND_LVAR && node->op != ND_GVAR && node->op != ND_VARDEF) {
         fprintf(stderr, "node->op: %d\n", node->op);
-        fprintf(stderr, "代入の左辺値が変数ではありません", 0);
+        fprintf(stderr, "代入の左辺値が変数ではありません");
         exit(1);
     }
 
@@ -813,7 +813,8 @@ void gen_stmt(Node *node) {
             } else if (case_->op == ND_DEFAULT) {
                 default_ = case_;
             } else {
-                error("case is not default or case\n");
+                fprintf(stderr, "case is not default or case\n");
+                exit(1);
             }
         }
         // 存在する時は上記で引っかからなかったものをdefaultにとばす
