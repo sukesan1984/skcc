@@ -10,6 +10,7 @@ SELF_OBJS=$(SRCS:.c=.self.o)
 SELF2_OBJS=$(SRCS:.c=.self2.o)
 TEST_FILE=test/test.c
 
+all: test self-test self2-test
 
 9cc: $(OBJS)
 	$(CC) -o 9cc $(OBJS) $(LDFLAGS)

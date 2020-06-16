@@ -1,20 +1,19 @@
 build:
 	docker build -t sukesan1984/make_compiler .
 
-test:
-	make build
+all: build
+	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make all'
+
+test: build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make test'
 
-self:
-	make build
+self: build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make self'
 
-self-test:
-	make build
+self-test: build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make self-test'
 
-self2-test:
-	make build
+self2-test: build
 	docker run --rm sukesan1984/make_compiler  bash -c 'cd 9cc; make clean && make self2-test'
 
 dump: build

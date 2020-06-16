@@ -435,7 +435,7 @@ static Token *new_num_token(int val) {
 static Vector *read_const_expr() {
     Vector *_tokens = copy_until_eol();
     Token *t = _tokens->data[0];
-    fprintf(stderr, "################## \n %s\n", t->input);
+    //fprintf(stderr, "################## \n %s\n", t->input);
     Vector *new_tokens = new_vector();
     int i = 0;
     while (i < _tokens->len) {

@@ -524,7 +524,6 @@ void gen_expr(Node *node){
                 printf("  mov r11d, [rax]\n");
             else
                 printf("  mov r11, [rax]\n");
-            printf("  mov r11, [rax]\n");
             printf("  sub r11, r10\n");
             if (node->lhs->ty->size == 1)
                 printf("  mov [rax], r11b\n");
