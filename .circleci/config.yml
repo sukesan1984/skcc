@@ -6,6 +6,6 @@ jobs:
       docker_layer_caching: false
     steps:
       - checkout
-      - run: make build && make test
+      - run: make build && make all
     environment:
       TZ: "Asia/Tokyo"
