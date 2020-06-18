@@ -5,9 +5,53 @@ char* argreg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char* argreg16[] = { "di", "si", "dx", "cx", "r8w", "r9w" };
 char* argreg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 
+static char *reg(int idx) {
+    char *r[] = {"r10", "r11", "r12", "r13", "r14", "r15"};
+    if (idx < 0 || sizeof(r) / sizeof(*r) <= idx) {
+        fprintf(stderr, "register out of range: %d", idx);
+        exit(1);
+    }
+    return r[idx];
+}
 
 int stack = 0;
 
+void load(Type* ty, int idx) {
+    char *r;
+    if (ty->size == 1) {
+        r = reg(idx);
+        printf("  mov %sb, [rax]\n", r);
+        if (ty->is_unsigned)
+            printf("  movzx %s, %sb\n", r, r);
+        else
+            printf("  movsx %s, %sb\n", r, r);
+    } else if (ty->size == 2) {
+        r = reg(idx);
+        printf("  mov %sw, [rax]\n", r);
+        if (ty->is_unsigned)
+            printf("  movzx %s, %sw\n", r, r);
+        else
+            printf("  movsx %s, %sw\n", r, r);
+    } else if (ty->size == 4) {
+        r = reg(idx);
+        printf("  mov %sd, [rax]\n", r);
+        printf("  movsx %s, %sd\n", r, r);
+    } else {
+        r = reg(idx);
+        printf("  mov %s, [rax]\n", r);
+    }
+}
+
+void store(Type* ty, int idx) {
+    if (ty->size == 1)
+        printf("  mov [rax], %sb\n", reg(idx));
+    else if (ty->size == 2)
+        printf("  mov [rax], %sw\n", reg(idx));
+    else if (ty->size == 4)
+        printf("  mov [rax], %sd\n", reg(idx));
+    else
+        printf("  mov [rax], %s\n", reg(idx));
+}
 
 void gen_initial() {
     // アセンブリの前半部分を出力
@@ -112,16 +156,7 @@ void gen_expr(Node *node){
                     printf("  mov al, [r10 + %d]\n", i);
                     printf("  mov [r11 + %d], al\n", i);
                 }
-                char *reg = "r10";
-                if (node->lhs->ty->size == 1)
-                    reg = "r10b";
-                else if (node->lhs->ty->size == 2)
-                    reg = "r10w";
-                else if (node->lhs->ty->size == 4)
-                    reg = "r10d";
-                printf("  mov %s, [r10]\n", reg);
-                if (node->lhs->ty->size < 8)
-                    printf("  movsx r10, %s\n", reg);
+                load(node->lhs->ty, 0);
                 printf("  push r10\n");
                 return;
             }
@@ -143,16 +178,7 @@ void gen_expr(Node *node){
                 return;
             }
             printf("  pop rax        # 左辺の変数のアドレスがraxに格納\n");          // 変数のアドレスがraxに格納
-            if (node->lhs->ty->ty == INT)
-                reg = "r10d";
-            else if (node->lhs->ty->ty == LONG)
-                reg = "r10";
-            else if (node->lhs->ty->ty == SHORT)
-                reg = "r10w";
-            else if(node->lhs->ty->ty == CHAR)
-                reg = "r10b";
-
-            printf("  mov [rax], %s # raxのレジスタのアドレスにr10の値をストアする(この場合左辺のアドレスに右辺の評価値を書き込む) \n", reg);   // raxのレジスタのアドレスにr10の値をストアする
+            store(node->lhs->ty, 0);
             printf("  push r10       # 右辺値をスタックにプッシュする\n");         // r10の値をスタックにプッシュする
             return;
         }
@@ -210,35 +236,9 @@ void gen_expr(Node *node){
                 printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
                 printf("  push rax\n");
                 return;
-            //} else if (node->ty->ty == STRUCT) {
-            //    printf("  push rax\n");
-            //    return;
-            } else if (node->ty->size == 4) {
-                printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
-                printf("  movsx rax, eax\n");
-                printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
-                return;
-            } else if (node->ty->size == 8) {
-                reg = "rax";
-            } else if (node->ty->size ==2) {
-                printf("  mov ax, [rax] # ND_GVARのSHORTをロード \n");
-                if (node->ty->is_unsigned)
-                    printf("  movzx rax, ax\n");
-                else
-                    printf("  movsx rax, ax\n");
-                printf("  push rax \n");
-                return;
-            } else if (node->ty->size == 1) {
-                printf("  mov al, [rax] # ND_GVARのCHARをロード \n");
-                if (node->ty->is_unsigned)
-                    printf("  movzx rax, al\n");
-                else
-                    printf("  movsx rax, al\n");
-                printf("  push rax   \n");         // スタックにraxをpush
-                return;
             }
-            printf("  mov %s, [rax] # raxをアドレスとして値をロードしてraxに格納(この場合左辺値のアドレスに格納された値がraxに入る)\n", reg);   // raxをアドレスとして値をロードしてraxに格納
-            printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
+            load(node->ty, 0);
+            printf("  push r10       # 結果をスタックに積む\n");         // スタックにraxをpush
             return;
         }
 
@@ -257,34 +257,9 @@ void gen_expr(Node *node){
                 printf("  movzx rax, al # raxを0クリアしてからalの結果をraxに格納\n");    // raxを0クリアしてからalの結果をraxに格納
                 printf("  push rax\n");
                 return;
-            //} else if (node->ty->ty == STRUCT) {
-            //    return;
-            } else if (node->ty->size == 4) {
-                printf("  mov eax, [rax] # ND_GVARのSHORTをロード \n");
-                printf("  movsx rax, eax\n");
-                printf("  push rax       # 結果をスタックに積む\n");         // スタックにraxをpush
-                return;
-            } else if (node->ty->size == 8) {
-                reg = "rax";
-            } else if (node->ty->size == 2) {
-                printf("  mov ax, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
-                if (node->lhs->ty->is_unsigned)
-                    printf("  movsx rax, ax\n");
-                else
-                    printf("  movzx rax, ax\n");
-                printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
-                return;
-            } else if(node->ty->size == 1) {
-                printf("  mov al, [rax] # デリファレンスのアドレスから値をロード\n");   // raxをアドレスとして値をロードしてraxに格納
-                if (node->lhs->ty->is_unsigned)
-                    printf("  movsx rax, al\n");
-                else
-                    printf("  movzx rax, al\n");
-                printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
-                return;
             }
-            printf("  mov %s, [rax] # デリファレンスのアドレスから値をロード\n", reg);   // raxをアドレスとして値をロードしてraxに格納
-            printf("  push rax       # デリファレンス後の値の結果をスタックに積む\n");         // スタックにraxをpush
+            load(node->ty, 0);
+            printf("  push r10\n");         // スタックにraxをpush
             return;
         }
 
@@ -454,23 +429,9 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov r11b, [rax]\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov r11w, [rax]\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov r11d, [rax]\n");
-            else
-                printf("  mov r11, [rax]\n");
+            load(node->lhs->ty, 1);
             printf("  add r11, r10\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov [rax], r11b\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov [rax], r11w\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov [rax], r11d\n");
-            else
-                printf("  mov [rax], r11\n");
+            store(node->lhs->ty, 1);
             printf("  push r11\n");
             return;
         case ND_POSTINC:
@@ -485,24 +446,10 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov r11b, [rax]\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov r11w, [rax]\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov r11d, [rax]\n");
-            else
-                printf("  mov r11, [rax]\n");
+            load(node->lhs->ty, 1);
             printf("  push r11\n");
             printf("  add r11, r10\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov [rax], r11b\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov [rax], r11w\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov [rax], r11d\n");
-            else
-                printf("  mov [rax], r11\n");
+            store(node->lhs->ty, 1);
             return;
         case ND_PREDEC:
             printf("#gen_expr 前置-- の評価開始\n");
@@ -516,23 +463,9 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov r11b, [rax]\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov r11w, [rax]\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov r11d, [rax]\n");
-            else
-                printf("  mov r11, [rax]\n");
+            load(node->lhs->ty, 1);
             printf("  sub r11, r10\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov [rax], r11b\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov [rax], r11w\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov [rax], r11d\n");
-            else
-                printf("  mov [rax], r11\n");
+            store(node->lhs->ty, 1);
             printf("  push r11\n");
             return;
         case ND_POSTDEC:
@@ -547,24 +480,10 @@ void gen_expr(Node *node){
                 printf("  mov r10, 1\n");
             }
             printf("  pop rax\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov r11b, [rax]\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov r11w, [rax]\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov r11d, [rax]\n");
-            else
-                printf("  mov r11, [rax]\n");
+            load(node->lhs->ty, 1);
             printf("  push r11\n");
             printf("  sub r11, r10\n");
-            if (node->lhs->ty->size == 1)
-                printf("  mov [rax], r11b\n");
-            else if (node->lhs->ty->size == 2)
-                printf("  mov [rax], r11w\n");
-            else if (node->lhs->ty->size == 4)
-                printf("  mov [rax], r11d\n");
-            else
-                printf("  mov [rax], r11\n");
+            store(node->lhs->ty, 1);
             return;
         case ND_NEG:
             printf("#gen_expr - の評価開始\n");
